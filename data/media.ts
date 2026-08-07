@@ -1,9 +1,9 @@
 import type { StaticImageData } from "next/image";
-import exterior from "@/docs/images/woori-aroma-exterior.jpg";
-import treatmentRoom1 from "@/docs/images/woori-aroma-treatment-room-1.jpg";
-import treatmentRoom2 from "@/docs/images/woori-aroma-treatment-room-2.jpg";
-import footbath from "@/docs/images/woori-aroma-footbath.jpg";
-import reception from "@/docs/images/woori-aroma-reception.jpg";
+import exterior from "@/docs/images/woori-aroma-exterior-sunny-wide.jpg";
+import treatmentRoom from "@/docs/images/woori-aroma-treatment-room-three-beds-close.jpg";
+import backMassage from "@/docs/images/woori-aroma-back-massage.jpg";
+import hotStoneMassage from "@/docs/images/woori-aroma-hot-stone-massage.jpg";
+import shoulderNeckMassage from "@/docs/images/woori-aroma-shoulder-neck-massage.jpg";
 
 /**
  * Real Woori Aroma interior/exterior photography (docs/images),
@@ -13,18 +13,15 @@ import reception from "@/docs/images/woori-aroma-reception.jpg";
  */
 export const media = {
   exterior,
-  treatmentRoom1,
-  treatmentRoom2,
-  footbath,
-  reception,
+  treatmentRoom,
 };
 
 /** Hero image for the landing page. */
-export const heroImage = media.treatmentRoom1;
+export const heroImage = media.treatmentRoom;
 
 /** Atmosphere image per service, for the treatment cards. */
 export const serviceImages: Record<string, StaticImageData> = {
-  "aroma-oil": media.treatmentRoom2,
-  "hot-stone": media.treatmentRoom1,
-  facial: media.footbath,
+  "aroma-oil": backMassage,
+  "hot-stone": hotStoneMassage,
+  facial: shoulderNeckMassage,
 };
