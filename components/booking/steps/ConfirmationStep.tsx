@@ -8,6 +8,8 @@ import { calculateDepositAmount, calculateRemainingAmount, calculateTotalAmount,
 import { formatTimeLabel } from "@/lib/booking/time";
 import type { AppLocale } from "@/i18n/routing";
 
+const INSTAGRAM_URL = "https://www.instagram.com/aromatogether/";
+
 export function ConfirmationStep() {
   const t = useTranslations("steps.confirmation");
   const tCommon = useTranslations("common");
@@ -19,7 +21,7 @@ export function ConfirmationStep() {
   const service = option ? getService(option.serviceId) : undefined;
   const guestCount = draft.guestCount ?? 0;
 
-  if (!option || !service || !draft.date || !draft.time || !draft.reservationNumber) {
+  if (!option || !service || !draft.date || !draft.time || !draft.reservationNumber || !draft.details) {
     return null;
   }
 
@@ -54,6 +56,7 @@ export function ConfirmationStep() {
         </div>
 
         <dl className="mt-4 flex flex-col gap-3 text-sm">
+          <Row label={t("customerName")} value={draft.details.name} />
           <Row label={t("date")} value={dateLabel} />
           <Row label={t("time")} value={formatTimeLabel(draft.time, locale)} />
           <Row label={t("guests")} value={String(guestCount)} />
@@ -64,6 +67,10 @@ export function ConfirmationStep() {
         </dl>
 
         <div className="mt-4 flex flex-col gap-2 border-t border-stone-100 pt-4 text-sm">
+          <div className="flex items-center justify-between text-stone-600">
+            <span>{t("totalAmount")}</span>
+            <span>{formatCurrency(total, locale)}</span>
+          </div>
           <div className="flex items-center justify-between font-medium text-stone-900">
             <span>{t("depositPaid")}</span>
             <span>{formatCurrency(deposit, locale)}</span>
@@ -75,10 +82,14 @@ export function ConfirmationStep() {
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-3 gap-3">
-        <PlaceholderAction label={t("viewLocation")} />
-        <PlaceholderAction label={t("addToCalendar")} />
-        <PlaceholderAction label={t("contactUs")} />
+      <div className="mt-6 rounded-2xl border border-stone-200 bg-white p-5">
+        <p className="text-sm font-medium text-stone-900">{t("needHelpTitle")}</p>
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <PlaceholderAction label={t("viewLocation")} />
+          <PlaceholderAction label={t("addToCalendar")} />
+          <PlaceholderAction label={t("contactUs")} />
+          <ExternalLinkAction label={t("instagram")} href={INSTAGRAM_URL} />
+        </div>
       </div>
 
       <Link
@@ -101,16 +112,30 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-// View Location / Add to Calendar / Contact Us are wired up once
-// Google Maps, calendar export and WhatsApp integrations exist.
+const actionClass =
+  "flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border px-2 text-center text-xs transition-colors";
+
+// View Location / Add to Calendar / Contact Woori Aroma are wired up
+// once Google Maps, calendar export and a verified WhatsApp/phone
+// business contact exist (see lib/notifications for the confirmation
+// email/SMS side of this).
 function PlaceholderAction({ label }: { label: string }) {
   return (
-    <button
-      type="button"
-      disabled
-      className="flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border border-stone-200 bg-white px-2 text-center text-xs text-stone-500"
-    >
+    <button type="button" disabled className={`${actionClass} border-stone-200 bg-white text-stone-500`}>
       {label}
     </button>
+  );
+}
+
+function ExternalLinkAction({ label, href }: { label: string; href: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`${actionClass} border-stone-200 bg-white text-stone-800 hover:border-stone-400`}
+    >
+      {label}
+    </a>
   );
 }

@@ -5,8 +5,6 @@ import { useState, type FormEvent } from "react";
 import { useBooking } from "../BookingProvider";
 import { StepShell } from "../StepShell";
 import { PrimaryButton } from "@/components/common/PrimaryButton";
-import { countryCodes } from "@/data/countries";
-import { getCountryLabel } from "@/lib/booking/countries";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { localeNames } from "@/i18n/config";
 import type { BookingDetailsDraft } from "@/types/bookingState";
@@ -26,7 +24,6 @@ export function DetailsStep() {
       name: "",
       phone: "",
       email: "",
-      country: "",
       preferredLanguage: locale,
       specialRequest: "",
     },
@@ -37,9 +34,8 @@ export function DetailsStep() {
     name: form.name.trim().length === 0,
     phone: !PHONE_PATTERN.test(form.phone.trim()),
     email: !EMAIL_PATTERN.test(form.email.trim()),
-    country: form.country.trim().length === 0,
   };
-  const isValid = !errors.name && !errors.phone && !errors.email && !errors.country;
+  const isValid = !errors.name && !errors.phone && !errors.email;
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -109,27 +105,6 @@ export function DetailsStep() {
             className={`${inputClass} ${touched && errors.email ? errorClass : ""}`}
           />
           {touched && errors.email && <span className="text-xs text-red-500">{tValidation("invalidEmail")}</span>}
-        </label>
-
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-stone-800">
-            {t("country")} <span className="text-stone-400">({tCommon("required")})</span>
-          </span>
-          <select
-            value={form.country}
-            onChange={(e) => field("country", e.target.value)}
-            className={`${inputClass} ${touched && errors.country ? errorClass : ""}`}
-          >
-            <option value="" disabled>
-              {t("countryPlaceholder")}
-            </option>
-            {countryCodes.map((code) => (
-              <option key={code} value={code}>
-                {getCountryLabel(code, locale, tCommon("other"))}
-              </option>
-            ))}
-          </select>
-          {touched && errors.country && <span className="text-xs text-red-500">{tValidation("required")}</span>}
         </label>
 
         <label className="flex flex-col gap-1.5">

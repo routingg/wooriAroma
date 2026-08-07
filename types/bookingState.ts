@@ -18,7 +18,6 @@ export interface BookingDetailsDraft {
   name: string;
   phone: string;
   email: string;
-  country: string;
   preferredLanguage: AppLocale;
   specialRequest: string;
 }

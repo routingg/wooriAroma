@@ -1,15 +1,20 @@
 import { fromMinutes, rangesOverlap, toMinutes, type TimeRange } from "./time";
+import { getSeoulNow, type SeoulNow } from "./timezone";
 import type { TimeSlot } from "@/types/booking";
 
 /** Minutes required to set up before, and reset after, every treatment. */
 export const PREP_MINUTES = 60;
 export const CLEANUP_MINUTES = 60;
 
-/** Spa operating window. Prep must start no earlier than open, cleanup must finish by close. */
-export const BUSINESS_OPEN = "10:00";
-export const BUSINESS_CLOSE = "23:00";
-
-/** Candidate treatment start times are offered on this grid. */
+/**
+ * Fixed customer-facing start-time grid. 21:00 is the latest
+ * selectable START time, not a closing time — a treatment's
+ * prep/cleanup buffer may extend past it. This is a business policy,
+ * not a physical constraint, so it's kept centralized here for the
+ * future admin dashboard to override.
+ */
+export const SLOT_GRID_START = "10:00";
+export const SLOT_GRID_LATEST_START = "21:00";
 const SLOT_STEP_MINUTES = 30;
 
 /**
@@ -17,6 +22,19 @@ const SLOT_STEP_MINUTES = 30;
  * the spa, since only one group may be present at a time.
  */
 export type BlockedWindow = TimeRange;
+
+/** Every start time on the fixed grid, independent of date or availability. */
+export function generateBaseTimeSlots(): string[] {
+  const slots: string[] = [];
+  for (
+    let minutes = toMinutes(SLOT_GRID_START);
+    minutes <= toMinutes(SLOT_GRID_LATEST_START);
+    minutes += SLOT_STEP_MINUTES
+  ) {
+    slots.push(fromMinutes(minutes));
+  }
+  return slots;
+}
 
 /**
  * Given the customer-facing treatment window, returns the full
@@ -44,40 +62,40 @@ export function checkBookingConflict(
 }
 
 /**
- * Produces every bookable start time for a treatment of the given
- * duration on a single day, honoring business hours, the prep/cleanup
- * buffers, and any already-booked groups.
+ * True if `time` on `dateKey` has already passed, in Asia/Seoul.
+ * A date before today is entirely in the past regardless of the time
+ * requested; a date after today is never in the past regardless of
+ * today's clock — today's current time only matters when the
+ * selected date IS today.
+ */
+export function isSlotInPast(dateKey: string, time: string, now: SeoulNow = getSeoulNow()): boolean {
+  if (dateKey !== now.dateKey) return dateKey < now.dateKey;
+  return toMinutes(time) <= now.minutes;
+}
+
+/**
+ * Produces every slot on the fixed start-time grid for a treatment of
+ * the given duration on `dateKey`, marking each as available/
+ * unavailable based on: whether it has already passed (Asia/Seoul),
+ * and whether its prep/cleanup-inclusive blocked window conflicts
+ * with an already-booked group.
  *
  * `existingBlockedWindows` is expected to come from the reservation
  * backend eventually; for this MVP it is sourced from mock data (see
  * lib/booking/mockData.ts).
  */
 export function generateAvailableSlots(
+  dateKey: string,
   durationMinutes: number,
   existingBlockedWindows: BlockedWindow[],
+  now: SeoulNow = getSeoulNow(),
 ): TimeSlot[] {
-  const slots: TimeSlot[] = [];
-  const openMinutes = toMinutes(BUSINESS_OPEN);
-  const closeMinutes = toMinutes(BUSINESS_CLOSE);
+  return generateBaseTimeSlots().map((time) => {
+    const serviceEnd = fromMinutes(toMinutes(time) + durationMinutes);
+    const blocked = calculateBlockedTime(time, serviceEnd);
+    const past = isSlotInPast(dateKey, time, now);
+    const conflict = checkBookingConflict(blocked, existingBlockedWindows);
 
-  for (
-    let startMinutes = openMinutes;
-    startMinutes + durationMinutes <= closeMinutes;
-    startMinutes += SLOT_STEP_MINUTES
-  ) {
-    const serviceStart = fromMinutes(startMinutes);
-    const serviceEnd = fromMinutes(startMinutes + durationMinutes);
-    const blocked = calculateBlockedTime(serviceStart, serviceEnd);
-
-    if (toMinutes(blocked.start) < openMinutes || toMinutes(blocked.end) > closeMinutes) {
-      continue;
-    }
-
-    slots.push({
-      time: serviceStart,
-      available: !checkBookingConflict(blocked, existingBlockedWindows),
-    });
-  }
-
-  return slots;
+    return { time, available: !past && !conflict };
+  });
 }

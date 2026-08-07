@@ -51,7 +51,6 @@
     "recommended": "推荐",
     "perPerson": "/ 人",
     "min": "分钟",
-    "other": "其他",
     "step": "第 {current} / {total} 步"
   },
   "steps": {
@@ -87,8 +86,6 @@
       "phone": "电话 / WhatsApp",
       "email": "邮箱",
       "emailPlaceholder": "you@example.com",
-      "country": "国家",
-      "countryPlaceholder": "请选择国家",
       "preferredLanguage": "希望使用的沟通语言",
       "preferredLanguageHint": "即使与网站语言不同，我们也会使用此语言与您联系。",
       "specialRequest": "特殊需求",
@@ -114,15 +111,19 @@
       "title": "预约已确认",
       "subtitle": "期待在 Woori Aroma 与您相见。",
       "reservationNumber": "预约编号",
+      "customerName": "姓名",
       "date": "日期",
       "time": "时间",
       "guests": "人数",
       "treatment": "护理项目",
+      "totalAmount": "总金额",
       "depositPaid": "已付订金",
       "remainingBalance": "剩余尾款",
+      "needHelpTitle": "预约有问题？",
       "viewLocation": "查看位置",
       "addToCalendar": "添加到日历",
-      "contactUs": "联系我们",
+      "contactUs": "联系 Woori Aroma",
+      "instagram": "Instagram",
       "bookAnother": "再次预约"
     }
   },

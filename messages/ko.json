@@ -51,7 +51,6 @@
     "recommended": "추천",
     "perPerson": "/ 인",
     "min": "분",
-    "other": "기타",
     "step": "{total}단계 중 {current}단계"
   },
   "steps": {
@@ -87,8 +86,6 @@
       "phone": "전화번호 / WhatsApp",
       "email": "이메일",
       "emailPlaceholder": "you@example.com",
-      "country": "국가",
-      "countryPlaceholder": "국가를 선택해 주세요",
       "preferredLanguage": "선호하는 상담 언어",
       "preferredLanguageHint": "사이트 언어와 다르더라도 이 언어로 연락드립니다.",
       "specialRequest": "요청 사항",
@@ -114,15 +111,19 @@
       "title": "예약이 확정되었습니다",
       "subtitle": "우리아로마에서 뵙게 되어 기쁩니다.",
       "reservationNumber": "예약 번호",
+      "customerName": "이름",
       "date": "날짜",
       "time": "시간",
       "guests": "인원",
       "treatment": "트리트먼트",
+      "totalAmount": "총 금액",
       "depositPaid": "결제된 예약금",
       "remainingBalance": "잔금",
+      "needHelpTitle": "예약 관련 도움이 필요하신가요?",
       "viewLocation": "위치 보기",
       "addToCalendar": "캘린더에 추가",
-      "contactUs": "문의하기",
+      "contactUs": "우리아로마 문의하기",
+      "instagram": "인스타그램",
       "bookAnother": "다른 예약 만들기"
     }
   },

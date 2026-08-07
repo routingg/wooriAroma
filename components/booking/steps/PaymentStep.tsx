@@ -6,11 +6,14 @@ import { useBooking } from "../BookingProvider";
 import { StepShell } from "../StepShell";
 import { PrimaryButton } from "@/components/common/PrimaryButton";
 import { getPaymentProvider } from "@/lib/payment";
-import { calculateDepositAmount } from "@/lib/booking/pricing";
+import { calculateDepositAmount, calculateRemainingAmount, calculateTotalAmount } from "@/lib/booking/pricing";
 import { generateReservationNumber } from "@/lib/booking/mockData";
+import { getService, getServiceOption } from "@/data/services";
+import { notifyBookingCreated } from "@/lib/notifications";
 
 export function PaymentStep() {
   const t = useTranslations("steps.payment");
+  const tServices = useTranslations("services");
   const { draft, setPaymentResult, goNext } = useBooking();
   const [status, setStatus] = useState<"processing" | "failed">("processing");
   const hasStarted = useRef(false);
@@ -19,8 +22,9 @@ export function PaymentStep() {
     if (hasStarted.current || !draft.details || !draft.guestCount) return;
     hasStarted.current = true;
 
+    const guestCount = draft.guestCount;
     const reservationNumber = draft.reservationNumber ?? generateReservationNumber(draft.date ?? "");
-    const deposit = calculateDepositAmount(draft.guestCount);
+    const deposit = calculateDepositAmount(guestCount);
 
     getPaymentProvider()
       .chargeDeposit({
@@ -31,14 +35,39 @@ export function PaymentStep() {
         customerEmail: draft.details.email,
       })
       .then((result) => {
-        if (result.success) {
-          setPaymentResult(reservationNumber, result.transactionId);
-          goNext();
-        } else {
+        if (!result.success) {
           setStatus("failed");
+          return;
         }
+
+        setPaymentResult(reservationNumber, result.transactionId);
+
+        const option = draft.serviceOptionId ? getServiceOption(draft.serviceOptionId) : undefined;
+        const service = option ? getService(option.serviceId) : undefined;
+        if (option && service && draft.date && draft.time && draft.details) {
+          const total = calculateTotalAmount(option.pricePerPerson, guestCount);
+          // Fire-and-forget: notification delivery must never gate the
+          // confirmation screen or affect this already-successful reservation.
+          void notifyBookingCreated({
+            reservationNumber,
+            customerName: draft.details.name,
+            customerEmail: draft.details.email,
+            customerPhone: draft.details.phone,
+            preferredLanguage: draft.details.preferredLanguage,
+            date: draft.date,
+            time: draft.time,
+            guestCount,
+            treatmentName: tServices(service.nameKey.replace("services.", "")),
+            durationMinutes: option.durationMinutes,
+            totalAmount: total,
+            depositAmount: deposit,
+            remainingAmount: calculateRemainingAmount(total, deposit),
+          });
+        }
+
+        goNext();
       });
-  }, [draft, goNext, setPaymentResult]);
+  }, [draft, goNext, setPaymentResult, tServices]);
 
   function retry() {
     hasStarted.current = false;

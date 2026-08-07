@@ -8,16 +8,6 @@ export function toDateKey(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
-export function isSameDay(a: Date, b: Date): boolean {
-  return toDateKey(a) === toDateKey(b);
-}
-
-export function startOfDay(date: Date): Date {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
 export function formatMonthYear(date: Date, locale: string): string {
   return new Intl.DateTimeFormat(locale, { year: "numeric", month: "long" }).format(date);
 }

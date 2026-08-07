@@ -2,14 +2,8 @@
 
 import { useState } from "react";
 import { useLocale } from "next-intl";
-import {
-  formatMonthYear,
-  getMonthGrid,
-  getWeekdayLabels,
-  isSameDay,
-  startOfDay,
-  toDateKey,
-} from "@/lib/booking/calendar";
+import { formatMonthYear, getMonthGrid, getWeekdayLabels, toDateKey } from "@/lib/booking/calendar";
+import { getSeoulNow } from "@/lib/booking/timezone";
 
 export function Calendar({
   selectedDateKey,
@@ -19,13 +13,16 @@ export function Calendar({
   onSelect: (dateKey: string) => void;
 }) {
   const locale = useLocale();
-  const today = startOfDay(new Date());
-  const [visibleMonth, setVisibleMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
+  // "Today" is always Asia/Seoul's today — a tourist browsing from
+  // another timezone must see Jeju's calendar, not their device's.
+  const todayKey = getSeoulNow().dateKey;
+  const [todayYear, todayMonth] = todayKey.split("-").map(Number);
+  const [visibleMonth, setVisibleMonth] = useState(() => new Date(todayYear, todayMonth - 1, 1));
 
   const weeks = getMonthGrid(visibleMonth.getFullYear(), visibleMonth.getMonth());
   const weekdayLabels = getWeekdayLabels(locale);
   const isCurrentMonth =
-    visibleMonth.getFullYear() === today.getFullYear() && visibleMonth.getMonth() === today.getMonth();
+    visibleMonth.getFullYear() === todayYear && visibleMonth.getMonth() === todayMonth - 1;
 
   function goToPreviousMonth() {
     setVisibleMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
@@ -76,8 +73,8 @@ export function Calendar({
             if (!date) return <div key={`${weekIndex}-${dayIndex}`} />;
 
             const dateKey = toDateKey(date);
-            const isPast = date < today;
-            const isToday = isSameDay(date, today);
+            const isPast = dateKey < todayKey;
+            const isToday = dateKey === todayKey;
             const isSelected = selectedDateKey === dateKey;
 
             return (

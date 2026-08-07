@@ -51,7 +51,6 @@
     "recommended": "Recommended",
     "perPerson": "/ person",
     "min": "min",
-    "other": "Other",
     "step": "Step {current} of {total}"
   },
   "steps": {
@@ -87,8 +86,6 @@
       "phone": "Phone / WhatsApp",
       "email": "Email",
       "emailPlaceholder": "you@example.com",
-      "country": "Country",
-      "countryPlaceholder": "Select your country",
       "preferredLanguage": "Preferred language for communication",
       "preferredLanguageHint": "We'll contact you in this language, even if it differs from the site language.",
       "specialRequest": "Special requests",
@@ -114,15 +111,19 @@
       "title": "Reservation Confirmed",
       "subtitle": "We look forward to welcoming you to Woori Aroma.",
       "reservationNumber": "Reservation Number",
+      "customerName": "Name",
       "date": "Date",
       "time": "Time",
       "guests": "Guests",
       "treatment": "Treatment",
+      "totalAmount": "Total",
       "depositPaid": "Deposit Paid",
       "remainingBalance": "Remaining Balance",
+      "needHelpTitle": "Need help with your reservation?",
       "viewLocation": "View Location",
       "addToCalendar": "Add to Calendar",
-      "contactUs": "Contact Us",
+      "contactUs": "Contact Woori Aroma",
+      "instagram": "Instagram",
       "bookAnother": "Make Another Reservation"
     }
   },

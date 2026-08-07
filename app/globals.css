@@ -1,26 +1,57 @@
 @import "tailwindcss";
 
+/*
+ * Woori Aroma brand palette — warm hinoki wood, Jeju stone, and soft
+ * forest green, grounded in the spa's real interior photography
+ * (docs/images). This overrides Tailwind's built-in `stone` scale
+ * directly so every existing `bg-stone-50` / `text-stone-900` / etc.
+ * utility across the app picks up the new warm tones without
+ * touching class names component by component.
+ */
+@theme {
+  --color-stone-50: #faf6ee;
+  --color-stone-100: #f2e9d8;
+  --color-stone-200: #e6d6b8;
+  --color-stone-300: #d4bd91;
+  --color-stone-400: #b89b6c;
+  --color-stone-500: #9a7d52;
+  --color-stone-600: #7a6142;
+  --color-stone-700: #5c4a35;
+  --color-stone-800: #423525;
+  --color-stone-900: #2f2618;
+
+  --color-forest-50: #f2f5ee;
+  --color-forest-100: #e2e9d8;
+  --color-forest-500: #6b7a56;
+  --color-forest-600: #566043;
+  --color-forest-700: #434c35;
+
+  --font-sans: var(--font-work-sans);
+}
+
+/*
+ * Semantic aliases onto the token scale above — named per the brand
+ * design-system concept (background / surface / wood / forest /
+ * stone / text / border / accent) for anything reaching for a
+ * semantic name instead of a raw Tailwind shade going forward.
+ * Components mostly consume the stone and forest Tailwind utilities
+ * directly; these aliases exist so the underlying palette has one
+ * source of truth either way.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-background: var(--color-stone-50);
+  --color-surface: #ffffff;
+  --color-wood: var(--color-stone-700);
+  --color-wood-dark: var(--color-stone-900);
+  --color-forest: var(--color-forest-500);
+  --color-stone-line: var(--color-stone-200);
+  --color-text-primary: var(--color-stone-900);
+  --color-text-secondary: var(--color-stone-600);
+  --color-border: var(--color-stone-200);
+  --color-accent: var(--color-forest-500);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-text-primary);
 }

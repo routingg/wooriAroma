@@ -46,7 +46,7 @@ export function DurationStep() {
                 {option.recommended ? (
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                      selected ? "bg-stone-50 text-stone-900" : "bg-stone-900 text-stone-50"
+                      selected ? "bg-stone-50 text-forest-700" : "bg-forest-500 text-stone-50"
                     }`}
                   >
                     {tCommon("recommended")}

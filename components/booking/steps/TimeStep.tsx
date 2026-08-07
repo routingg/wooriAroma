@@ -20,7 +20,7 @@ export function TimeStep() {
 
   const slots = useMemo(() => {
     if (!option || !draft.date) return [];
-    return generateAvailableSlots(option.durationMinutes, getMockBlockedWindows(draft.date));
+    return generateAvailableSlots(draft.date, option.durationMinutes, getMockBlockedWindows(draft.date));
   }, [option, draft.date]);
 
   return (

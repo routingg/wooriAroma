@@ -3,19 +3,17 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { Geist, Geist_Mono, Cormorant_Garamond } from "next/font/google";
+import { Work_Sans, Cormorant_Garamond } from "next/font/google";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { localeHtmlLang } from "@/i18n/config";
 import { SiteHeader } from "@/components/common/SiteHeader";
 import "../globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+// A warm humanist grotesk for body text — reads calmer and less
+// "SaaS dashboard" than a geometric sans, while staying highly
+// legible for international travelers.
+const bodySans = Work_Sans({
+  variable: "--font-work-sans",
   subsets: ["latin"],
 });
 
@@ -61,7 +59,7 @@ export default async function LocaleLayout({
   return (
     <html
       lang={localeHtmlLang[locale as AppLocale]}
-      className={`${geistSans.variable} ${geistMono.variable} ${displaySerif.variable} h-full`}
+      className={`${bodySans.variable} ${displaySerif.variable} h-full`}
     >
       <body className="flex min-h-full flex-col bg-stone-50 font-sans text-stone-900 antialiased">
         <NextIntlClientProvider>

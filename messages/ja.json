@@ -51,7 +51,6 @@
     "recommended": "おすすめ",
     "perPerson": "/ 名",
     "min": "分",
-    "other": "その他",
     "step": "ステップ {current} / {total}"
   },
   "steps": {
@@ -87,8 +86,6 @@
       "phone": "電話番号 / WhatsApp",
       "email": "メールアドレス",
       "emailPlaceholder": "you@example.com",
-      "country": "国",
-      "countryPlaceholder": "国を選択してください",
       "preferredLanguage": "ご希望の連絡言語",
       "preferredLanguageHint": "サイトの表示言語と異なっていても、こちらの言語でご連絡いたします。",
       "specialRequest": "ご要望・特記事項",
@@ -114,15 +111,19 @@
       "title": "ご予約が確定しました",
       "subtitle": "Woori Aroma にてお会いできることを楽しみにしております。",
       "reservationNumber": "予約番号",
+      "customerName": "お名前",
       "date": "日付",
       "time": "時間",
       "guests": "人数",
       "treatment": "トリートメント",
+      "totalAmount": "合計金額",
       "depositPaid": "お支払い済みの予約金",
       "remainingBalance": "残額",
+      "needHelpTitle": "ご予約について、お困りのことはありませんか？",
       "viewLocation": "場所を見る",
       "addToCalendar": "カレンダーに追加",
-      "contactUs": "お問い合わせ",
+      "contactUs": "Woori Aroma に問い合わせる",
+      "instagram": "Instagram",
       "bookAnother": "別の予約をする"
     }
   },
