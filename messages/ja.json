@@ -1,0 +1,134 @@
+{
+  "meta": {
+    "title": "Woori Aroma | 済州のプライベートスパ",
+    "description": "済州島・中文（チュンムン）のプライベートスパ Woori Aroma のご予約。一度に一組限定、最大4名まで、あなたのグループだけの時間をお過ごしいただけます。"
+  },
+  "header": {
+    "bookCta": "予約する"
+  },
+  "language": {
+    "label": "言語"
+  },
+  "landing": {
+    "kicker": "PRIVATE SPA · JEJU",
+    "brand": "WOORI AROMA",
+    "heroLine1": "済州島で過ごすプライベートスパ、",
+    "heroLine2": "あなたのグループだけのための時間。",
+    "tagline": "One Time. One Team.",
+    "capacity": "最大4名様まで。",
+    "cta": "予約をはじめる",
+    "treatmentsHeading": "トリートメント紹介",
+    "treatmentsSubheading": "すべてのトリートメントはプライベート空間で — スパにはあなたのグループだけ。",
+    "footerNote": "済州島 中文 · 完全予約制"
+  },
+  "services": {
+    "aromaOil": {
+      "name": "アロマオイル",
+      "description": "天然植物オイルで全身の緊張をほぐすリラックスマッサージ。"
+    },
+    "hotStone": {
+      "name": "ホットストーン",
+      "description": "温めた玄武岩ストーンで深部の筋肉のこりをほぐします。"
+    },
+    "facial": {
+      "name": "フェイシャル",
+      "description": "肌をやさしく洗浄・保湿し、透明感を引き出すケア。"
+    }
+  },
+  "progress": {
+    "guests": "人数",
+    "treatment": "トリートメント",
+    "dateTime": "日時",
+    "details": "お客様情報",
+    "confirm": "確認"
+  },
+  "common": {
+    "back": "戻る",
+    "next": "次へ",
+    "continue": "続ける",
+    "required": "必須",
+    "optional": "任意",
+    "recommended": "おすすめ",
+    "perPerson": "/ 名",
+    "min": "分",
+    "other": "その他",
+    "step": "ステップ {current} / {total}"
+  },
+  "steps": {
+    "guests": {
+      "title": "ご利用人数をお選びください",
+      "subtitle": "Woori Aroma は一度に一組限定でお迎えしており、最大4名様までご予約いただけます。",
+      "option": "{count}名"
+    },
+    "treatment": {
+      "title": "トリートメントを選択",
+      "subtitle": "グループで一緒に受けるトリートメントをお選びください。",
+      "comingSoon": "近日公開"
+    },
+    "duration": {
+      "title": "施術時間を選択",
+      "subtitle": "料金は お一人様あたりの価格です。"
+    },
+    "date": {
+      "title": "日付を選択",
+      "subtitle": "他のグループのご予約状況により、選べる日程が変わります。"
+    },
+    "time": {
+      "title": "時間を選択",
+      "subtitle": "各トリートメントの前後には準備・片付けの時間が含まれます。",
+      "noSlots": "この日はご予約可能な時間がありません。別の日をお選びください。",
+      "unavailable": "予約済み"
+    },
+    "details": {
+      "title": "お客様情報のご入力",
+      "subtitle": "ご予約確認のため、以下の情報をご入力ください。",
+      "name": "お名前",
+      "namePlaceholder": "お名前を入力してください",
+      "phone": "電話番号 / WhatsApp",
+      "email": "メールアドレス",
+      "emailPlaceholder": "you@example.com",
+      "country": "国",
+      "countryPlaceholder": "国を選択してください",
+      "preferredLanguage": "ご希望の連絡言語",
+      "preferredLanguageHint": "サイトの表示言語と異なっていても、こちらの言語でご連絡いたします。",
+      "specialRequest": "ご要望・特記事項",
+      "specialRequestPlaceholder": "アレルギー、配慮が必要な点、記念日などございましたらお知らせください。"
+    },
+    "review": {
+      "title": "ご予約内容",
+      "guestsLabel": "{count}名",
+      "treatmentLine": "{price} × {count}",
+      "totalLabel": "合計金額",
+      "depositLabel": "予約金",
+      "payAtSpaLabel": "現地でのお支払い",
+      "edit": "編集",
+      "confirmAndPay": "予約金を支払って確定する",
+      "termsNote": "残額はトリートメント後、現地にてお支払いください。"
+    },
+    "payment": {
+      "processing": "予約金を処理しています…",
+      "failed": "お支払いを完了できませんでした。もう一度お試しください。",
+      "retry": "再試行"
+    },
+    "confirmation": {
+      "title": "ご予約が確定しました",
+      "subtitle": "Woori Aroma にてお会いできることを楽しみにしております。",
+      "reservationNumber": "予約番号",
+      "date": "日付",
+      "time": "時間",
+      "guests": "人数",
+      "treatment": "トリートメント",
+      "depositPaid": "お支払い済みの予約金",
+      "remainingBalance": "残額",
+      "viewLocation": "場所を見る",
+      "addToCalendar": "カレンダーに追加",
+      "contactUs": "お問い合わせ",
+      "bookAnother": "別の予約をする"
+    }
+  },
+  "validation": {
+    "required": "この項目は必須です。",
+    "invalidEmail": "正しいメールアドレスを入力してください。",
+    "invalidPhone": "正しい電話番号を入力してください。"
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "meta": {
+    "title": "Woori Aroma | 济州私人水疗",
+    "description": "预约位于济州中文洞的私人水疗 Woori Aroma。一次只服务一组客人，最多4位，专属于您和您的同伴。"
+  },
+  "header": {
+    "bookCta": "立即预约"
+  },
+  "language": {
+    "label": "语言"
+  },
+  "landing": {
+    "kicker": "PRIVATE SPA · JEJU",
+    "brand": "WOORI AROMA",
+    "heroLine1": "在济州岛享受私人水疗，",
+    "heroLine2": "专属于您和您的同伴。",
+    "tagline": "One Time. One Team.",
+    "capacity": "最多4位。",
+    "cta": "开始预约",
+    "treatmentsHeading": "特色护理项目",
+    "treatmentsSubheading": "所有护理均为私享空间 — 水疗中心同一时间只接待您这一组客人。",
+    "footerNote": "济州中文洞 · 仅接受预约"
+  },
+  "services": {
+    "aromaOil": {
+      "name": "香薰精油",
+      "description": "使用纯天然植物精油的全身放松按摩。"
+    },
+    "hotStone": {
+      "name": "热石理疗",
+      "description": "温热的玄武岩石帮助舒缓深层肌肉紧张。"
+    },
+    "facial": {
+      "name": "面部护理",
+      "description": "温和洁净与补水护理，带来净透光采肌肤。"
+    }
+  },
+  "progress": {
+    "guests": "人数",
+    "treatment": "护理项目",
+    "dateTime": "日期与时间",
+    "details": "填写信息",
+    "confirm": "确认"
+  },
+  "common": {
+    "back": "上一步",
+    "next": "下一步",
+    "continue": "继续",
+    "required": "必填",
+    "optional": "选填",
+    "recommended": "推荐",
+    "perPerson": "/ 人",
+    "min": "分钟",
+    "other": "其他",
+    "step": "第 {current} / {total} 步"
+  },
+  "steps": {
+    "guests": {
+      "title": "请问有几位客人？",
+      "subtitle": "Woori Aroma 一次只接待一组私人客人，最多4位。",
+      "option": "{count}位"
+    },
+    "treatment": {
+      "title": "选择护理项目",
+      "subtitle": "请选择您与同伴想一起体验的护理项目。",
+      "comingSoon": "即将推出"
+    },
+    "duration": {
+      "title": "选择时长",
+      "subtitle": "价格为每人价格。"
+    },
+    "date": {
+      "title": "选择日期",
+      "subtitle": "可预约日期会根据其他团体的预约情况实时更新。"
+    },
+    "time": {
+      "title": "选择时间",
+      "subtitle": "每项护理前后均包含准备与整理时间。",
+      "noSlots": "该日期暂无可预约时段，请选择其他日期。",
+      "unavailable": "已被预约"
+    },
+    "details": {
+      "title": "填写您的信息",
+      "subtitle": "我们将使用这些信息确认您的预约。",
+      "name": "姓名",
+      "namePlaceholder": "请输入姓名",
+      "phone": "电话 / WhatsApp",
+      "email": "邮箱",
+      "emailPlaceholder": "you@example.com",
+      "country": "国家",
+      "countryPlaceholder": "请选择国家",
+      "preferredLanguage": "希望使用的沟通语言",
+      "preferredLanguageHint": "即使与网站语言不同，我们也会使用此语言与您联系。",
+      "specialRequest": "特殊需求",
+      "specialRequestPlaceholder": "如有过敏、行动不便或纪念日等需求，请告诉我们。"
+    },
+    "review": {
+      "title": "预约详情",
+      "guestsLabel": "{count}位",
+      "treatmentLine": "{price} × {count}",
+      "totalLabel": "总金额",
+      "depositLabel": "订金",
+      "payAtSpaLabel": "现场支付",
+      "edit": "编辑",
+      "confirmAndPay": "支付订金并确认",
+      "termsNote": "剩余尾款请在护理结束后于现场支付。"
+    },
+    "payment": {
+      "processing": "正在处理您的订金支付…",
+      "failed": "支付未能完成，请重试。",
+      "retry": "重试"
+    },
+    "confirmation": {
+      "title": "预约已确认",
+      "subtitle": "期待在 Woori Aroma 与您相见。",
+      "reservationNumber": "预约编号",
+      "date": "日期",
+      "time": "时间",
+      "guests": "人数",
+      "treatment": "护理项目",
+      "depositPaid": "已付订金",
+      "remainingBalance": "剩余尾款",
+      "viewLocation": "查看位置",
+      "addToCalendar": "添加到日历",
+      "contactUs": "联系我们",
+      "bookAnother": "再次预约"
+    }
+  },
+  "validation": {
+    "required": "此项为必填。",
+    "invalidEmail": "请输入有效的邮箱地址。",
+    "invalidPhone": "请输入有效的电话号码。"
+  }
+}

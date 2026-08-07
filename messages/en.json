@@ -1,0 +1,134 @@
+{
+  "meta": {
+    "title": "Woori Aroma | Private Spa in Jeju",
+    "description": "Book a private spa experience in Jungmun, Jeju — just for you and your group. Up to 4 guests, one group at a time."
+  },
+  "header": {
+    "bookCta": "Book Now"
+  },
+  "language": {
+    "label": "Language"
+  },
+  "landing": {
+    "kicker": "PRIVATE SPA · JEJU",
+    "brand": "WOORI AROMA",
+    "heroLine1": "A private spa experience in Jeju,",
+    "heroLine2": "exclusively for you and your group.",
+    "tagline": "One Time. One Team.",
+    "capacity": "Up to 4 Guests.",
+    "cta": "Book Your Experience",
+    "treatmentsHeading": "Our Treatments",
+    "treatmentsSubheading": "Every treatment is private — your group is the only one in the spa.",
+    "footerNote": "Jungmun, Jeju Island · By reservation only"
+  },
+  "services": {
+    "aromaOil": {
+      "name": "Aroma Oil",
+      "description": "A relaxing full-body massage with pure botanical oils."
+    },
+    "hotStone": {
+      "name": "Hot Stone",
+      "description": "Warm basalt stones melt away deep muscle tension."
+    },
+    "facial": {
+      "name": "Facial",
+      "description": "A gentle cleanse and hydration treatment for glowing skin."
+    }
+  },
+  "progress": {
+    "guests": "Guests",
+    "treatment": "Treatment",
+    "dateTime": "Date & Time",
+    "details": "Details",
+    "confirm": "Confirm"
+  },
+  "common": {
+    "back": "Back",
+    "next": "Next",
+    "continue": "Continue",
+    "required": "Required",
+    "optional": "Optional",
+    "recommended": "Recommended",
+    "perPerson": "/ person",
+    "min": "min",
+    "other": "Other",
+    "step": "Step {current} of {total}"
+  },
+  "steps": {
+    "guests": {
+      "title": "How many guests?",
+      "subtitle": "Woori Aroma welcomes one private group at a time, up to 4 guests.",
+      "option": "{count, plural, one {1 Guest} other {# Guests}}"
+    },
+    "treatment": {
+      "title": "Choose a treatment",
+      "subtitle": "Select the treatment your group would like to enjoy together.",
+      "comingSoon": "Coming soon"
+    },
+    "duration": {
+      "title": "Choose a duration",
+      "subtitle": "Pricing is per person."
+    },
+    "date": {
+      "title": "Choose a date",
+      "subtitle": "Availability updates based on other private groups already booked."
+    },
+    "time": {
+      "title": "Choose a time",
+      "subtitle": "Each treatment includes preparation and reset time before and after.",
+      "noSlots": "No times are available on this date. Please choose another day.",
+      "unavailable": "Booked"
+    },
+    "details": {
+      "title": "Your details",
+      "subtitle": "We'll use this to confirm your reservation.",
+      "name": "Name",
+      "namePlaceholder": "Full name",
+      "phone": "Phone / WhatsApp",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "country": "Country",
+      "countryPlaceholder": "Select your country",
+      "preferredLanguage": "Preferred language for communication",
+      "preferredLanguageHint": "We'll contact you in this language, even if it differs from the site language.",
+      "specialRequest": "Special requests",
+      "specialRequestPlaceholder": "Allergies, accessibility needs, celebrations — let us know."
+    },
+    "review": {
+      "title": "Your Booking",
+      "guestsLabel": "{count, plural, one {1 Guest} other {# Guests}}",
+      "treatmentLine": "{price} × {count}",
+      "totalLabel": "Total",
+      "depositLabel": "Deposit",
+      "payAtSpaLabel": "Pay at the Spa",
+      "edit": "Edit",
+      "confirmAndPay": "Pay Deposit & Confirm",
+      "termsNote": "The remaining balance is paid at the spa after your treatment."
+    },
+    "payment": {
+      "processing": "Processing your deposit…",
+      "failed": "Payment could not be completed. Please try again.",
+      "retry": "Try Again"
+    },
+    "confirmation": {
+      "title": "Reservation Confirmed",
+      "subtitle": "We look forward to welcoming you to Woori Aroma.",
+      "reservationNumber": "Reservation Number",
+      "date": "Date",
+      "time": "Time",
+      "guests": "Guests",
+      "treatment": "Treatment",
+      "depositPaid": "Deposit Paid",
+      "remainingBalance": "Remaining Balance",
+      "viewLocation": "View Location",
+      "addToCalendar": "Add to Calendar",
+      "contactUs": "Contact Us",
+      "bookAnother": "Make Another Reservation"
+    }
+  },
+  "validation": {
+    "required": "This field is required.",
+    "invalidEmail": "Enter a valid email address.",
+    "invalidPhone": "Enter a valid phone number."
+  }
+}
