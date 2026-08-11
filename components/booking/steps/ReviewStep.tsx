@@ -47,7 +47,7 @@ export function ReviewStep() {
       }
     >
       <div className="flex flex-col gap-4">
-        <div className="rounded-2xl border border-stone-200 bg-white p-5">
+        <div className="rounded-2xl border border-stone-200 bg-stone-100 p-5">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-stone-500">{t("guestsLabel", { count: guestCount })}</p>
@@ -81,7 +81,7 @@ export function ReviewStep() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-stone-200 bg-white p-5 text-sm">
+        <div className="rounded-2xl border border-stone-200 bg-stone-100 p-5 text-sm">
           <div className="flex items-center justify-between text-stone-600">
             <span>{t("treatmentLine", { price: formatCurrency(option.pricePerPerson, locale), count: guestCount })}</span>
             <span>{formatCurrency(total, locale)}</span>

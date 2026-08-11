@@ -35,7 +35,7 @@ export function GuestsStep() {
               className={`flex min-h-20 flex-col items-center justify-center rounded-2xl border-2 px-4 py-5 text-center transition-colors ${
                 selected
                   ? "border-stone-900 bg-stone-900 text-stone-50"
-                  : "border-stone-200 bg-white text-stone-800 hover:border-stone-400"
+                  : "border-stone-200 bg-stone-100 text-stone-800 hover:border-stone-400"
               }`}
             >
               <span className="text-lg font-medium">{t("option", { count })}</span>

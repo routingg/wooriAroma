@@ -50,7 +50,7 @@ export function DetailsStep() {
   }
 
   const inputClass =
-    "w-full min-h-12 rounded-xl border border-stone-300 bg-white px-4 text-base text-stone-900 outline-none transition-colors focus:border-stone-900";
+    "w-full min-h-12 rounded-xl border border-stone-300 bg-stone-100 px-4 text-base text-stone-900 outline-none transition-colors focus:border-stone-900";
   const errorClass = "border-red-400 focus:border-red-500";
 
   return (

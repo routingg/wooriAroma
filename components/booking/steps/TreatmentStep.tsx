@@ -43,7 +43,7 @@ export function TreatmentStep() {
                   ? "cursor-not-allowed border-stone-100 bg-stone-50 text-stone-400"
                   : selected
                     ? "border-stone-900 bg-stone-900 text-stone-50"
-                    : "border-stone-200 bg-white text-stone-800 hover:border-stone-400"
+                    : "border-stone-200 bg-stone-100 text-stone-800 hover:border-stone-400"
               }`}
             >
               <div className="flex items-center justify-between gap-3">

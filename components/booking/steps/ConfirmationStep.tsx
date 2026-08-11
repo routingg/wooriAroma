@@ -67,7 +67,7 @@ export function ConfirmationStep() {
         <p className="mt-2 text-sm text-stone-600">{t("subtitle")}</p>
       </div>
 
-      <div className="mt-8 rounded-2xl border border-stone-200 bg-white p-5">
+      <div className="mt-8 rounded-2xl border border-stone-200 bg-stone-100 p-5">
         <div className="flex items-center justify-between border-b border-stone-100 pb-4">
           <span className="text-sm text-stone-500">{t("reservationNumber")}</span>
           <span className="font-mono text-sm font-medium text-stone-900">{draft.reservationNumber}</span>
@@ -97,7 +97,7 @@ export function ConfirmationStep() {
         </div>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-stone-200 bg-white p-5">
+      <div className="mt-6 rounded-2xl border border-stone-200 bg-stone-100 p-5">
         <p className="text-sm font-medium text-stone-900">{t("needHelpTitle")}</p>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <ExternalLinkAction label={t("viewLocation")} href={googleMapsUrl()} />
@@ -137,7 +137,7 @@ function ActionButton({ label, onClick }: { label: string; onClick: () => void }
     <button
       type="button"
       onClick={onClick}
-      className={`${actionClass} border-stone-200 bg-white text-stone-800 hover:border-stone-400`}
+      className={`${actionClass} border-stone-200 bg-stone-100 text-stone-800 hover:border-stone-400`}
     >
       {label}
     </button>
@@ -150,7 +150,7 @@ function ExternalLinkAction({ label, href }: { label: string; href: string }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className={`${actionClass} border-stone-200 bg-white text-stone-800 hover:border-stone-400`}
+      className={`${actionClass} border-stone-200 bg-stone-100 text-stone-800 hover:border-stone-400`}
     >
       {label}
     </a>

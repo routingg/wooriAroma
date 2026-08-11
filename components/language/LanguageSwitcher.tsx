@@ -34,7 +34,7 @@ export function LanguageSwitcher() {
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={t("label")}
-        className="flex items-center gap-1.5 rounded-full border border-stone-200 bg-white/80 px-3 py-2 text-sm text-stone-600 transition-colors hover:border-stone-300 hover:text-stone-900"
+        className="flex items-center gap-1.5 rounded-full border border-stone-200 bg-stone-100/80 px-3 py-2 text-sm text-stone-600 transition-colors hover:border-stone-300 hover:text-stone-900"
       >
         <span aria-hidden="true" className="text-xs">🌐</span>
         <span>{localeNames[locale]}</span>
@@ -50,7 +50,7 @@ export function LanguageSwitcher() {
       {open && (
         <ul
           role="listbox"
-          className="absolute right-0 z-50 mt-2 w-36 overflow-hidden rounded-xl border border-stone-200 bg-white py-1 shadow-lg"
+          className="absolute right-0 z-50 mt-2 w-36 overflow-hidden rounded-xl border border-stone-200 bg-stone-100 py-1 shadow-lg"
         >
           {routing.locales.map((code) => (
             <li key={code}>

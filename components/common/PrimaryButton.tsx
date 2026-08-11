@@ -7,7 +7,7 @@ export function PrimaryButton({
   return (
     <button
       type="button"
-      className={`flex min-h-14 w-full items-center justify-center rounded-full bg-stone-900 px-6 text-base font-medium text-stone-50 shadow-sm transition-colors hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-300 ${className}`}
+      className={`flex min-h-14 w-full items-center justify-center rounded-[var(--radius-button)] bg-stone-900 px-6 text-base font-medium text-stone-50 shadow-sm transition-colors hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-300 ${className}`}
       {...props}
     />
   );

@@ -59,7 +59,7 @@ export function TimeStep() {
       }
     >
       {state === "loading" ? (
-        <div className="flex items-center justify-center gap-3 rounded-2xl border border-stone-200 bg-white p-8 text-sm text-stone-600">
+        <div className="flex items-center justify-center gap-3 rounded-2xl border border-stone-200 bg-stone-100 p-8 text-sm text-stone-600">
           <span
             aria-hidden="true"
             className="h-4 w-4 animate-spin rounded-full border-2 border-stone-200 border-t-stone-900"
@@ -67,7 +67,7 @@ export function TimeStep() {
           {t("loading")}
         </div>
       ) : state === "error" ? (
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-stone-200 bg-white p-6 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-stone-200 bg-stone-100 p-6 text-center">
           <p className="text-sm text-red-500">{t("loadError")}</p>
           <button
             type="button"
@@ -78,7 +78,7 @@ export function TimeStep() {
           </button>
         </div>
       ) : slots.length === 0 ? (
-        <p className="rounded-2xl border border-stone-200 bg-white p-5 text-center text-sm text-stone-600">
+        <p className="rounded-2xl border border-stone-200 bg-stone-100 p-5 text-center text-sm text-stone-600">
           {t("noSlots")}
         </p>
       ) : (
@@ -97,7 +97,7 @@ export function TimeStep() {
                     ? "cursor-not-allowed border-stone-100 bg-stone-50 text-stone-300 line-through"
                     : selected
                       ? "border-stone-900 bg-stone-900 font-medium text-stone-50"
-                      : "border-stone-200 bg-white text-stone-800 hover:border-stone-400"
+                      : "border-stone-200 bg-stone-100 text-stone-800 hover:border-stone-400"
                 }`}
               >
                 {formatTimeLabel(slot.time, locale)}

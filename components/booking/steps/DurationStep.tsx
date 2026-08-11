@@ -38,7 +38,7 @@ export function DurationStep() {
               className={`flex items-center justify-between rounded-2xl border-2 px-5 py-4 text-left transition-colors ${
                 selected
                   ? "border-stone-900 bg-stone-900 text-stone-50"
-                  : "border-stone-200 bg-white text-stone-800 hover:border-stone-400"
+                  : "border-stone-200 bg-stone-100 text-stone-800 hover:border-stone-400"
               }`}
             >
               <span className="flex items-center gap-2 text-base font-medium">

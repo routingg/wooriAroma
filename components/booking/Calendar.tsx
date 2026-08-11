@@ -33,7 +33,7 @@ export function Calendar({
   }
 
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-4">
+    <div className="rounded-2xl border border-stone-200 bg-stone-100 p-4">
       <div className="flex items-center justify-between">
         <button
           type="button"
