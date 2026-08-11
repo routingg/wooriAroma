@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Woori Aroma Booking System
+
+Private spa reservation platform for Woori Aroma (Jungmun, Jeju). See `proposal.md`
+for the full product/architecture spec and `README2.md` for the original detailed
+proposal (with an architecture-update note at the top).
+
+## Requirements
+
+- Node.js **>= 22.5.0** (uses the built-in `node:sqlite` module — see `package.json`'s `engines`)
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) for the customer booking site
+(`/en`, `/ko`, `/zh`, `/ja`) or [http://localhost:3000/admin](http://localhost:3000/admin)
+for the Korean-only admin dashboard.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+No environment variables are required for local development — the app falls back to
+a local SQLite database at `.data/woori-aroma.sqlite3` (gitignored) and mock
+payment/notification providers. Copy `.env.example` to `.env.local` only once a real
+payment/email/SMS provider is being wired up.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**⚠️ `/admin` has no authentication yet.** It is safe for local development but
+must not be deployed publicly until auth is added — see `proposal.md` §11.
+
+## Scripts
+
+```bash
+npm run dev        # start the dev server
+npm run build       # production build
+npm run start        # run the production build
+npm run lint          # eslint
+npm run typecheck      # tsc --noEmit
+npm test                # vitest — domain logic, API routes, agent tools
+```
+
+## Project layout
+
+```text
+app/[locale]/book/    customer booking wizard (next-intl routed)
+app/admin/             Korean-only admin dashboard (no locale routing)
+app/api/                 booking API route handlers
+lib/booking/               pure domain logic (availability, pricing, validation)
+lib/db/                     SQLite client + migrations
+lib/repositories/             DB access, one file per table/aggregate
+lib/agent/                     Gemini agent tool layer (no LLM wired up yet)
+data/services.ts                  treatment catalog (source of truth for pricing)
+messages/{en,ko,zh,ja}.json          customer-facing translations
+tests/                                 vitest suite
+```
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project uses [Next.js](https://nextjs.org) (App Router) + TypeScript + Tailwind CSS + `next-intl`.

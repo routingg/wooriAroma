@@ -18,6 +18,12 @@
 
 ---
 
+> **Architecture update (2026-08-10):** The backend below describes the original
+> Cloudflare Workers + D1 proposal. The actual implementation uses **Next.js
+> Route Handlers + SQLite (`node:sqlite`)** instead — see `proposal.md` §6.2 for
+> the decision record and rationale. The database schema and API shapes
+> described here are otherwise accurate.
+
 ## Overview
 
 Woori Aroma currently uses Calendly for online reservations.

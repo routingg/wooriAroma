@@ -1,12 +1,69 @@
-export default function AdminPlaceholderPage() {
+import Link from "next/link";
+import { getTodayStats } from "@/lib/admin/dashboardStats";
+import { formatCurrency } from "@/lib/booking/pricing";
+import { ReservationRow } from "@/components/admin/ReservationRow";
+
+export default async function AdminDashboardPage() {
+  const stats = getTodayStats();
+
   return (
-    <main className="flex flex-1 flex-col items-center justify-center px-6 py-24 text-center">
-      <h1 className="text-2xl font-semibold text-stone-900">관리자 대시보드</h1>
-      <p className="mt-3 max-w-sm text-sm text-stone-600">
-        관리자 대시보드는 추후 별도로 개발될 예정입니다. 이 페이지는 고객
-        예약 사이트와 언어 처리 방식이 분리되어 있음을 보여주기 위한
-        자리 표시자입니다.
-      </p>
+    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-10">
+      <header className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold text-stone-900">오늘 현황</h1>
+        <nav className="flex gap-4 text-sm text-stone-600">
+          <Link href="/admin/reservations" className="hover:underline">
+            예약 관리
+          </Link>
+          <Link href="/admin/blocked-times" className="hover:underline">
+            시간 관리
+          </Link>
+          <Link href="/admin/agent-handoffs" className="hover:underline">
+            에이전트 예외함
+          </Link>
+        </nav>
+      </header>
+
+      <section className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <StatCard label="오늘 예약 팀 수" value={`${stats.confirmedTeams}팀`} />
+        <StatCard label="오늘 방문 인원" value={`${stats.totalGuests}명`} />
+        <StatCard label="오늘 예상 매출" value={formatCurrency(stats.expectedRevenue, "ko")} />
+        <StatCard label="오늘 받은 예약금" value={formatCurrency(stats.depositsCollected, "ko")} />
+      </section>
+
+      <section>
+        <h2 className="text-lg font-semibold text-stone-900">다음 예약</h2>
+        {stats.nextReservation ? (
+          <div className="mt-3 rounded-xl border border-stone-200 bg-white p-4">
+            <ReservationRow reservation={stats.nextReservation} />
+          </div>
+        ) : (
+          <p className="mt-2 text-sm text-stone-500">오늘 남은 예약이 없습니다.</p>
+        )}
+      </section>
+
+      <section>
+        <h2 className="text-lg font-semibold text-stone-900">오늘 일정</h2>
+        <ul className="mt-3 divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white">
+          {stats.todaysReservations.length === 0 ? (
+            <li className="p-4 text-sm text-stone-500">오늘 예약이 없습니다.</li>
+          ) : (
+            stats.todaysReservations.map((r) => (
+              <li key={r.id} className="p-4">
+                <ReservationRow reservation={r} />
+              </li>
+            ))
+          )}
+        </ul>
+      </section>
     </main>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-stone-200 bg-white p-4">
+      <p className="text-xs text-stone-500">{label}</p>
+      <p className="mt-1 text-xl font-semibold text-stone-900">{value}</p>
+    </div>
   );
 }

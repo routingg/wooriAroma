@@ -76,7 +76,10 @@
       "title": "选择时间",
       "subtitle": "每项护理前后均包含准备与整理时间。",
       "noSlots": "该日期暂无可预约时段，请选择其他日期。",
-      "unavailable": "已被预约"
+      "unavailable": "已被预约",
+      "loading": "正在查询可预约时段…",
+      "loadError": "无法加载可预约时段，请重试。",
+      "retry": "重试"
     },
     "details": {
       "title": "填写您的信息",
@@ -105,7 +108,8 @@
     "payment": {
       "processing": "正在处理您的订金支付…",
       "failed": "支付未能完成，请重试。",
-      "retry": "重试"
+      "retry": "重试",
+      "chooseAnotherTime": "选择其他时间"
     },
     "confirmation": {
       "title": "预约已确认",
@@ -131,5 +135,14 @@
     "required": "此项为必填。",
     "invalidEmail": "请输入有效的邮箱地址。",
     "invalidPhone": "请输入有效的电话号码。"
+  },
+  "errors": {
+    "generic": "出现问题，请重试。",
+    "SLOT_UNAVAILABLE": "该时段刚被其他客人预约，请选择其他时间。",
+    "HOLD_EXPIRED": "预约保留时间已过期，请重新选择时间。",
+    "INVALID_GUEST_COUNT": "请选择1至4位客人。",
+    "SERVICE_NOT_BOOKABLE": "该护理项目暂不开放预约。",
+    "SLOT_IN_PAST": "该时间已过，请选择其他时间。",
+    "INVALID_CUSTOMER_DETAILS": "请检查姓名、电话号码和邮箱是否正确。"
   }
 }

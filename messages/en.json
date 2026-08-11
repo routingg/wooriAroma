@@ -76,7 +76,10 @@
       "title": "Choose a time",
       "subtitle": "Each treatment includes preparation and reset time before and after.",
       "noSlots": "No times are available on this date. Please choose another day.",
-      "unavailable": "Booked"
+      "unavailable": "Booked",
+      "loading": "Checking availability…",
+      "loadError": "We couldn't load availability. Please try again.",
+      "retry": "Retry"
     },
     "details": {
       "title": "Your details",
@@ -105,7 +108,8 @@
     "payment": {
       "processing": "Processing your deposit…",
       "failed": "Payment could not be completed. Please try again.",
-      "retry": "Try Again"
+      "retry": "Try Again",
+      "chooseAnotherTime": "Choose Another Time"
     },
     "confirmation": {
       "title": "Reservation Confirmed",
@@ -131,5 +135,14 @@
     "required": "This field is required.",
     "invalidEmail": "Enter a valid email address.",
     "invalidPhone": "Enter a valid phone number."
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "SLOT_UNAVAILABLE": "This time was just booked by another guest. Please choose a different time.",
+    "HOLD_EXPIRED": "Your reservation hold expired. Please choose your time again.",
+    "INVALID_GUEST_COUNT": "Please select between 1 and 4 guests.",
+    "SERVICE_NOT_BOOKABLE": "This treatment isn't available for booking yet.",
+    "SLOT_IN_PAST": "That time has already passed. Please choose another.",
+    "INVALID_CUSTOMER_DETAILS": "Please check your name, phone number and email."
   }
 }

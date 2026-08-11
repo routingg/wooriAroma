@@ -80,9 +80,9 @@ export function isSlotInPast(dateKey: string, time: string, now: SeoulNow = getS
  * and whether its prep/cleanup-inclusive blocked window conflicts
  * with an already-booked group.
  *
- * `existingBlockedWindows` is expected to come from the reservation
- * backend eventually; for this MVP it is sourced from mock data (see
- * lib/booking/mockData.ts).
+ * `existingBlockedWindows` comes from the database — see
+ * lib/booking/availabilityService.ts, which wires this pure function up to
+ * lib/repositories/reservationRepository.ts and blockedTimeRepository.ts.
  */
 export function generateAvailableSlots(
   dateKey: string,

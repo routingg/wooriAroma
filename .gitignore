@@ -13,6 +13,9 @@
 # testing
 /coverage
 
+# local sqlite database (see lib/db/client.ts) — never commit booking data
+/.data/
+
 # next.js
 /.next/
 /out/
@@ -40,3 +43,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+# Playwright MCP debugging artifacts
+/.playwright-mcp/

@@ -5,10 +5,10 @@ import { useBooking } from "../BookingProvider";
 import { Link } from "@/i18n/navigation";
 import { getService, getServiceOption } from "@/data/services";
 import { calculateDepositAmount, calculateRemainingAmount, calculateTotalAmount, formatCurrency } from "@/lib/booking/pricing";
-import { formatTimeLabel } from "@/lib/booking/time";
+import { formatTimeLabel, fromMinutes, toMinutes } from "@/lib/booking/time";
+import { buildReservationIcs } from "@/lib/booking/ics";
+import { BUSINESS, googleMapsUrl } from "@/lib/config/business";
 import type { AppLocale } from "@/i18n/routing";
-
-const INSTAGRAM_URL = "https://www.instagram.com/aromatogether/";
 
 export function ConfirmationStep() {
   const t = useTranslations("steps.confirmation");
@@ -28,12 +28,30 @@ export function ConfirmationStep() {
   const total = calculateTotalAmount(option.pricePerPerson, guestCount);
   const deposit = calculateDepositAmount(guestCount);
   const remaining = calculateRemainingAmount(total, deposit);
+  const treatmentName = tServices(service.nameKey.replace("services.", ""));
 
   const dateLabel = new Intl.DateTimeFormat(locale, {
     year: "numeric",
     month: "long",
     day: "numeric",
   }).format(new Date(`${draft.date}T00:00:00`));
+
+  function downloadIcs() {
+    const ics = buildReservationIcs({
+      reservationNumber: draft.reservationNumber!,
+      treatmentName,
+      dateKey: draft.date!,
+      startTime: draft.time!,
+      endTime: fromMinutes(toMinutes(draft.time!) + option!.durationMinutes),
+    });
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${draft.reservationNumber}.ics`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col px-4 py-10 sm:px-6">
@@ -60,10 +78,7 @@ export function ConfirmationStep() {
           <Row label={t("date")} value={dateLabel} />
           <Row label={t("time")} value={formatTimeLabel(draft.time, locale)} />
           <Row label={t("guests")} value={String(guestCount)} />
-          <Row
-            label={t("treatment")}
-            value={`${tServices(service.nameKey.replace("services.", ""))} · ${option.durationMinutes} ${tCommon("min")}`}
-          />
+          <Row label={t("treatment")} value={`${treatmentName} · ${option.durationMinutes} ${tCommon("min")}`} />
         </dl>
 
         <div className="mt-4 flex flex-col gap-2 border-t border-stone-100 pt-4 text-sm">
@@ -85,10 +100,12 @@ export function ConfirmationStep() {
       <div className="mt-6 rounded-2xl border border-stone-200 bg-white p-5">
         <p className="text-sm font-medium text-stone-900">{t("needHelpTitle")}</p>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <PlaceholderAction label={t("viewLocation")} />
-          <PlaceholderAction label={t("addToCalendar")} />
-          <PlaceholderAction label={t("contactUs")} />
-          <ExternalLinkAction label={t("instagram")} href={INSTAGRAM_URL} />
+          <ExternalLinkAction label={t("viewLocation")} href={googleMapsUrl()} />
+          <ActionButton label={t("addToCalendar")} onClick={downloadIcs} />
+          {/* No verified phone/WhatsApp exists yet (AGENTS.md: never invent
+              contact info) — Instagram DM is the only real channel today. */}
+          <ExternalLinkAction label={t("contactUs")} href={BUSINESS.instagramUrl} />
+          <ExternalLinkAction label={t("instagram")} href={BUSINESS.instagramUrl} />
         </div>
       </div>
 
@@ -115,13 +132,13 @@ function Row({ label, value }: { label: string; value: string }) {
 const actionClass =
   "flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border px-2 text-center text-xs transition-colors";
 
-// View Location / Add to Calendar / Contact Woori Aroma are wired up
-// once Google Maps, calendar export and a verified WhatsApp/phone
-// business contact exist (see lib/notifications for the confirmation
-// email/SMS side of this).
-function PlaceholderAction({ label }: { label: string }) {
+function ActionButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button type="button" disabled className={`${actionClass} border-stone-200 bg-white text-stone-500`}>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`${actionClass} border-stone-200 bg-white text-stone-800 hover:border-stone-400`}
+    >
       {label}
     </button>
   );

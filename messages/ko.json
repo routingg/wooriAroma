@@ -76,7 +76,10 @@
       "title": "시간을 선택하세요",
       "subtitle": "모든 트리트먼트는 전후로 준비 및 정리 시간이 포함됩니다.",
       "noSlots": "선택하신 날짜에는 예약 가능한 시간이 없습니다. 다른 날짜를 선택해 주세요.",
-      "unavailable": "예약 마감"
+      "unavailable": "예약 마감",
+      "loading": "예약 가능 여부를 확인하고 있습니다…",
+      "loadError": "예약 가능 시간을 불러오지 못했습니다. 다시 시도해 주세요.",
+      "retry": "다시 시도"
     },
     "details": {
       "title": "예약자 정보",
@@ -105,7 +108,8 @@
     "payment": {
       "processing": "예약금을 결제하고 있습니다…",
       "failed": "결제를 완료하지 못했습니다. 다시 시도해 주세요.",
-      "retry": "다시 시도"
+      "retry": "다시 시도",
+      "chooseAnotherTime": "다른 시간 선택"
     },
     "confirmation": {
       "title": "예약이 확정되었습니다",
@@ -131,5 +135,14 @@
     "required": "필수 입력 항목입니다.",
     "invalidEmail": "올바른 이메일 주소를 입력해 주세요.",
     "invalidPhone": "올바른 전화번호를 입력해 주세요."
+  },
+  "errors": {
+    "generic": "문제가 발생했습니다. 다시 시도해 주세요.",
+    "SLOT_UNAVAILABLE": "방금 다른 손님이 이 시간을 예약했습니다. 다른 시간을 선택해 주세요.",
+    "HOLD_EXPIRED": "예약 임시 보류 시간이 만료되었습니다. 시간을 다시 선택해 주세요.",
+    "INVALID_GUEST_COUNT": "1명에서 4명 사이로 선택해 주세요.",
+    "SERVICE_NOT_BOOKABLE": "아직 예약할 수 없는 트리트먼트입니다.",
+    "SLOT_IN_PAST": "이미 지난 시간입니다. 다른 시간을 선택해 주세요.",
+    "INVALID_CUSTOMER_DETAILS": "이름, 전화번호, 이메일을 다시 확인해 주세요."
   }
 }

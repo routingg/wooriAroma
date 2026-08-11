@@ -141,14 +141,20 @@ Google Maps / 검색 / Instagram
 - `next-intl` (다국어 라우팅/번역)
 - React 19
 
-### 6.2 백엔드 / 데이터베이스 (미정 — 확인 필요)
+### 6.2 백엔드 / 데이터베이스 (결정됨 — 2026-08-10)
 
-`docs`(README2.md) 상의 원안은 **Cloudflare Workers + Cloudflare D1**이나, 현재 코드의 mock 데이터 계층 주석은 **Supabase**를 향후 대체 대상으로 언급하고 있어 두 문서 간 방향이 어긋나 있다. Phase 2 착수 전에 다음을 확정해야 한다.
+`docs`(README2.md) 상의 원안(Cloudflare Workers + D1)과 이전 mock 데이터 계층 주석(Supabase 언급)이 서로 어긋나 있었다. 다음과 같이 확정하여 Phase 2를 진행했다.
 
-- 호스팅/함수: Cloudflare Workers vs. Next.js API Routes(Vercel 등) vs. Supabase Edge Functions
-- DB: Cloudflare D1(SQLite) vs. Supabase(Postgres)
+- 호스팅/함수: **Next.js Route Handlers** (`app/api/*/route.ts`)
+- DB: **SQLite, Node 내장 `node:sqlite` 모듈** (Node 22.5+ 필요 — `package.json`의 `engines.node` 참조)
 
-어느 쪽을 선택하든 `lib/booking/`의 함수 시그니처(`BlockedWindow[]` 등)를 그대로 유지하도록 설계되어 있어 교체 비용은 낮다.
+선택 이유:
+- 유료 계정/크레덴셜이 필요 없다 (Cloudflare/Supabase 프로비저닝 불필요).
+- `better-sqlite3` 등 네이티브 빌드 툴체인이 필요 없다 (Windows 개발 환경에서 특히 중요).
+- 트랜잭션(`BEGIN IMMEDIATE` ~ `COMMIT`)으로 더블부킹을 원자적으로 방지할 수 있다.
+- `lib/repositories/`가 순수 파라미터화 SQL만 사용하므로, 추후 Postgres(Supabase) 등으로 교체할 때 드라이버만 바꾸면 된다 — 도메인 로직(`lib/booking/`)은 변경 불필요.
+
+DB 파일은 기본적으로 `.data/woori-aroma.sqlite3`(gitignore 처리, `DATABASE_FILE` 환경변수로 재정의 가능)에 저장된다. 스키마 변경은 `lib/db/migrations.ts`에 번호가 매겨진 마이그레이션으로 관리하며, 이미 배포된 마이그레이션은 절대 수정하지 않고 새 마이그레이션을 추가한다.
 
 ### 6.3 향후 연동
 
@@ -191,21 +197,29 @@ GET  /api/reservations/:reservationNumber
 
 ## 7. 현재 구현 상태 (2026-08-10 기준)
 
-Phase 1(고객 예약 UI)이 mock 데이터/mock 결제/mock 알림 기반으로 대부분 구현되어 있다.
+Phase 1~9(§22)가 구현되어 있다. 결제/이메일·SMS 발송만 여전히 mock이며, 그 외에는 실제 SQLite DB와 서버 API로 동작한다.
 
 **구현됨**
 - `app/[locale]/book` — 다국어 라우팅 및 예약 위저드 (`BookingWizard`, `BookingProvider`, `BookingProgress`)
-- 예약 단계별 컴포넌트: 인원(`GuestsStep`) → 시술(`TreatmentStep`) → 소요시간(`DurationStep`) → 날짜(`DateStep`) → 시간(`TimeStep`) → 고객정보(`DetailsStep`) → 검토(`ReviewStep`) → 결제(`PaymentStep`) → 확정(`ConfirmationStep`)
-- 가용성/가격 로직: `lib/booking/availability.ts`, `pricing.ts`, `calendar.ts`, `time.ts`, `timezone.ts` (Asia/Seoul 기준 처리 포함)
+- 예약 단계별 컴포넌트: 인원 → 시술 → 소요시간 → 날짜 → 시간(`TimeStep`, 실시간 가용성 API + 로딩/에러 상태) → 고객정보 → 검토 → 결제(`PaymentStep`, 실제 hold→confirm 플로우) → 확정(위치/캘린더/문의 액션 포함)
+- 가용성/가격 도메인 로직: `lib/booking/{availability,pricing,calendar,time,timezone,validation,reservationNumber,errors}.ts` — 순수 함수, DB로부터 분리
+- DB: `lib/db/{client,migrations,transaction}.ts` (SQLite, `node:sqlite`), 레포지토리 계층 `lib/repositories/{reservation,customer,blockedTime,notification,agentHandoff}Repository.ts`
+- API: `GET /api/services`, `GET /api/availability`, `POST /api/reservation-holds`, `POST /api/reservations`, `GET /api/reservations/:reservationNumber` — 서버가 가용성을 트랜잭션 내에서 재검증하여 더블부킹을 원자적으로 방지
 - 서비스 정의 중앙화: `data/services.ts`
-- 다국어 메시지: `messages/{en,ko,zh,ja}.json`
-- Mock 결제(`lib/payment/mockProvider.ts`), Mock 알림(`lib/notifications/mockNotificationService.ts`) — 실제 연동 없이 인터페이스만 구현되어 향후 실서비스 교체를 대비
+- 다국어 메시지: `messages/{en,ko,zh,ja}.json` (에러 메시지 `errors.*` 포함)
+- 관리자 대시보드(`/admin`, 한국어 전용, 인증 없음 — 아래 미구현 참고): 오늘 현황, 예약 목록/상태 변경, 시간 차단 관리, 에이전트 예외함
+- 알림: 예약 확정 API에서 서버 사이드로 트리거, `notifications` 테이블로 영속화 + idempotency 가드 (`lib/booking/notifyReservationConfirmed.ts`)
+- Google Maps 링크, `.ics` 캘린더 다운로드, Instagram 문의 링크 (`lib/config/business.ts`)
+- Gemini 에이전트 툴 레이어 준비: `lib/agent/tools.ts` — 동일한 도메인 함수만 재사용, `getReservation`은 신원 확인 필요, `handoffToAdmin`으로만 예외 처리
+- 테스트: `vitest`, `tests/` — 도메인 로직·API 라우트·에이전트 툴 커버 (`npm test`)
+- Mock 결제(`lib/payment/mockProvider.ts`), Mock 알림 채널(`lib/notifications/mockNotificationService.ts`) — 인터페이스는 실제 채널과 동일하게 동작, 실제 프로바이더로 교체만 하면 됨
 
 **미구현**
-- 실제 백엔드 API / 데이터베이스 연동 (현재 `lib/booking/mockData.ts`의 메모리 데이터로 동작)
-- 관리자 대시보드 — `app/admin/page.tsx`는 12줄짜리 placeholder만 존재
-- 실 결제, 실 알림(WhatsApp/이메일), Google Maps/Calendar 연동
-- 인증/보안, 유입 경로 트래킹, 애널리틱스
+- 실제 결제 게이트웨이(Toss 등), 실제 이메일/SMS/WhatsApp 발송
+- 관리자 인증 (현재 `/admin`은 누구나 접근 가능 — 배포 전 반드시 추가 필요)
+- 관리자 수기 예약 등록, 일/주 캘린더 그리드 뷰 (현재는 목록 뷰로 대체)
+- Gemini 실제 LLM 연동 (툴 레이어만 준비됨, 실제 모델 호출 없음)
+- 유입 경로 트래킹, 애널리틱스
 
 ---
 
@@ -252,9 +266,10 @@ Google Maps 예약 링크, 유입 경로 트래킹, 애널리틱스, 리뷰 요�
 
 ---
 
-## 11. 열린 질문 (Phase 2 착수 전 결정 필요)
+## 11. 열린 질문 (배포 전 결정 필요)
 
-- 백엔드/DB: Cloudflare(Workers + D1) vs. Supabase — 코드 주석과 문서 원안이 불일치하므로 확정 필요
+- ~~백엔드/DB~~ → §6.2에서 SQLite(`node:sqlite`) + Next.js Route Handlers로 확정
 - 결제 게이트웨이 선정 (해외 카드 결제 지원 여부 포함)
-- 관리자 인증 방식
+- 관리자 인증 방식 — **현재 미구현, `/admin`이 공개 상태이므로 배포 전 최우선 처리 필요**
 - WhatsApp/이메일 알림 발송 주체(자체 구현 vs. 서드파티 서비스)
+- Gemini Enterprise 에이전트의 실제 LLM 연동 방식 (툴 레이어 `lib/agent/tools.ts`는 준비됨)
