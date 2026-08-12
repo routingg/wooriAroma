@@ -92,7 +92,9 @@
       "preferredLanguage": "선호하는 상담 언어",
       "preferredLanguageHint": "사이트 언어와 다르더라도 이 언어로 연락드립니다.",
       "specialRequest": "요청 사항",
-      "specialRequestPlaceholder": "알레르기, 편의 지원, 기념일 등 알려주시면 반영해 드립니다."
+      "specialRequestPlaceholder": "알레르기, 편의 지원, 기념일 등 알려주시면 반영해 드립니다.",
+      "whatsappConsent": "WhatsApp으로 예약 알림 받기",
+      "whatsappConsentHint": "선택 사항이며, 이 예약과 관련된 내용만 보내드립니다."
     },
     "review": {
       "title": "예약 내역",
@@ -135,6 +137,42 @@
     "required": "필수 입력 항목입니다.",
     "invalidEmail": "올바른 이메일 주소를 입력해 주세요.",
     "invalidPhone": "올바른 전화번호를 입력해 주세요."
+  },
+  "notifications": {
+    "email": {
+      "subject": {
+        "RESERVATION_CONFIRMED": "우리같이아로마 예약이 확정되었습니다 — {reservationNumber}",
+        "RESERVATION_UPDATED": "우리같이아로마 예약이 변경되었습니다 — {reservationNumber}",
+        "RESERVATION_CANCELLED": "우리같이아로마 예약이 취소되었습니다 — {reservationNumber}",
+        "RESERVATION_REMINDER": "내일 우리같이아로마에서 뵙겠습니다 — {reservationNumber}"
+      },
+      "heading": {
+        "RESERVATION_CONFIRMED": "예약이 확정되었습니다",
+        "RESERVATION_UPDATED": "예약이 변경되었습니다",
+        "RESERVATION_CANCELLED": "예약이 취소되었습니다",
+        "RESERVATION_REMINDER": "내일 뵙겠습니다"
+      },
+      "intro": {
+        "RESERVATION_CONFIRMED": "{name}님, 예약이 확정되었습니다.",
+        "RESERVATION_UPDATED": "{name}님, 예약 내용이 변경되었습니다.",
+        "RESERVATION_CANCELLED": "{name}님, 예약이 취소되었습니다.",
+        "RESERVATION_REMINDER": "{name}님, 내일 예약 방문을 안내드립니다."
+      },
+      "reservationNumber": "예약 번호",
+      "date": "날짜",
+      "time": "시간",
+      "treatment": "시술",
+      "duration": "소요 시간",
+      "guests": "인원",
+      "totalAmount": "총 금액",
+      "depositPaid": "결제된 예약금",
+      "remainingBalance": "잔금 (현장 결제)",
+      "location": "위치",
+      "viewOnMap": "구글 지도에서 보기",
+      "contactInstagram": "인스타그램으로 문의하기",
+      "changeInstructions": "예약 변경 또는 취소는 예약 번호와 함께 인스타그램으로 문의해 주세요.",
+      "footer": "우리같이아로마 · 제주 중문"
+    }
   },
   "errors": {
     "generic": "문제가 발생했습니다. 다시 시도해 주세요.",

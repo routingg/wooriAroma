@@ -3,7 +3,7 @@ import { getAvailableSlotsForDate } from "@/lib/booking/availabilityService";
 import { calculateDepositAmount, calculateRemainingAmount, calculateTotalAmount } from "@/lib/booking/pricing";
 import { validateReservationHoldRequest } from "@/lib/booking/validation";
 import { BookingError } from "@/lib/booking/errors";
-import { notifyReservationConfirmed } from "@/lib/booking/notifyReservationConfirmed";
+import { notifyReservationConfirmed } from "@/lib/booking/reservationNotifications";
 import { toPublicReservation, type PublicReservation } from "@/lib/booking/publicReservation";
 import {
   confirmReservation as confirmReservationRecord,

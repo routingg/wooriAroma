@@ -92,7 +92,9 @@
       "preferredLanguage": "希望使用的沟通语言",
       "preferredLanguageHint": "即使与网站语言不同，我们也会使用此语言与您联系。",
       "specialRequest": "特殊需求",
-      "specialRequestPlaceholder": "如有过敏、行动不便或纪念日等需求，请告诉我们。"
+      "specialRequestPlaceholder": "如有过敏、行动不便或纪念日等需求，请告诉我们。",
+      "whatsappConsent": "通过 WhatsApp 接收预约通知",
+      "whatsappConsentHint": "可选 — 我们只会发送与此预约相关的信息。"
     },
     "review": {
       "title": "预约详情",
@@ -135,6 +137,42 @@
     "required": "此项为必填。",
     "invalidEmail": "请输入有效的邮箱地址。",
     "invalidPhone": "请输入有效的电话号码。"
+  },
+  "notifications": {
+    "email": {
+      "subject": {
+        "RESERVATION_CONFIRMED": "您的 Woori Aroma 预约已确认 — {reservationNumber}",
+        "RESERVATION_UPDATED": "您的 Woori Aroma 预约已更新 — {reservationNumber}",
+        "RESERVATION_CANCELLED": "您的 Woori Aroma 预约已取消 — {reservationNumber}",
+        "RESERVATION_REMINDER": "明天在 Woori Aroma 恭候您 — {reservationNumber}"
+      },
+      "heading": {
+        "RESERVATION_CONFIRMED": "预约已确认",
+        "RESERVATION_UPDATED": "预约已更新",
+        "RESERVATION_CANCELLED": "预约已取消",
+        "RESERVATION_REMINDER": "明天见"
+      },
+      "intro": {
+        "RESERVATION_CONFIRMED": "{name}，您好，您的预约已确认。",
+        "RESERVATION_UPDATED": "{name}，您好，您的预约信息已更新。",
+        "RESERVATION_CANCELLED": "{name}，您好，您的预约已取消。",
+        "RESERVATION_REMINDER": "{name}，您好，提醒您明天的预约。"
+      },
+      "reservationNumber": "预约编号",
+      "date": "日期",
+      "time": "时间",
+      "treatment": "疗程",
+      "duration": "时长",
+      "guests": "人数",
+      "totalAmount": "总额",
+      "depositPaid": "已付定金",
+      "remainingBalance": "尾款（到店支付）",
+      "location": "位置",
+      "viewOnMap": "在 Google 地图查看",
+      "contactInstagram": "通过 Instagram 联系我们",
+      "changeInstructions": "如需变更或取消预约，请携带预约编号通过 Instagram 联系我们。",
+      "footer": "Woori Aroma · 济州中文"
+    }
   },
   "errors": {
     "generic": "出现问题，请重试。",

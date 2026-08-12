@@ -1,15 +1,26 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { updateStatus, type ReservationStatus } from "@/lib/repositories/reservationRepository";
+import { getById, updateStatus, type ReservationStatus } from "@/lib/repositories/reservationRepository";
 import { createBlockedTime, removeBlockedTime } from "@/lib/repositories/blockedTimeRepository";
 import { resolveHandoff } from "@/lib/repositories/agentHandoffRepository";
+import { notifyReservationCancelled } from "@/lib/booking/reservationNotifications";
 
 /** Status changes only — never physically deletes reservation history (AGENTS.md §12.2). */
 export async function updateReservationStatusAction(id: string, status: ReservationStatus) {
-  updateStatus(id, status);
+  const before = getById(id);
+  const updated = updateStatus(id, status);
   revalidatePath("/admin");
   revalidatePath("/admin/reservations");
+
+  // Only a CONFIRMED reservation being cancelled is a customer-facing
+  // cancellation — a HOLD lapsing or an already-CANCELLED reservation being
+  // touched again isn't a new event worth notifying about.
+  if (status === "CANCELLED" && before?.status === "CONFIRMED") {
+    void notifyReservationCancelled(updated).catch((error) => {
+      console.error(`[admin/actions] cancellation notification trigger failed for ${updated.reservationNumber}`, error);
+    });
+  }
 }
 
 export async function createBlockedTimeAction(formData: FormData) {

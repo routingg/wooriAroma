@@ -161,6 +161,7 @@ export function createHold(request: ReservationHoldRequest): CreateHoldResult {
       phone: request.customer.phone,
       email: request.customer.email,
       preferredLanguage: request.customer.preferredLanguage,
+      whatsappOptIn: request.customer.whatsappOptIn,
     });
 
     const totalAmount = calculateTotalAmount(option.pricePerPerson, request.guestCount);
@@ -297,6 +298,23 @@ export function listByDateRange(
   const rows = db
     .prepare("SELECT * FROM reservations WHERE date_key BETWEEN ? AND ? ORDER BY date_key, blocked_start")
     .all(fromDateKey, toDateKey) as unknown as RawReservationRow[];
+  return rows.map(mapRow);
+}
+
+/**
+ * CONFIRMED reservations across a small set of dateKeys — used by the 24h
+ * reminder job (lib/booking/reminderService.ts), which only ever needs
+ * "today" and "tomorrow" since service_start is stored as a plain "HH:mm"
+ * string, not a timestamp the DB can range-filter against "now + 24h"
+ * directly. Filtering down to the exact reminder window happens in JS.
+ */
+export function listConfirmedReservationsForDates(dateKeys: string[]): ReservationRecord[] {
+  if (dateKeys.length === 0) return [];
+  const db = getDb();
+  const placeholders = dateKeys.map(() => "?").join(",");
+  const rows = db
+    .prepare(`SELECT * FROM reservations WHERE status = 'CONFIRMED' AND date_key IN (${placeholders})`)
+    .all(...dateKeys) as unknown as RawReservationRow[];
   return rows.map(mapRow);
 }
 

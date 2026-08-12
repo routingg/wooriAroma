@@ -92,7 +92,9 @@
       "preferredLanguage": "Preferred language for communication",
       "preferredLanguageHint": "We'll contact you in this language, even if it differs from the site language.",
       "specialRequest": "Special requests",
-      "specialRequestPlaceholder": "Allergies, accessibility needs, celebrations — let us know."
+      "specialRequestPlaceholder": "Allergies, accessibility needs, celebrations — let us know.",
+      "whatsappConsent": "Receive reservation updates via WhatsApp",
+      "whatsappConsentHint": "Optional — we'll only message you about this reservation."
     },
     "review": {
       "title": "Your Booking",
@@ -135,6 +137,42 @@
     "required": "This field is required.",
     "invalidEmail": "Enter a valid email address.",
     "invalidPhone": "Enter a valid phone number."
+  },
+  "notifications": {
+    "email": {
+      "subject": {
+        "RESERVATION_CONFIRMED": "Your Woori Aroma reservation is confirmed — {reservationNumber}",
+        "RESERVATION_UPDATED": "Your Woori Aroma reservation was updated — {reservationNumber}",
+        "RESERVATION_CANCELLED": "Your Woori Aroma reservation was cancelled — {reservationNumber}",
+        "RESERVATION_REMINDER": "See you tomorrow at Woori Aroma — {reservationNumber}"
+      },
+      "heading": {
+        "RESERVATION_CONFIRMED": "Reservation Confirmed",
+        "RESERVATION_UPDATED": "Reservation Updated",
+        "RESERVATION_CANCELLED": "Reservation Cancelled",
+        "RESERVATION_REMINDER": "See You Tomorrow"
+      },
+      "intro": {
+        "RESERVATION_CONFIRMED": "Thank you, {name}. Your reservation is confirmed.",
+        "RESERVATION_UPDATED": "Hello {name}, your reservation has been updated.",
+        "RESERVATION_CANCELLED": "Hello {name}, your reservation has been cancelled.",
+        "RESERVATION_REMINDER": "Hello {name}, this is a reminder for your visit tomorrow."
+      },
+      "reservationNumber": "Reservation Number",
+      "date": "Date",
+      "time": "Time",
+      "treatment": "Treatment",
+      "duration": "Duration",
+      "guests": "Guests",
+      "totalAmount": "Total",
+      "depositPaid": "Deposit Paid",
+      "remainingBalance": "Remaining Balance (pay at the spa)",
+      "location": "Location",
+      "viewOnMap": "View on Google Maps",
+      "contactInstagram": "Contact us on Instagram",
+      "changeInstructions": "To change or cancel your reservation, please contact us on Instagram with your reservation number.",
+      "footer": "Woori Aroma · Jungmun, Jeju"
+    }
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",

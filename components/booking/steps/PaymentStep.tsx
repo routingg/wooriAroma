@@ -83,6 +83,7 @@ export function PaymentStep() {
               email: details!.email,
               preferredLanguage: details!.preferredLanguage,
               specialRequest: details!.specialRequest || undefined,
+              whatsappOptIn: details!.whatsappOptIn,
             },
           }),
         });

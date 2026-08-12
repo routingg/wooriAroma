@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { confirmReservation } from "@/lib/repositories/reservationRepository";
 import { toPublicReservation } from "@/lib/booking/publicReservation";
-import { notifyReservationConfirmed } from "@/lib/booking/notifyReservationConfirmed";
+import { notifyReservationConfirmed } from "@/lib/booking/reservationNotifications";
 import { bookingErrorResponse } from "@/lib/booking/apiError";
 import { BookingError } from "@/lib/booking/errors";
 

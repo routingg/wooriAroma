@@ -92,7 +92,9 @@
       "preferredLanguage": "ご希望の連絡言語",
       "preferredLanguageHint": "サイトの表示言語と異なっていても、こちらの言語でご連絡いたします。",
       "specialRequest": "ご要望・特記事項",
-      "specialRequestPlaceholder": "アレルギー、配慮が必要な点、記念日などございましたらお知らせください。"
+      "specialRequestPlaceholder": "アレルギー、配慮が必要な点、記念日などございましたらお知らせください。",
+      "whatsappConsent": "WhatsAppで予約に関する通知を受け取る",
+      "whatsappConsentHint": "任意です。この予約に関する内容のみお送りします。"
     },
     "review": {
       "title": "ご予約内容",
@@ -135,6 +137,42 @@
     "required": "この項目は必須です。",
     "invalidEmail": "正しいメールアドレスを入力してください。",
     "invalidPhone": "正しい電話番号を入力してください。"
+  },
+  "notifications": {
+    "email": {
+      "subject": {
+        "RESERVATION_CONFIRMED": "Woori Aromaのご予約が確定しました — {reservationNumber}",
+        "RESERVATION_UPDATED": "Woori Aromaのご予約内容が変更されました — {reservationNumber}",
+        "RESERVATION_CANCELLED": "Woori Aromaのご予約がキャンセルされました — {reservationNumber}",
+        "RESERVATION_REMINDER": "明日Woori Aromaでお待ちしております — {reservationNumber}"
+      },
+      "heading": {
+        "RESERVATION_CONFIRMED": "ご予約確定のお知らせ",
+        "RESERVATION_UPDATED": "ご予約変更のお知らせ",
+        "RESERVATION_CANCELLED": "ご予約キャンセルのお知らせ",
+        "RESERVATION_REMINDER": "明日のご来店について"
+      },
+      "intro": {
+        "RESERVATION_CONFIRMED": "{name}様、ご予約が確定しました。",
+        "RESERVATION_UPDATED": "{name}様、ご予約内容が変更されました。",
+        "RESERVATION_CANCELLED": "{name}様、ご予約がキャンセルされました。",
+        "RESERVATION_REMINDER": "{name}様、明日のご来店のリマインドです。"
+      },
+      "reservationNumber": "予約番号",
+      "date": "日付",
+      "time": "時間",
+      "treatment": "施術",
+      "duration": "所要時間",
+      "guests": "人数",
+      "totalAmount": "合計金額",
+      "depositPaid": "お支払い済みデポジット",
+      "remainingBalance": "残額（当日店舗にてお支払い）",
+      "location": "所在地",
+      "viewOnMap": "Googleマップで見る",
+      "contactInstagram": "Instagramでお問い合わせ",
+      "changeInstructions": "ご予約の変更・キャンセルは、予約番号を添えてInstagramまでご連絡ください。",
+      "footer": "Woori Aroma · 済州中文"
+    }
   },
   "errors": {
     "generic": "問題が発生しました。もう一度お試しください。",

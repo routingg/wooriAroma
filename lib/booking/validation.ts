@@ -31,6 +31,8 @@ export interface ReservationHoldRequest {
     email: string;
     preferredLanguage: AppLocale;
     specialRequest?: string;
+    /** Explicit opt-in to WhatsApp reservation notifications — only meaningful for international numbers. */
+    whatsappOptIn?: boolean;
   };
 }
 
@@ -92,6 +94,7 @@ export function validateReservationHoldRequest(body: unknown): ReservationHoldRe
     typeof specialRequestRaw === "string" && specialRequestRaw.trim().length > 0
       ? specialRequestRaw.trim()
       : undefined;
+  const whatsappOptIn = customerInput.whatsappOptIn === true;
 
   if (!name || !PHONE_PATTERN.test(phone) || !EMAIL_PATTERN.test(email)) {
     throw new BookingError(
@@ -111,6 +114,6 @@ export function validateReservationHoldRequest(body: unknown): ReservationHoldRe
     time,
     locale,
     source,
-    customer: { name, phone, email, preferredLanguage, specialRequest },
+    customer: { name, phone, email, preferredLanguage, specialRequest, whatsappOptIn },
   };
 }
