@@ -30,6 +30,11 @@ function futureDateKey(daysAhead: number): string {
 beforeEach(() => {
   process.env.RESEND_API_KEY = "test-key";
   process.env.RESEND_FROM_EMAIL = "reservations@wooriaroma.test";
+  // This suite tests reminder-job idempotency, not the sandbox/production
+  // recipient policy (see tests/notifications/recipientPolicy.test.ts and
+  // emailProvider.test.ts for that) — opt into production mode so the
+  // (mocked) provider is actually invoked.
+  process.env.EMAIL_DELIVERY_MODE = "production";
 });
 
 afterEach(() => {

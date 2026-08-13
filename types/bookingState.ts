@@ -20,8 +20,6 @@ export interface BookingDetailsDraft {
   email: string;
   preferredLanguage: AppLocale;
   specialRequest: string;
-  /** Explicit opt-in to WhatsApp reservation notifications — only shown/meaningful for international numbers. */
-  whatsappOptIn: boolean;
 }
 
 /**

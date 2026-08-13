@@ -4,6 +4,7 @@ import {
   confirmReservation,
   createHold,
   getByReservationNumber,
+  searchReservations,
 } from "@/lib/repositories/reservationRepository";
 import { createBlockedTime } from "@/lib/repositories/blockedTimeRepository";
 import { getAvailableSlotsForDate } from "@/lib/booking/availabilityService";
@@ -132,6 +133,23 @@ describe("T10: admin manual block excludes the slot from customer availability",
     expect(at16?.available).toBe(false);
 
     expect(() => createHold(holdRequest({ date, time: "16:00" }))).toThrowError(BookingError);
+  });
+});
+
+describe("searchReservations — powers /admin/send-confirmation's search box", () => {
+  it("matches by reservation number, customer name, or customer email, and ignores unrelated reservations", () => {
+    const date = futureDateKey(5);
+    const { reservation } = createHold(
+      holdRequest({ date, time: "16:00", customer: { ...holdRequest().customer, name: "Searchable Sam", email: "sam.searchable@example.com" } }),
+    );
+    createHold(
+      holdRequest({ date, time: "19:30", customer: { ...holdRequest().customer, name: "Someone Else", email: "someone.else@example.com" } }),
+    );
+
+    expect(searchReservations(reservation.reservationNumber).map((r) => r.id)).toEqual([reservation.id]);
+    expect(searchReservations("Searchable").map((r) => r.id)).toEqual([reservation.id]);
+    expect(searchReservations("sam.searchable").map((r) => r.id)).toEqual([reservation.id]);
+    expect(searchReservations("no-such-query-at-all")).toEqual([]);
   });
 });
 

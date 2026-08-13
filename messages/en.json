@@ -22,16 +22,24 @@
     "footerNote": "Jungmun, Jeju Island · By reservation only"
   },
   "services": {
+    "thaiMassage": {
+      "name": "Traditional Thai Massage",
+      "description": "Traditional stretching and acupressure to release tension and restore flexibility."
+    },
     "aromaOil": {
-      "name": "Aroma Oil",
+      "name": "Aroma Oil Massage",
       "description": "A relaxing full-body massage with pure botanical oils."
     },
     "hotStone": {
-      "name": "Hot Stone",
+      "name": "Hot Stone Massage",
       "description": "Warm basalt stones melt away deep muscle tension."
     },
+    "quickSpaFoot": {
+      "name": "Quick Spa – Foot Massage",
+      "description": "A focused foot and lower-leg massage to ease tired feet in a short session."
+    },
     "facial": {
-      "name": "Facial",
+      "name": "Skin Care – Facial Spa",
       "description": "A gentle cleanse and hydration treatment for glowing skin."
     }
   },
@@ -86,15 +94,13 @@
       "subtitle": "We'll use this to confirm your reservation.",
       "name": "Name",
       "namePlaceholder": "Full name",
-      "phone": "Phone / WhatsApp",
+      "phone": "Phone",
       "email": "Email",
       "emailPlaceholder": "you@example.com",
       "preferredLanguage": "Preferred language for communication",
       "preferredLanguageHint": "We'll contact you in this language, even if it differs from the site language.",
       "specialRequest": "Special requests",
-      "specialRequestPlaceholder": "Allergies, accessibility needs, celebrations — let us know.",
-      "whatsappConsent": "Receive reservation updates via WhatsApp",
-      "whatsappConsentHint": "Optional — we'll only message you about this reservation."
+      "specialRequestPlaceholder": "Allergies, accessibility needs, celebrations — let us know."
     },
     "review": {
       "title": "Your Booking",
@@ -168,6 +174,7 @@
       "depositPaid": "Deposit Paid",
       "remainingBalance": "Remaining Balance (pay at the spa)",
       "location": "Location",
+      "mapAlt": "Woori Aroma directions map",
       "viewOnMap": "View on Google Maps",
       "contactInstagram": "Contact us on Instagram",
       "changeInstructions": "To change or cancel your reservation, please contact us on Instagram with your reservation number.",

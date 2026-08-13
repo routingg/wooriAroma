@@ -18,7 +18,14 @@ import type { ReservationRecord } from "@/lib/repositories/reservationRepository
  * reservation that already succeeded (see lib/notifications/types.ts's
  * "never throws" contract on every provider).
  */
-async function buildPayload(
+/**
+ * Exported (not just used internally) so the admin's manual "Send/Resend
+ * Confirmation" and "Send Test Email" actions build the exact same
+ * trusted, server-derived payload as the automatic on-booking flow below —
+ * no second implementation of the customer/service lookup to drift out of
+ * sync.
+ */
+export async function buildReservationNotificationPayload(
   reservation: ReservationRecord,
   event: NotificationEvent,
 ): Promise<ReservationNotificationPayload | null> {
@@ -41,7 +48,6 @@ async function buildPayload(
     customerEmail: customer.email,
     customerPhone: customer.phone,
     preferredLanguage: customer.preferredLanguage,
-    whatsappOptIn: customer.whatsappOptIn,
     date: reservation.dateKey,
     time: reservation.serviceStart,
     guestCount: reservation.guestCount,
@@ -55,21 +61,21 @@ async function buildPayload(
 }
 
 export async function notifyReservationConfirmed(reservation: ReservationRecord): Promise<void> {
-  const payload = await buildPayload(reservation, "RESERVATION_CONFIRMED");
+  const payload = await buildReservationNotificationPayload(reservation, "RESERVATION_CONFIRMED");
   if (payload) await notificationService.sendReservationConfirmation(payload);
 }
 
 export async function notifyReservationUpdated(reservation: ReservationRecord): Promise<void> {
-  const payload = await buildPayload(reservation, "RESERVATION_UPDATED");
+  const payload = await buildReservationNotificationPayload(reservation, "RESERVATION_UPDATED");
   if (payload) await notificationService.sendReservationUpdated(payload);
 }
 
 export async function notifyReservationCancelled(reservation: ReservationRecord): Promise<void> {
-  const payload = await buildPayload(reservation, "RESERVATION_CANCELLED");
+  const payload = await buildReservationNotificationPayload(reservation, "RESERVATION_CANCELLED");
   if (payload) await notificationService.sendReservationCancelled(payload);
 }
 
 export async function notifyReservationReminder(reservation: ReservationRecord): Promise<void> {
-  const payload = await buildPayload(reservation, "RESERVATION_REMINDER");
+  const payload = await buildReservationNotificationPayload(reservation, "RESERVATION_REMINDER");
   if (payload) await notificationService.sendReservationReminder(payload);
 }

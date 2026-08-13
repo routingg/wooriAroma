@@ -22,16 +22,24 @@
     "footerNote": "济州中文洞 · 仅接受预约"
   },
   "services": {
+    "thaiMassage": {
+      "name": "传统泰式按摩",
+      "description": "传统伸展与指压手法，舒缓紧张并恢复身体柔韧性。"
+    },
     "aromaOil": {
-      "name": "香薰精油",
+      "name": "香薰精油按摩",
       "description": "使用纯天然植物精油的全身放松按摩。"
     },
     "hotStone": {
-      "name": "热石理疗",
+      "name": "热石按摩",
       "description": "温热的玄武岩石帮助舒缓深层肌肉紧张。"
     },
+    "quickSpaFoot": {
+      "name": "快捷水疗 – 足部按摩",
+      "description": "短时间内集中舒缓疲惫双脚与小腿的按摩。"
+    },
     "facial": {
-      "name": "面部护理",
+      "name": "肌肤护理 – 面部水疗",
       "description": "温和洁净与补水护理，带来净透光采肌肤。"
     }
   },
@@ -86,15 +94,13 @@
       "subtitle": "我们将使用这些信息确认您的预约。",
       "name": "姓名",
       "namePlaceholder": "请输入姓名",
-      "phone": "电话 / WhatsApp",
+      "phone": "电话",
       "email": "邮箱",
       "emailPlaceholder": "you@example.com",
       "preferredLanguage": "希望使用的沟通语言",
       "preferredLanguageHint": "即使与网站语言不同，我们也会使用此语言与您联系。",
       "specialRequest": "特殊需求",
-      "specialRequestPlaceholder": "如有过敏、行动不便或纪念日等需求，请告诉我们。",
-      "whatsappConsent": "通过 WhatsApp 接收预约通知",
-      "whatsappConsentHint": "可选 — 我们只会发送与此预约相关的信息。"
+      "specialRequestPlaceholder": "如有过敏、行动不便或纪念日等需求，请告诉我们。"
     },
     "review": {
       "title": "预约详情",
@@ -168,6 +174,7 @@
       "depositPaid": "已付定金",
       "remainingBalance": "尾款（到店支付）",
       "location": "位置",
+      "mapAlt": "Woori Aroma 路线图",
       "viewOnMap": "在 Google 地图查看",
       "contactInstagram": "通过 Instagram 联系我们",
       "changeInstructions": "如需变更或取消预约，请携带预约编号通过 Instagram 联系我们。",

@@ -12,16 +12,15 @@ export type NotificationEvent =
   | "RESERVATION_CANCELLED"
   | "RESERVATION_REMINDER";
 
-export type NotificationChannel = "EMAIL" | "KAKAO" | "SMS" | "WHATSAPP" | "TELEGRAM";
+export type NotificationChannel = "EMAIL";
 
 /** Never thrown — see each provider's `send()` contract below. */
 export type NotificationStatus = "SENT" | "FAILED" | "SKIPPED";
 
 /**
- * Everything a notification provider needs to render and deliver a message
- * for one reservation event. Deliberately flat and provider-agnostic — built
- * once from trusted server-side data (reservation + customer + service) and
- * handed to whichever channels the policy decides to attempt.
+ * Everything the email provider needs to render and deliver a message for
+ * one reservation event. Deliberately flat and provider-agnostic — built
+ * once from trusted server-side data (reservation + customer + service).
  */
 export interface ReservationNotificationPayload {
   event: NotificationEvent;
@@ -29,11 +28,9 @@ export interface ReservationNotificationPayload {
   reservationNumber: string;
   customerName: string;
   customerEmail: string;
-  /** Raw as entered by the customer — providers normalize via lib/notifications/phone.ts. */
   customerPhone: string;
   /** The customer's preferred *communication* language, not the site UI locale. */
   preferredLanguage: AppLocale;
-  whatsappOptIn: boolean;
   date: string; // "YYYY-MM-DD"
   time: string; // "HH:mm"
   guestCount: number;
@@ -47,32 +44,22 @@ export interface ReservationNotificationPayload {
 
 export interface NotificationResult {
   status: NotificationStatus;
-  /** Concrete provider that handled (or declined) the send, e.g. "resend", "solapi-kakao". */
+  /** Concrete provider that handled (or declined) the send, e.g. "resend". */
   provider: string;
   providerMessageId?: string;
   /** Present when status is FAILED or SKIPPED — never thrown, always returned. */
   reason?: string;
+  /** EMAIL only: true when sandbox mode redirected delivery away from the real customer address. */
+  redirected?: boolean;
 }
 
 /**
- * One outbound channel. `send()` must resolve, never reject — a delivery
+ * The email channel. `send()` must resolve, never reject — a delivery
  * failure or missing configuration is data (NotificationResult), not an
  * exception, so it can never propagate up and endanger the reservation that
- * triggered it. Channel-specific because each one needs a different
- * recipient shape (email address vs. phone vs. a fixed admin chat).
+ * triggered it.
  */
 export interface EmailProvider {
-  send(payload: ReservationNotificationPayload): Promise<NotificationResult>;
-}
-
-export interface KoreanMessagingProvider {
-  send(payload: ReservationNotificationPayload): Promise<NotificationResult[]>;
-}
-
-export interface WhatsAppProvider {
-  send(payload: ReservationNotificationPayload): Promise<NotificationResult>;
-}
-
-export interface AdminNotificationProvider {
-  send(payload: ReservationNotificationPayload): Promise<NotificationResult>;
+  /** `includeMap` defaults per-event in the template — see templates/email.ts. */
+  send(payload: ReservationNotificationPayload, options?: { includeMap?: boolean }): Promise<NotificationResult>;
 }

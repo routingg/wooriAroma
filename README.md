@@ -58,9 +58,9 @@ tests/                                 vitest suite
 ## Notification System Setup
 
 Reservation confirm/cancel/reminder events fan out through `lib/notifications/service.ts`
-to one provider per channel — reservation code never talks to a provider directly. Every
-provider is optional: with no environment variables set, the app runs normally and every
-channel logs `provider_not_configured` instead of pretending to send anything.
+to the email provider — reservation code never talks to a provider directly. The provider
+is optional: with no environment variables set, the app runs normally and email delivery
+logs `provider_not_configured` instead of pretending to send anything.
 
 ```text
 Reservation confirmed/updated/cancelled
@@ -69,12 +69,9 @@ Reservation confirmed/updated/cancelled
 lib/booking/reservationNotifications.ts   (builds the payload from trusted server data)
         │
         ▼
-lib/notifications/service.ts              (routes by lib/notifications/policy.ts, logs every attempt)
+lib/notifications/service.ts              (logs every attempt)
         │
-        ├── Email (all customers with an address) ──────────── Resend
-        ├── Korean customers (+82 phone)  ─── Kakao AlimTalk → SMS fallback on failure — SOLAPI
-        ├── International customers (opted in) ─────────────── WhatsApp — Meta Cloud API
-        └── Store administrator (every event) ─────────────── Telegram Bot API
+        └── Email (all customers with an address) ──────────── Resend
 ```
 
 Every attempt — sent, failed, or skipped — is logged to the `notifications` table
@@ -86,46 +83,38 @@ is also what makes the 24h reminder job idempotent: re-running it never double-s
 | Channel | Variables |
 |---|---|
 | Email — Resend | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` |
-| Korean — SOLAPI | `SOLAPI_API_KEY`, `SOLAPI_API_SECRET`, `SOLAPI_SENDER_NUMBER`, `SOLAPI_KAKAO_PFID`, `SOLAPI_KAKAO_TEMPLATE_ID` |
-| WhatsApp — Meta Cloud API | `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_BUSINESS_ACCOUNT_ID`, `WHATSAPP_TEMPLATE_CONFIRMATION`, `WHATSAPP_TEMPLATE_REMINDER`, `WHATSAPP_TEMPLATE_UPDATE`, `WHATSAPP_TEMPLATE_CANCELLATION` |
-| Admin — Telegram | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ADMIN_CHAT_ID` |
+| Email delivery safety gate | `EMAIL_DELIVERY_MODE`, `EMAIL_TEST_RECIPIENT` |
 | Reminder cron | `CRON_SECRET` |
 
-None of these are required for local development — every provider degrades to a logged
+None of these are required for local development — the email provider degrades to a logged
 `provider_not_configured` skip.
 
 ### Registering each provider
 
 - **Resend**: create an account at resend.com, verify a sending domain, create an API key.
-- **SOLAPI**: create an account at solapi.com, register a Kakao channel + AlimTalk sender
-  profile (`pfId`), and get an AlimTalk template approved by Kakao — approval is required
-  before `SOLAPI_KAKAO_TEMPLATE_ID` can be used; until then Korean customers automatically
-  get SMS only (`lib/notifications/providers/korean.ts` skips Kakao cleanly). The template's
-  approved variable names must match what `lib/notifications/templates/korean.ts`'s
-  `buildKakaoVariables()` sends — confirm/update that mapping against the actual approved
-  template before going live.
-- **WhatsApp (Meta Cloud API)**: create a Meta Business app with the WhatsApp product, get a
-  phone number ID, and get each of the 4 message templates (confirmation/update/cancellation/
-  reminder) approved in Meta Business Manager. The approved body text's `{{1}}..{{6}}`
-  placeholders must match the order defined in `lib/notifications/templates/whatsapp.ts`'s
-  `buildWhatsAppBodyParameters()` (name, reservation number, date, time, treatment, guests).
-- **Telegram**: create a bot via [@BotFather](https://t.me/BotFather) for `TELEGRAM_BOT_TOKEN`,
-  then message the bot once and call `https://api.telegram.org/bot<token>/getUpdates` to read
-  back the admin's `chat.id` for `TELEGRAM_ADMIN_CHAT_ID`.
+- **Email delivery safety gate**: `EMAIL_DELIVERY_MODE` defaults to `sandbox` unless set to exactly
+  `production` (any unset/misspelled value stays in sandbox — see `lib/notifications/recipientPolicy.ts`).
+  In sandbox mode every outgoing customer email — automatic on booking confirmation, or an admin's
+  manual "Send Confirmation" from `/admin/reservations/[id]` — is redirected to `EMAIL_TEST_RECIPIENT`
+  instead of the real customer address, and is skipped entirely (never sent to the customer) if that
+  variable isn't set. The admin's "Send Test Email" button always targets `EMAIL_TEST_RECIPIENT`
+  regardless of delivery mode, and never marks the reservation's confirmation as sent.
 - **Reminder cron**: generate any long random string for `CRON_SECRET`, then point an external
   scheduler at `POST /api/cron/reminders` with header `Authorization: Bearer <CRON_SECRET>`.
   Any scheduler works — a Vercel Cron entry, a plain server crontab running `curl`, a GitHub
   Actions scheduled workflow. Run it at least hourly; the job is idempotent so more frequent
   runs are harmless.
 
+Confirmation/update/reminder emails embed the directions map at `public/sketchmap.png` as an
+inline Resend attachment (`content_id` → `cid:` reference in the HTML, see
+`lib/notifications/mapAttachment.ts`) — the same file the admin detail page previews at
+`/sketchmap.png`. Cancellation emails omit it by default.
+
 ### Known limitations
 
 - `RESERVATION_UPDATED` has no real trigger yet — the codebase has no reservation-edit/reschedule
   feature to hang it off of. The event type, templates, and provider wiring all already support
   it; it just isn't called anywhere today.
-- Kakao/WhatsApp "sent" means the provider accepted the message for delivery, not that the
-  customer's device confirmed receipt — true delivery status would need each provider's webhook,
-  which isn't implemented.
 - `node:sqlite` (this project's DB) assumes a long-lived Node process; the reminder cron
   endpoint is intentionally deployment-agnostic to work around that, but the underlying DB
   choice is unrelated to this feature and outside its scope.

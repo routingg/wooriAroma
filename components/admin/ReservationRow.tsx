@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getService, getServiceOption } from "@/data/services";
 import { formatCurrency } from "@/lib/booking/pricing";
 import { formatTimeLabel } from "@/lib/booking/time";
@@ -58,6 +59,12 @@ export function ReservationRow({ reservation }: { reservation: ReservationRecord
           </span>
           <span className="text-xs text-stone-400 group-open:hidden">알림 보기 ▾</span>
           <span className="hidden text-xs text-stone-400 group-open:inline">알림 숨기기 ▴</span>
+          <Link
+            href={`/admin/reservations/${reservation.id}`}
+            className="text-xs font-medium text-stone-600 underline-offset-2 hover:underline"
+          >
+            상세보기 →
+          </Link>
         </div>
       </summary>
 

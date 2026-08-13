@@ -49,7 +49,6 @@ describe("notificationService — failure isolation", () => {
       customerEmail: "failure@example.com",
       customerPhone: "+82 10-1234-5678",
       preferredLanguage: "en",
-      whatsappOptIn: false,
       date: confirmed.dateKey,
       time: confirmed.serviceStart,
       guestCount: 1,

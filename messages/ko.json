@@ -22,6 +22,10 @@
     "footerNote": "제주 중문 · 예약제로 운영됩니다"
   },
   "services": {
+    "thaiMassage": {
+      "name": "전통 타이 마사지",
+      "description": "전통 스트레칭과 지압으로 긴장을 풀고 유연성을 되찾아주는 마사지."
+    },
     "aromaOil": {
       "name": "아로마 오일",
       "description": "순수 식물성 오일로 온몸의 긴장을 풀어주는 릴렉싱 마사지."
@@ -30,8 +34,12 @@
       "name": "핫스톤",
       "description": "따뜻한 현무암 스톤으로 깊은 근육 피로를 풀어드립니다."
     },
+    "quickSpaFoot": {
+      "name": "퀵 스파 – 발 마사지",
+      "description": "짧은 시간 동안 지친 발과 종아리를 집중적으로 풀어주는 마사지."
+    },
     "facial": {
-      "name": "페이셜",
+      "name": "스킨케어 – 페이셜 스파",
       "description": "피부를 맑고 촉촉하게 가꿔주는 순한 클렌징 & 보습 케어."
     }
   },
@@ -86,15 +94,13 @@
       "subtitle": "예약 확인을 위해 아래 정보를 입력해 주세요.",
       "name": "이름",
       "namePlaceholder": "성함을 입력해 주세요",
-      "phone": "전화번호 / WhatsApp",
+      "phone": "전화번호",
       "email": "이메일",
       "emailPlaceholder": "you@example.com",
       "preferredLanguage": "선호하는 상담 언어",
       "preferredLanguageHint": "사이트 언어와 다르더라도 이 언어로 연락드립니다.",
       "specialRequest": "요청 사항",
-      "specialRequestPlaceholder": "알레르기, 편의 지원, 기념일 등 알려주시면 반영해 드립니다.",
-      "whatsappConsent": "WhatsApp으로 예약 알림 받기",
-      "whatsappConsentHint": "선택 사항이며, 이 예약과 관련된 내용만 보내드립니다."
+      "specialRequestPlaceholder": "알레르기, 편의 지원, 기념일 등 알려주시면 반영해 드립니다."
     },
     "review": {
       "title": "예약 내역",
@@ -168,6 +174,7 @@
       "depositPaid": "결제된 예약금",
       "remainingBalance": "잔금 (현장 결제)",
       "location": "위치",
+      "mapAlt": "우리아로마 찾아오시는 길 지도",
       "viewOnMap": "구글 지도에서 보기",
       "contactInstagram": "인스타그램으로 문의하기",
       "changeInstructions": "예약 변경 또는 취소는 예약 번호와 함께 인스타그램으로 문의해 주세요.",

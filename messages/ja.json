@@ -22,6 +22,10 @@
     "footerNote": "済州島 中文 · 完全予約制"
   },
   "services": {
+    "thaiMassage": {
+      "name": "伝統タイ古式マッサージ",
+      "description": "伝統的なストレッチと指圧で緊張をほぐし、柔軟性を取り戻すマッサージ。"
+    },
     "aromaOil": {
       "name": "アロマオイル",
       "description": "天然植物オイルで全身の緊張をほぐすリラックスマッサージ。"
@@ -30,8 +34,12 @@
       "name": "ホットストーン",
       "description": "温めた玄武岩ストーンで深部の筋肉のこりをほぐします。"
     },
+    "quickSpaFoot": {
+      "name": "クイックスパ – フットマッサージ",
+      "description": "短時間で疲れた足とふくらはぎを集中的にほぐすマッサージ。"
+    },
     "facial": {
-      "name": "フェイシャル",
+      "name": "スキンケア – フェイシャルスパ",
       "description": "肌をやさしく洗浄・保湿し、透明感を引き出すケア。"
     }
   },
@@ -86,15 +94,13 @@
       "subtitle": "ご予約確認のため、以下の情報をご入力ください。",
       "name": "お名前",
       "namePlaceholder": "お名前を入力してください",
-      "phone": "電話番号 / WhatsApp",
+      "phone": "電話番号",
       "email": "メールアドレス",
       "emailPlaceholder": "you@example.com",
       "preferredLanguage": "ご希望の連絡言語",
       "preferredLanguageHint": "サイトの表示言語と異なっていても、こちらの言語でご連絡いたします。",
       "specialRequest": "ご要望・特記事項",
-      "specialRequestPlaceholder": "アレルギー、配慮が必要な点、記念日などございましたらお知らせください。",
-      "whatsappConsent": "WhatsAppで予約に関する通知を受け取る",
-      "whatsappConsentHint": "任意です。この予約に関する内容のみお送りします。"
+      "specialRequestPlaceholder": "アレルギー、配慮が必要な点、記念日などございましたらお知らせください。"
     },
     "review": {
       "title": "ご予約内容",
@@ -168,6 +174,7 @@
       "depositPaid": "お支払い済みデポジット",
       "remainingBalance": "残額（当日店舗にてお支払い）",
       "location": "所在地",
+      "mapAlt": "Woori Aromaへの道案内地図",
       "viewOnMap": "Googleマップで見る",
       "contactInstagram": "Instagramでお問い合わせ",
       "changeInstructions": "ご予約の変更・キャンセルは、予約番号を添えてInstagramまでご連絡ください。",

@@ -2,12 +2,28 @@ import { getTranslations } from "next-intl/server";
 import { BUSINESS, googleMapsUrl } from "@/lib/config/business";
 import { formatCurrency } from "@/lib/booking/pricing";
 import { formatTimeLabel } from "@/lib/booking/time";
+import { SKETCHMAP_CONTENT_ID } from "../mapAttachment";
 import type { ReservationNotificationPayload } from "../types";
 
 export interface RenderedEmail {
   subject: string;
   html: string;
   text: string;
+}
+
+export interface RenderEmailOptions {
+  /** Defaults to true for every event except RESERVATION_CANCELLED. */
+  includeMap?: boolean;
+}
+
+/**
+ * The single place that resolves the includeMap default — used by both the
+ * template (to render or omit the `<img cid:...>` row) and the Resend
+ * provider (to attach or skip sketchmap.png), so the two can never disagree
+ * about whether a given email actually has the map attached.
+ */
+export function resolveIncludeMap(payload: ReservationNotificationPayload, options: RenderEmailOptions = {}): boolean {
+  return options.includeMap ?? payload.event !== "RESERVATION_CANCELLED";
 }
 
 /**
@@ -17,8 +33,12 @@ export interface RenderedEmail {
  * single column, generous tap targets, and a max-width of 480px so it reads
  * cleanly on a phone without a media query.
  */
-export async function renderReservationEmail(payload: ReservationNotificationPayload): Promise<RenderedEmail> {
+export async function renderReservationEmail(
+  payload: ReservationNotificationPayload,
+  options: RenderEmailOptions = {},
+): Promise<RenderedEmail> {
   const t = await getTranslations({ locale: payload.preferredLanguage, namespace: "notifications.email" });
+  const includeMap = resolveIncludeMap(payload, options);
 
   const dateLabel = new Intl.DateTimeFormat(payload.preferredLanguage, {
     year: "numeric",
@@ -87,6 +107,16 @@ export async function renderReservationEmail(payload: ReservationNotificationPay
                 </table>
               </td>
             </tr>
+            ${
+              includeMap
+                ? `<tr>
+              <td style="padding:20px 24px 4px;">
+                <p style="margin:0 0 10px;color:#1c1917;font-size:13px;font-weight:600;">${escapeHtml(t("location"))}</p>
+                <img src="cid:${SKETCHMAP_CONTENT_ID}" alt="${escapeHtml(t("mapAlt"))}" width="432" style="display:block;width:100%;max-width:432px;height:auto;border-radius:12px;border:1px solid #e7e5e4;" />
+              </td>
+            </tr>`
+                : ""
+            }
             <tr>
               <td style="padding:20px 24px 4px;">
                 <p style="margin:0 0 12px;color:#57534e;font-size:13px;line-height:1.6;">${escapeHtml(t("changeInstructions"))}</p>
@@ -106,7 +136,8 @@ export async function renderReservationEmail(payload: ReservationNotificationPay
   </body>
 </html>`.trim();
 
-  const text = `${heading}\n\n${intro}\n\n${rowsText}\n\n${t("changeInstructions")}\n${BUSINESS.instagramUrl}\n${mapsUrl}\n\n${t("footer")} · ${BUSINESS.addressEn}`;
+  const locationLine = includeMap ? `${t("location")}: ${mapsUrl}` : mapsUrl;
+  const text = `${heading}\n\n${intro}\n\n${rowsText}\n\n${t("changeInstructions")}\n${BUSINESS.instagramUrl}\n${locationLine}\n\n${t("footer")} · ${BUSINESS.addressEn}`;
 
   return { subject, html, text };
 }

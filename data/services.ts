@@ -12,10 +12,21 @@ import type { Service, ServiceOption } from "@/types/booking";
  */
 export const services: Service[] = [
   {
+    id: "thai-massage",
+    nameKey: "services.thaiMassage.name",
+    descriptionKey: "services.thaiMassage.description",
+    order: 1,
+    options: [
+      { id: "thai-massage-60", serviceId: "thai-massage", durationMinutes: 60, pricePerPerson: 70_000 },
+      { id: "thai-massage-90", serviceId: "thai-massage", durationMinutes: 90, pricePerPerson: 110_000 },
+      { id: "thai-massage-120", serviceId: "thai-massage", durationMinutes: 120, pricePerPerson: 150_000 },
+    ],
+  },
+  {
     id: "aroma-oil",
     nameKey: "services.aromaOil.name",
     descriptionKey: "services.aromaOil.description",
-    order: 1,
+    order: 2,
     options: [
       { id: "aroma-oil-60", serviceId: "aroma-oil", durationMinutes: 60, pricePerPerson: 100_000 },
       { id: "aroma-oil-90", serviceId: "aroma-oil", durationMinutes: 90, pricePerPerson: 140_000, recommended: true },
@@ -26,22 +37,26 @@ export const services: Service[] = [
     id: "hot-stone",
     nameKey: "services.hotStone.name",
     descriptionKey: "services.hotStone.description",
-    order: 2,
+    order: 3,
     options: [
+      { id: "hot-stone-60", serviceId: "hot-stone", durationMinutes: 60, pricePerPerson: 120_000 },
       { id: "hot-stone-90", serviceId: "hot-stone", durationMinutes: 90, pricePerPerson: 160_000 },
       { id: "hot-stone-120", serviceId: "hot-stone", durationMinutes: 120, pricePerPerson: 200_000 },
-      { id: "hot-stone-150", serviceId: "hot-stone", durationMinutes: 150, pricePerPerson: 250_000 },
     ],
+  },
+  {
+    id: "quick-spa-foot",
+    nameKey: "services.quickSpaFoot.name",
+    descriptionKey: "services.quickSpaFoot.description",
+    order: 4,
+    options: [{ id: "quick-spa-foot-50", serviceId: "quick-spa-foot", durationMinutes: 50, pricePerPerson: 50_000 }],
   },
   {
     id: "facial",
     nameKey: "services.facial.name",
     descriptionKey: "services.facial.description",
-    order: 3,
-    // No options published yet — this array is intentionally empty so
-    // the treatment step can filter it out until pricing is finalized,
-    // without needing any structural change to add options later.
-    options: [],
+    order: 5,
+    options: [{ id: "facial-60", serviceId: "facial", durationMinutes: 60, pricePerPerson: 70_000 }],
   },
 ];
 

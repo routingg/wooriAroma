@@ -12,17 +12,15 @@ export const STATUS_LABELS_KO: Record<ReservationStatus, string> = {
 };
 
 export const SERVICE_NAMES_KO: Record<string, string> = {
+  "thai-massage": "전통 타이 마사지",
   "aroma-oil": "아로마 오일",
   "hot-stone": "핫스톤",
-  facial: "페이셜",
+  "quick-spa-foot": "퀵 스파 – 발 마사지",
+  facial: "스킨케어 – 페이셜 스파",
 };
 
 export const NOTIFICATION_CHANNEL_LABELS_KO: Record<NotificationChannel, string> = {
   EMAIL: "이메일",
-  KAKAO: "카카오",
-  SMS: "SMS",
-  WHATSAPP: "WhatsApp",
-  TELEGRAM: "관리자(Telegram)",
 };
 
 export const NOTIFICATION_STATUS_LABELS_KO: Record<NotificationStatus, string> = {

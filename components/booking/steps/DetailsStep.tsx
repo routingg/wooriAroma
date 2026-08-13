@@ -12,20 +12,6 @@ import type { BookingDetailsDraft } from "@/types/bookingState";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_PATTERN = /^\+?[0-9][0-9\s-]{6,19}$/;
 
-/**
- * Cheap client-side heuristic only — decides whether to *show* the WhatsApp
- * opt-in checkbox, not whether a message actually gets routed to Kakao or
- * WhatsApp (that's lib/notifications/policy.ts, using a real E.164 parse
- * server-side). A number typed with a "+82"/"82" country code or in bare
- * Korean domestic form (leading "0") is treated as Korean.
- */
-function looksLikeKoreanPhone(phone: string): boolean {
-  const digitsOnly = phone.trim().replace(/[\s-]/g, "");
-  if (!digitsOnly) return false;
-  if (digitsOnly.startsWith("+82") || digitsOnly.startsWith("82")) return true;
-  return digitsOnly.startsWith("0");
-}
-
 export function DetailsStep() {
   const t = useTranslations("steps.details");
   const tCommon = useTranslations("common");
@@ -40,7 +26,6 @@ export function DetailsStep() {
       email: "",
       preferredLanguage: locale,
       specialRequest: "",
-      whatsappOptIn: false,
     },
   );
   const [touched, setTouched] = useState(false);
@@ -107,21 +92,6 @@ export function DetailsStep() {
           />
           {touched && errors.phone && <span className="text-xs text-red-500">{tValidation("invalidPhone")}</span>}
         </label>
-
-        {form.phone.trim().length > 0 && !looksLikeKoreanPhone(form.phone) && (
-          <label className="flex items-start gap-3 rounded-xl border border-stone-200 bg-stone-100 px-4 py-3">
-            <input
-              type="checkbox"
-              checked={form.whatsappOptIn}
-              onChange={(e) => field("whatsappOptIn", e.target.checked)}
-              className="mt-0.5 h-4 w-4 shrink-0 rounded border-stone-400"
-            />
-            <span className="flex flex-col gap-0.5">
-              <span className="text-sm font-medium text-stone-800">{t("whatsappConsent")}</span>
-              <span className="text-xs text-stone-500">{t("whatsappConsentHint")}</span>
-            </span>
-          </label>
-        )}
 
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-medium text-stone-800">

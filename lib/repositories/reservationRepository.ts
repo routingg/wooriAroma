@@ -161,7 +161,6 @@ export function createHold(request: ReservationHoldRequest): CreateHoldResult {
       phone: request.customer.phone,
       email: request.customer.email,
       preferredLanguage: request.customer.preferredLanguage,
-      whatsappOptIn: request.customer.whatsappOptIn,
     });
 
     const totalAmount = calculateTotalAmount(option.pricePerPerson, request.guestCount);
@@ -279,6 +278,22 @@ export function listByDate(dateKey: string): ReservationRecord[] {
   return rows.map(mapRow);
 }
 
+/** Every reservation regardless of date — powers the admin's all-reservations list (split into upcoming/past there). */
+export function listAll(statusFilter?: ReservationStatus[]): ReservationRecord[] {
+  const db = getDb();
+  if (statusFilter && statusFilter.length > 0) {
+    const placeholders = statusFilter.map(() => "?").join(",");
+    const rows = db
+      .prepare(`SELECT * FROM reservations WHERE status IN (${placeholders}) ORDER BY date_key, blocked_start`)
+      .all(...statusFilter) as unknown as RawReservationRow[];
+    return rows.map(mapRow);
+  }
+  const rows = db
+    .prepare("SELECT * FROM reservations ORDER BY date_key, blocked_start")
+    .all() as unknown as RawReservationRow[];
+  return rows.map(mapRow);
+}
+
 export function listByDateRange(
   fromDateKey: string,
   toDateKey: string,
@@ -315,6 +330,27 @@ export function listConfirmedReservationsForDates(dateKeys: string[]): Reservati
   const rows = db
     .prepare(`SELECT * FROM reservations WHERE status = 'CONFIRMED' AND date_key IN (${placeholders})`)
     .all(...dateKeys) as unknown as RawReservationRow[];
+  return rows.map(mapRow);
+}
+
+/**
+ * Powers the admin's "예약 검색" box on /admin/send-confirmation — matches
+ * the reservation number or the linked customer's name/email, most recent
+ * first. A plain LIKE scan is fine at this data volume (single-location
+ * private spa); revisit with an index only if this ever becomes a
+ * measured bottleneck.
+ */
+export function searchReservations(query: string, limit = 20): ReservationRecord[] {
+  const needle = `%${query}%`;
+  const rows = getDb()
+    .prepare(
+      `SELECT r.* FROM reservations r
+       JOIN customers c ON c.id = r.customer_id
+       WHERE r.reservation_number LIKE ? OR c.name LIKE ? OR c.email LIKE ?
+       ORDER BY r.created_at DESC
+       LIMIT ?`,
+    )
+    .all(needle, needle, needle, limit) as unknown as RawReservationRow[];
   return rows.map(mapRow);
 }
 

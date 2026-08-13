@@ -14,6 +14,9 @@ export default async function AdminDashboardPage() {
           <Link href="/admin/reservations" className="hover:underline">
             예약 관리
           </Link>
+          <Link href="/admin/send-confirmation" className="hover:underline">
+            메일 보내기
+          </Link>
           <Link href="/admin/blocked-times" className="hover:underline">
             시간 관리
           </Link>

@@ -56,10 +56,10 @@ describe("validateReservationHoldRequest", () => {
     }
   });
 
-  it("T08: rejects a facial service option since no price has been published", () => {
+  it("T08: rejects an unknown/unpublished service option", () => {
     expect(() =>
       validateReservationHoldRequest({
-        serviceOptionId: "facial-60", // does not exist — data/services.ts has no facial options
+        serviceOptionId: "facial-999", // does not exist in data/services.ts
         guestCount: 1,
         date: futureDateKey(3),
         time: "16:00",
