@@ -40,23 +40,23 @@ function mapRow(row: RawCustomerRow): CustomerRecord {
 /**
  * Inserts a new customer, or updates an existing one matched by email — the
  * closest thing to a customer identity available without a login system.
- * Call from inside the caller's write transaction (see
- * reservationRepository.createHold) so it commits atomically with the
- * reservation it belongs to.
+ * Not atomic with the caller's reservation write (D1 has no interactive
+ * transactions — see reservationRepository.createHold) — that's fine here
+ * since this upsert is idempotent and keyed on a unique email, independent
+ * of any particular reservation.
  */
-export function upsertCustomer(input: CustomerInput): CustomerRecord {
+export async function upsertCustomer(input: CustomerInput): Promise<CustomerRecord> {
   const db = getDb();
   const now = new Date().toISOString();
   const email = input.email.trim().toLowerCase();
 
-  const existing = db.prepare("SELECT * FROM customers WHERE email = ?").get(email) as
-    | RawCustomerRow
-    | undefined;
+  const existing = await db.prepare("SELECT * FROM customers WHERE email = ?").bind(email).first<RawCustomerRow>();
 
   if (existing) {
-    db.prepare(
-      `UPDATE customers SET name = ?, phone = ?, preferred_language = ?, updated_at = ? WHERE id = ?`,
-    ).run(input.name, input.phone, input.preferredLanguage, now, existing.id);
+    await db
+      .prepare(`UPDATE customers SET name = ?, phone = ?, preferred_language = ?, updated_at = ? WHERE id = ?`)
+      .bind(input.name, input.phone, input.preferredLanguage, now, existing.id)
+      .run();
     return mapRow({
       ...existing,
       name: input.name,
@@ -67,10 +67,13 @@ export function upsertCustomer(input: CustomerInput): CustomerRecord {
   }
 
   const id = randomUUID();
-  db.prepare(
-    `INSERT INTO customers (id, name, phone, email, preferred_language, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-  ).run(id, input.name, input.phone, email, input.preferredLanguage, now, now);
+  await db
+    .prepare(
+      `INSERT INTO customers (id, name, phone, email, preferred_language, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .bind(id, input.name, input.phone, email, input.preferredLanguage, now, now)
+    .run();
 
   return mapRow({
     id,
@@ -83,14 +86,15 @@ export function upsertCustomer(input: CustomerInput): CustomerRecord {
   });
 }
 
-export function getCustomerById(id: string): CustomerRecord | undefined {
-  const row = getDb().prepare("SELECT * FROM customers WHERE id = ?").get(id) as RawCustomerRow | undefined;
+export async function getCustomerById(id: string): Promise<CustomerRecord | undefined> {
+  const row = await getDb().prepare("SELECT * FROM customers WHERE id = ?").bind(id).first<RawCustomerRow>();
   return row ? mapRow(row) : undefined;
 }
 
-export function getCustomerByEmail(email: string): CustomerRecord | undefined {
-  const row = getDb()
+export async function getCustomerByEmail(email: string): Promise<CustomerRecord | undefined> {
+  const row = await getDb()
     .prepare("SELECT * FROM customers WHERE email = ?")
-    .get(email.trim().toLowerCase()) as RawCustomerRow | undefined;
+    .bind(email.trim().toLowerCase())
+    .first<RawCustomerRow>();
   return row ? mapRow(row) : undefined;
 }

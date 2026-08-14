@@ -26,11 +26,13 @@ const NOTIFICATION_STATUS_CLASS: Record<string, string> = {
   SKIPPED: "text-stone-400",
 };
 
-export function ReservationRow({ reservation }: { reservation: ReservationRecord }) {
+export async function ReservationRow({ reservation }: { reservation: ReservationRecord }) {
   const option = getServiceOption(reservation.serviceOptionId);
   const service = option ? getService(option.serviceId) : undefined;
-  const customer = getCustomerById(reservation.customerId);
-  const notifications = listByReservation(reservation.id);
+  const [customer, notifications] = await Promise.all([
+    getCustomerById(reservation.customerId),
+    listByReservation(reservation.id),
+  ]);
 
   return (
     <details className="group text-sm">

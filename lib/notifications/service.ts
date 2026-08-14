@@ -27,11 +27,11 @@ async function sendOnce(
   payload: ReservationNotificationPayload,
   send: () => Promise<NotificationResult>,
 ): Promise<void> {
-  if (wasAlreadySent(payload.reservationId, "EMAIL", payload.event)) return;
+  if (await wasAlreadySent(payload.reservationId, "EMAIL", payload.event)) return;
 
   try {
     const result = await send();
-    recordAttempt({
+    await recordAttempt({
       reservationId: payload.reservationId,
       channel: "EMAIL",
       event: payload.event,
@@ -45,7 +45,7 @@ async function sendOnce(
     // Providers are contractually never supposed to throw, but a channel's
     // delivery failure — of all things — must never be what breaks a
     // reservation, so this backstop logs and swallows regardless.
-    recordAttempt({
+    await recordAttempt({
       reservationId: payload.reservationId,
       channel: "EMAIL",
       event: payload.event,

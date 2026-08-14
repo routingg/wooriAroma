@@ -3,8 +3,8 @@ import { listHandoffs } from "@/lib/repositories/agentHandoffRepository";
 import { resolveHandoffAction } from "../actions";
 
 export default async function AgentHandoffsPage() {
-  const open = listHandoffs("OPEN");
-  const resolved = listHandoffs("RESOLVED").slice(0, 10);
+  const [open, resolvedAll] = await Promise.all([listHandoffs("OPEN"), listHandoffs("RESOLVED")]);
+  const resolved = resolvedAll.slice(0, 10);
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-6 py-10">

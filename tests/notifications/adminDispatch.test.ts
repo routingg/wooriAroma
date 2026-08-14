@@ -22,8 +22,8 @@ function futureDateKey(daysAhead: number): string {
 }
 
 /** recordAttempt() writes reservation_id under a FOREIGN KEY constraint (PRAGMA foreign_keys = ON), so tests that persist need a real reservation row. */
-function makeConfirmedReservation(email: string): ReservationRecord {
-  const { reservation } = createHold({
+async function makeConfirmedReservation(email: string): Promise<ReservationRecord> {
+  const { reservation } = await createHold({
     serviceOptionId: "aroma-oil-90",
     guestCount: 2,
     date: futureDateKey(6),
@@ -76,7 +76,7 @@ describe("sendAdminConfirmationEmail", () => {
   });
 
   it("persists a SENT attempt to the notifications table", async () => {
-    const reservation = makeConfirmedReservation("persist@example.com");
+    const reservation = await makeConfirmedReservation("persist@example.com");
     sendMock.mockResolvedValueOnce({ status: "SENT", provider: "resend", providerMessageId: "email-1", redirected: false });
 
     const result = await sendAdminConfirmationEmail(
@@ -85,13 +85,13 @@ describe("sendAdminConfirmationEmail", () => {
     );
 
     expect(result.status).toBe("SENT");
-    const logs = listByReservation(reservation.id);
+    const logs = await listByReservation(reservation.id);
     expect(logs).toHaveLength(1);
     expect(logs[0]).toMatchObject({ channel: "EMAIL", eventType: "RESERVATION_CONFIRMED", status: "SENT" });
   });
 
   it("allows an explicit resend even though the confirmation already succeeded once", async () => {
-    const reservation = makeConfirmedReservation("resend@example.com");
+    const reservation = await makeConfirmedReservation("resend@example.com");
     sendMock.mockResolvedValue({ status: "SENT", provider: "resend", providerMessageId: "email-1", redirected: false });
     const sendPayload = payload({ reservationId: reservation.id, customerEmail: "resend@example.com" });
 
@@ -100,7 +100,7 @@ describe("sendAdminConfirmationEmail", () => {
 
     expect(second.status).toBe("SENT");
     expect(sendMock).toHaveBeenCalledTimes(2); // no wasAlreadySent guard for an explicit admin resend
-    const logs = listByReservation(reservation.id);
+    const logs = await listByReservation(reservation.id);
     expect(logs).toHaveLength(1); // same (reservation, channel, event) row, upserted
     expect(logs[0].attemptCount).toBe(2);
   });
@@ -117,7 +117,7 @@ describe("sendAdminConfirmationEmail", () => {
     });
 
     expect(result.status).toBe("SENT");
-    expect(listByReservation("manual-not-a-real-row")).toHaveLength(0);
+    expect(await listByReservation("manual-not-a-real-row")).toHaveLength(0);
   });
 });
 
@@ -143,12 +143,12 @@ describe("sendAdminTestEmail", () => {
   });
 
   it("never writes to the notifications table — a test send must not appear as a real confirmation", async () => {
-    const reservation = makeConfirmedReservation("notest@example.com");
+    const reservation = await makeConfirmedReservation("notest@example.com");
     process.env.EMAIL_TEST_RECIPIENT = "tester@example.com";
     sendMock.mockResolvedValueOnce({ status: "SENT", provider: "resend", redirected: false });
 
     await sendAdminTestEmail(payload({ reservationId: reservation.id }), { includeMap: true });
 
-    expect(listByReservation(reservation.id)).toHaveLength(0);
+    expect(await listByReservation(reservation.id)).toHaveLength(0);
   });
 });

@@ -1,16 +1,14 @@
 import { randomUUID } from "node:crypto";
 import { getDb } from "@/lib/db/client";
-import { withTransaction } from "@/lib/db/transaction";
 import { getServiceOption } from "@/data/services";
 import type { AppLocale } from "@/i18n/routing";
-import { calculateBlockedTime, checkBookingConflict, type BlockedWindow } from "@/lib/booking/availability";
+import { calculateBlockedTime, type BlockedWindow } from "@/lib/booking/availability";
 import { fromMinutes, toMinutes } from "@/lib/booking/time";
 import { calculateDepositAmount, calculateRemainingAmount, calculateTotalAmount } from "@/lib/booking/pricing";
 import { BookingError } from "@/lib/booking/errors";
 import { nextReservationNumber } from "@/lib/booking/reservationNumber";
 import type { ReservationHoldRequest } from "@/lib/booking/validation";
 import { upsertCustomer, type CustomerRecord } from "./customerRepository";
-import { getAdminBlockedWindows } from "./blockedTimeRepository";
 import { DELETABLE_RESERVATION_STATUSES } from "@/lib/admin/labels";
 
 const HOLD_MINUTES = Number(process.env.BOOKING_HOLD_MINUTES ?? 10);
@@ -105,28 +103,35 @@ function mapRow(row: RawReservationRow): ReservationRecord {
  * Blocked windows from reservations that currently occupy the calendar:
  * CONFIRMED, PENDING (a submitted request awaiting admin review still holds
  * its slot — AGENTS.md deposit removal), or a HOLD that hasn't expired yet.
- * `excludeReservationId` lets submitReservationRequest()/confirmReservation()
- * re-check without conflicting with their own hold.
+ * `excludeReservationId` lets callers re-check without conflicting with
+ * their own hold. Read-only — used by availabilityService.ts for the
+ * customer-facing slot grid. The write paths below (createHold /
+ * submitReservationRequest / confirmReservation) do NOT use this: D1 has
+ * no interactive transactions, so a JS-side read-then-branch here would be
+ * racy for a write decision. They instead push the equivalent conflict
+ * check into a single conditional SQL statement.
  */
-export function getActiveBlockedWindows(dateKey: string, excludeReservationId?: string): BlockedWindow[] {
+export async function getActiveBlockedWindows(dateKey: string, excludeReservationId?: string): Promise<BlockedWindow[]> {
   const db = getDb();
   const nowIso = new Date().toISOString();
 
-  const rows = excludeReservationId
-    ? (db
+  const { results } = excludeReservationId
+    ? await db
         .prepare(
           `SELECT blocked_start, blocked_end FROM reservations
            WHERE date_key = ? AND id != ? AND (status IN ('CONFIRMED','PENDING') OR (status = 'HOLD' AND hold_expires_at > ?))`,
         )
-        .all(dateKey, excludeReservationId, nowIso) as { blocked_start: string; blocked_end: string }[])
-    : (db
+        .bind(dateKey, excludeReservationId, nowIso)
+        .all<{ blocked_start: string; blocked_end: string }>()
+    : await db
         .prepare(
           `SELECT blocked_start, blocked_end FROM reservations
            WHERE date_key = ? AND (status IN ('CONFIRMED','PENDING') OR (status = 'HOLD' AND hold_expires_at > ?))`,
         )
-        .all(dateKey, nowIso) as { blocked_start: string; blocked_end: string }[]);
+        .bind(dateKey, nowIso)
+        .all<{ blocked_start: string; blocked_end: string }>();
 
-  return rows.map((r) => ({ start: r.blocked_start, end: r.blocked_end }));
+  return results.map((r) => ({ start: r.blocked_start, end: r.blocked_end }));
 }
 
 export interface CreateHoldResult {
@@ -136,57 +141,65 @@ export interface CreateHoldResult {
 
 /**
  * Server-authoritative slot lock. Re-derives price and the blocked window
- * from trusted server data (never from the client), re-checks conflicts
- * against every active reservation and admin block for the date, and only
- * then inserts — all inside one transaction, so two near-simultaneous
- * requests for the same slot can never both succeed (see
- * lib/db/transaction.ts). Throws BookingError("SLOT_UNAVAILABLE", ...) if
- * the slot is already taken.
+ * from trusted server data (never from the client) and inserts in a single
+ * conditional SQL statement that only succeeds if no other active
+ * reservation or admin block overlaps the candidate window — this INSERT
+ * ... WHERE NOT EXISTS (...) is what makes two near-simultaneous requests
+ * for the same slot unable to both succeed, since D1 has no interactive
+ * transactions to wrap a separate read+write in (see lib/db/client.ts).
+ * Throws BookingError("SLOT_UNAVAILABLE", ...) if the slot is already taken.
  */
-export function createHold(request: ReservationHoldRequest): CreateHoldResult {
+export async function createHold(request: ReservationHoldRequest): Promise<CreateHoldResult> {
   const db = getDb();
   const option = getServiceOption(request.serviceOptionId);
   if (!option) {
     throw new BookingError("SERVICE_NOT_BOOKABLE", "Unknown or unpublished service option.");
   }
 
-  return withTransaction(db, () => {
-    const now = new Date();
-    const nowIso = now.toISOString();
+  const now = new Date();
+  const nowIso = now.toISOString();
 
-    const serviceEnd = fromMinutes(toMinutes(request.time) + option.durationMinutes);
-    const blocked = calculateBlockedTime(request.time, serviceEnd);
+  const serviceEnd = fromMinutes(toMinutes(request.time) + option.durationMinutes);
+  const blocked = calculateBlockedTime(request.time, serviceEnd);
 
-    const existingWindows = [...getActiveBlockedWindows(request.date), ...getAdminBlockedWindows(request.date)];
+  const customer = await upsertCustomer({
+    name: request.customer.name,
+    phone: request.customer.phone,
+    email: request.customer.email,
+    preferredLanguage: request.customer.preferredLanguage,
+  });
 
-    if (checkBookingConflict(blocked, existingWindows)) {
-      throw new BookingError("SLOT_UNAVAILABLE", "This time is no longer available. Please choose another slot.");
-    }
+  const totalAmount = calculateTotalAmount(option.pricePerPerson, request.guestCount);
+  const depositAmount = calculateDepositAmount(request.guestCount);
+  const remainingAmount = calculateRemainingAmount(totalAmount, depositAmount);
 
-    const customer = upsertCustomer({
-      name: request.customer.name,
-      phone: request.customer.phone,
-      email: request.customer.email,
-      preferredLanguage: request.customer.preferredLanguage,
-    });
+  const reservationNumber = await nextReservationNumber(db, request.date);
+  const holdExpiresAt = new Date(now.getTime() + HOLD_MINUTES * 60_000).toISOString();
+  const id = randomUUID();
 
-    const totalAmount = calculateTotalAmount(option.pricePerPerson, request.guestCount);
-    const depositAmount = calculateDepositAmount(request.guestCount);
-    const remainingAmount = calculateRemainingAmount(totalAmount, depositAmount);
-
-    const reservationNumber = nextReservationNumber(db, request.date);
-    const holdExpiresAt = new Date(now.getTime() + HOLD_MINUTES * 60_000).toISOString();
-    const id = randomUUID();
-
-    db.prepare(
+  const result = await db
+    .prepare(
       `INSERT INTO reservations (
         id, reservation_number, customer_id, service_option_id, duration_minutes, guest_count,
         date_key, service_start, service_end, blocked_start, blocked_end,
         price_per_person, total_amount, deposit_amount, remaining_amount,
         status, hold_expires_at, special_requests, source, locale, deposit_transaction_id,
         created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'HOLD', ?, ?, ?, ?, NULL, ?, ?)`,
-    ).run(
+      )
+      SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'HOLD', ?, ?, ?, ?, NULL, ?, ?
+      WHERE NOT EXISTS (
+        SELECT 1 FROM reservations r
+        WHERE r.date_key = ?
+          AND (r.status IN ('CONFIRMED','PENDING') OR (r.status = 'HOLD' AND r.hold_expires_at > ?))
+          AND ? < r.blocked_end AND r.blocked_start < ?
+      )
+      AND NOT EXISTS (
+        SELECT 1 FROM blocked_times bt
+        WHERE bt.date_key = ?
+          AND ? < bt.end_time AND bt.start_time < ?
+      )`,
+    )
+    .bind(
       id,
       reservationNumber,
       customer.id,
@@ -208,10 +221,23 @@ export function createHold(request: ReservationHoldRequest): CreateHoldResult {
       request.locale,
       nowIso,
       nowIso,
-    );
+      // NOT EXISTS #1 — overlapping reservations
+      request.date,
+      nowIso,
+      blocked.start,
+      blocked.end,
+      // NOT EXISTS #2 — overlapping admin blocked_times
+      request.date,
+      blocked.start,
+      blocked.end,
+    )
+    .run();
 
-    return { reservation: getById(id)!, customer };
-  });
+  if (result.meta.changes === 0) {
+    throw new BookingError("SLOT_UNAVAILABLE", "This time is no longer available. Please choose another slot.");
+  }
+
+  return { reservation: (await getById(id))!, customer };
 }
 
 export interface SubmitReservationInput {
@@ -223,50 +249,44 @@ export interface SubmitReservationInput {
  * request — no deposit/payment is collected (AGENTS.md deposit removal).
  * This is what the customer booking flow calls; the reservation only
  * becomes CONFIRMED later, when an admin reviews and approves it (see
- * app/admin/reservations/[id]/actions.ts). Mirrors confirmReservation()'s
- * hold-expiry/conflict re-check (an admin block could have been added after
- * the hold was created) inside the same transaction as the update.
+ * app/admin/reservations/[id]/actions.ts). Re-checks hold-expiry/conflict
+ * (an admin block could have been added after the hold was created) inside
+ * the same conditional UPDATE as the status change — see createHold's doc
+ * comment for why this can't be a separate read+write transaction on D1.
  * Idempotent: submitting an already-PENDING or already-CONFIRMED hold just
  * returns it, so a client retry after a dropped response can't error.
  */
-export function submitReservationRequest(input: SubmitReservationInput): ReservationRecord {
+export async function submitReservationRequest(input: SubmitReservationInput): Promise<ReservationRecord> {
   const db = getDb();
+  const nowIso = new Date().toISOString();
 
-  return withTransaction(db, () => {
-    const row = db.prepare("SELECT * FROM reservations WHERE id = ?").get(input.holdId) as
-      | RawReservationRow
-      | undefined;
-    if (!row) {
-      throw new BookingError("HOLD_NOT_FOUND", "Reservation hold not found.");
-    }
-    if (row.status === "PENDING" || row.status === "CONFIRMED") {
-      return mapRow(row);
-    }
-    if (row.status !== "HOLD") {
-      throw new BookingError("HOLD_EXPIRED", `Reservation is ${row.status.toLowerCase()}, not submittable.`);
-    }
+  const result = await db
+    .prepare(
+      `UPDATE reservations
+       SET status = 'PENDING', hold_expires_at = NULL, updated_at = ?
+       WHERE id = ?
+         AND status = 'HOLD'
+         AND hold_expires_at > ?
+         AND NOT EXISTS (
+           SELECT 1 FROM reservations r2
+           WHERE r2.date_key = reservations.date_key
+             AND r2.id != reservations.id
+             AND (r2.status IN ('CONFIRMED','PENDING') OR (r2.status = 'HOLD' AND r2.hold_expires_at > ?))
+             AND reservations.blocked_start < r2.blocked_end AND r2.blocked_start < reservations.blocked_end
+         )
+         AND NOT EXISTS (
+           SELECT 1 FROM blocked_times bt
+           WHERE bt.date_key = reservations.date_key
+             AND reservations.blocked_start < bt.end_time AND bt.start_time < reservations.blocked_end
+         )`,
+    )
+    .bind(nowIso, input.holdId, nowIso, nowIso)
+    .run();
 
-    const nowIso = new Date().toISOString();
-    if (!row.hold_expires_at || row.hold_expires_at <= nowIso) {
-      throw new BookingError("HOLD_EXPIRED", "This hold has expired. Please choose a time again.");
-    }
-
-    const candidate: BlockedWindow = { start: row.blocked_start, end: row.blocked_end };
-    const otherWindows = [
-      ...getActiveBlockedWindows(row.date_key, row.id),
-      ...getAdminBlockedWindows(row.date_key),
-    ];
-    if (checkBookingConflict(candidate, otherWindows)) {
-      throw new BookingError("SLOT_UNAVAILABLE", "This time is no longer available.");
-    }
-
-    db.prepare(`UPDATE reservations SET status = 'PENDING', hold_expires_at = NULL, updated_at = ? WHERE id = ?`).run(
-      nowIso,
-      input.holdId,
-    );
-
-    return getById(input.holdId)!;
-  });
+  if (result.meta.changes > 0) {
+    return (await getById(input.holdId))!;
+  }
+  return resolveWriteFailure(input.holdId, nowIso, "submit");
 }
 
 export interface ConfirmReservationInput {
@@ -275,112 +295,139 @@ export interface ConfirmReservationInput {
 }
 
 /**
- * Flips a HOLD to CONFIRMED after the deposit payment succeeds. Re-checks
- * expiry and conflicts one more time (an admin block could have been added
- * after the hold was created) inside the same transaction as the update.
- * Idempotent: confirming an already-CONFIRMED hold just returns it, so a
- * client retry after a dropped response can't double-charge or error.
+ * Flips a HOLD to CONFIRMED after the deposit payment succeeds. Same
+ * conditional-UPDATE shape as submitReservationRequest — see its doc
+ * comment. Idempotent: confirming an already-CONFIRMED hold just returns
+ * it, so a client retry after a dropped response can't double-charge or
+ * error.
  */
-export function confirmReservation(input: ConfirmReservationInput): ReservationRecord {
+export async function confirmReservation(input: ConfirmReservationInput): Promise<ReservationRecord> {
   const db = getDb();
+  const nowIso = new Date().toISOString();
 
-  return withTransaction(db, () => {
-    const row = db.prepare("SELECT * FROM reservations WHERE id = ?").get(input.holdId) as
-      | RawReservationRow
-      | undefined;
-    if (!row) {
-      throw new BookingError("HOLD_NOT_FOUND", "Reservation hold not found.");
-    }
-    if (row.status === "CONFIRMED") {
-      return mapRow(row);
-    }
-    if (row.status !== "HOLD") {
-      throw new BookingError("HOLD_EXPIRED", `Reservation is ${row.status.toLowerCase()}, not confirmable.`);
-    }
+  const result = await db
+    .prepare(
+      `UPDATE reservations
+       SET status = 'CONFIRMED', hold_expires_at = NULL, deposit_transaction_id = ?, updated_at = ?
+       WHERE id = ?
+         AND status = 'HOLD'
+         AND hold_expires_at > ?
+         AND NOT EXISTS (
+           SELECT 1 FROM reservations r2
+           WHERE r2.date_key = reservations.date_key
+             AND r2.id != reservations.id
+             AND (r2.status IN ('CONFIRMED','PENDING') OR (r2.status = 'HOLD' AND r2.hold_expires_at > ?))
+             AND reservations.blocked_start < r2.blocked_end AND r2.blocked_start < reservations.blocked_end
+         )
+         AND NOT EXISTS (
+           SELECT 1 FROM blocked_times bt
+           WHERE bt.date_key = reservations.date_key
+             AND reservations.blocked_start < bt.end_time AND bt.start_time < reservations.blocked_end
+         )`,
+    )
+    .bind(input.depositTransactionId, nowIso, input.holdId, nowIso, nowIso)
+    .run();
 
-    const nowIso = new Date().toISOString();
-    if (!row.hold_expires_at || row.hold_expires_at <= nowIso) {
-      throw new BookingError("HOLD_EXPIRED", "This hold has expired. Please choose a time again.");
-    }
-
-    const candidate: BlockedWindow = { start: row.blocked_start, end: row.blocked_end };
-    const otherWindows = [
-      ...getActiveBlockedWindows(row.date_key, row.id),
-      ...getAdminBlockedWindows(row.date_key),
-    ];
-    if (checkBookingConflict(candidate, otherWindows)) {
-      throw new BookingError("SLOT_UNAVAILABLE", "This time is no longer available.");
-    }
-
-    db.prepare(
-      `UPDATE reservations SET status = 'CONFIRMED', hold_expires_at = NULL, deposit_transaction_id = ?, updated_at = ?
-       WHERE id = ?`,
-    ).run(input.depositTransactionId, nowIso, input.holdId);
-
-    return getById(input.holdId)!;
-  });
+  if (result.meta.changes > 0) {
+    return (await getById(input.holdId))!;
+  }
+  return resolveWriteFailure(input.holdId, nowIso, "confirm");
 }
 
-export function getById(id: string): ReservationRecord | undefined {
-  const row = getDb().prepare("SELECT * FROM reservations WHERE id = ?").get(id) as RawReservationRow | undefined;
+/**
+ * Diagnoses why a conditional UPDATE in submitReservationRequest/
+ * confirmReservation affected 0 rows, so the right BookingError code can
+ * still be thrown. This re-read doesn't need to be atomic with anything —
+ * the mutation's safety already came from the single conditional UPDATE
+ * above; this is purely for producing an accurate error message.
+ */
+async function resolveWriteFailure(
+  holdId: string,
+  nowIso: string,
+  action: "submit" | "confirm",
+): Promise<ReservationRecord> {
+  const current = await getById(holdId);
+  if (!current) {
+    throw new BookingError("HOLD_NOT_FOUND", "Reservation hold not found.");
+  }
+  if (current.status === "PENDING" || current.status === "CONFIRMED") {
+    return current;
+  }
+  if (current.status !== "HOLD") {
+    const verb = action === "submit" ? "submittable" : "confirmable";
+    throw new BookingError("HOLD_EXPIRED", `Reservation is ${current.status.toLowerCase()}, not ${verb}.`);
+  }
+  if (!current.holdExpiresAt || current.holdExpiresAt <= nowIso) {
+    throw new BookingError("HOLD_EXPIRED", "This hold has expired. Please choose a time again.");
+  }
+  throw new BookingError("SLOT_UNAVAILABLE", "This time is no longer available.");
+}
+
+export async function getById(id: string): Promise<ReservationRecord | undefined> {
+  const row = await getDb().prepare("SELECT * FROM reservations WHERE id = ?").bind(id).first<RawReservationRow>();
   return row ? mapRow(row) : undefined;
 }
 
-export function getByReservationNumber(reservationNumber: string): ReservationRecord | undefined {
-  const row = getDb()
+export async function getByReservationNumber(reservationNumber: string): Promise<ReservationRecord | undefined> {
+  const row = await getDb()
     .prepare("SELECT * FROM reservations WHERE reservation_number = ?")
-    .get(reservationNumber) as RawReservationRow | undefined;
+    .bind(reservationNumber)
+    .first<RawReservationRow>();
   return row ? mapRow(row) : undefined;
 }
 
 /** Excludes soft-deleted rows — every reservation-list function below is an admin-facing "working list" (AGENTS.md §15), never the record store itself. */
-export function listByDate(dateKey: string): ReservationRecord[] {
-  const rows = getDb()
+export async function listByDate(dateKey: string): Promise<ReservationRecord[]> {
+  const { results } = await getDb()
     .prepare("SELECT * FROM reservations WHERE date_key = ? AND deleted_at IS NULL ORDER BY blocked_start")
-    .all(dateKey) as unknown as RawReservationRow[];
-  return rows.map(mapRow);
+    .bind(dateKey)
+    .all<RawReservationRow>();
+  return results.map(mapRow);
 }
 
 /** Every non-deleted reservation regardless of date — powers the admin's all-reservations list (split into upcoming/past there). */
-export function listAll(statusFilter?: ReservationStatus[]): ReservationRecord[] {
+export async function listAll(statusFilter?: ReservationStatus[]): Promise<ReservationRecord[]> {
   const db = getDb();
   if (statusFilter && statusFilter.length > 0) {
     const placeholders = statusFilter.map(() => "?").join(",");
-    const rows = db
+    const { results } = await db
       .prepare(
         `SELECT * FROM reservations WHERE status IN (${placeholders}) AND deleted_at IS NULL ORDER BY date_key, blocked_start`,
       )
-      .all(...statusFilter) as unknown as RawReservationRow[];
-    return rows.map(mapRow);
+      .bind(...statusFilter)
+      .all<RawReservationRow>();
+    return results.map(mapRow);
   }
-  const rows = db
+  const { results } = await db
     .prepare("SELECT * FROM reservations WHERE deleted_at IS NULL ORDER BY date_key, blocked_start")
-    .all() as unknown as RawReservationRow[];
-  return rows.map(mapRow);
+    .all<RawReservationRow>();
+  return results.map(mapRow);
 }
 
-export function listByDateRange(
+export async function listByDateRange(
   fromDateKey: string,
   toDateKey: string,
   statusFilter?: ReservationStatus[],
-): ReservationRecord[] {
+): Promise<ReservationRecord[]> {
   const db = getDb();
   if (statusFilter && statusFilter.length > 0) {
     const placeholders = statusFilter.map(() => "?").join(",");
-    const rows = db
+    const { results } = await db
       .prepare(
         `SELECT * FROM reservations WHERE date_key BETWEEN ? AND ? AND status IN (${placeholders}) AND deleted_at IS NULL
          ORDER BY date_key, blocked_start`,
       )
-      .all(fromDateKey, toDateKey, ...statusFilter) as unknown as RawReservationRow[];
-    return rows.map(mapRow);
+      .bind(fromDateKey, toDateKey, ...statusFilter)
+      .all<RawReservationRow>();
+    return results.map(mapRow);
   }
-  const rows = db
+  const { results } = await db
     .prepare(
       "SELECT * FROM reservations WHERE date_key BETWEEN ? AND ? AND deleted_at IS NULL ORDER BY date_key, blocked_start",
     )
-    .all(fromDateKey, toDateKey) as unknown as RawReservationRow[];
-  return rows.map(mapRow);
+    .bind(fromDateKey, toDateKey)
+    .all<RawReservationRow>();
+  return results.map(mapRow);
 }
 
 /**
@@ -390,16 +437,17 @@ export function listByDateRange(
  * string, not a timestamp the DB can range-filter against "now + 24h"
  * directly. Filtering down to the exact reminder window happens in JS.
  */
-export function listConfirmedReservationsForDates(dateKeys: string[]): ReservationRecord[] {
+export async function listConfirmedReservationsForDates(dateKeys: string[]): Promise<ReservationRecord[]> {
   if (dateKeys.length === 0) return [];
   const db = getDb();
   const placeholders = dateKeys.map(() => "?").join(",");
-  const rows = db
+  const { results } = await db
     .prepare(
       `SELECT * FROM reservations WHERE status = 'CONFIRMED' AND deleted_at IS NULL AND date_key IN (${placeholders})`,
     )
-    .all(...dateKeys) as unknown as RawReservationRow[];
-  return rows.map(mapRow);
+    .bind(...dateKeys)
+    .all<RawReservationRow>();
+  return results.map(mapRow);
 }
 
 /**
@@ -409,9 +457,9 @@ export function listConfirmedReservationsForDates(dateKeys: string[]): Reservati
  * private spa); revisit with an index only if this ever becomes a
  * measured bottleneck.
  */
-export function searchReservations(query: string, limit = 20): ReservationRecord[] {
+export async function searchReservations(query: string, limit = 20): Promise<ReservationRecord[]> {
   const needle = `%${query}%`;
-  const rows = getDb()
+  const { results } = await getDb()
     .prepare(
       `SELECT r.* FROM reservations r
        JOIN customers c ON c.id = r.customer_id
@@ -419,19 +467,20 @@ export function searchReservations(query: string, limit = 20): ReservationRecord
        ORDER BY r.created_at DESC
        LIMIT ?`,
     )
-    .all(needle, needle, needle, limit) as unknown as RawReservationRow[];
-  return rows.map(mapRow);
+    .bind(needle, needle, needle, limit)
+    .all<RawReservationRow>();
+  return results.map(mapRow);
 }
 
 /** Admin status transitions: cancel, no-show, complete. Never physically deletes reservation history. */
-export function updateStatus(id: string, status: ReservationStatus): ReservationRecord {
+export async function updateStatus(id: string, status: ReservationStatus): Promise<ReservationRecord> {
   const db = getDb();
   const nowIso = new Date().toISOString();
-  const result = db.prepare("UPDATE reservations SET status = ?, updated_at = ? WHERE id = ?").run(status, nowIso, id);
-  if (result.changes === 0) {
+  const result = await db.prepare("UPDATE reservations SET status = ?, updated_at = ? WHERE id = ?").bind(status, nowIso, id).run();
+  if (result.meta.changes === 0) {
     throw new BookingError("RESERVATION_NOT_FOUND", "Reservation not found.");
   }
-  return getById(id)!;
+  return (await getById(id))!;
 }
 
 /**
@@ -445,9 +494,9 @@ export function updateStatus(id: string, status: ReservationStatus): Reservation
  * deleting a CANCELLED reservation removes it from the dashboard, it does
  * not un-cancel or re-cancel it.
  */
-export function softDeleteReservation(id: string): ReservationRecord {
+export async function softDeleteReservation(id: string): Promise<ReservationRecord> {
   const db = getDb();
-  const row = db.prepare("SELECT * FROM reservations WHERE id = ?").get(id) as RawReservationRow | undefined;
+  const row = await db.prepare("SELECT * FROM reservations WHERE id = ?").bind(id).first<RawReservationRow>();
   if (!row) {
     throw new BookingError("RESERVATION_NOT_FOUND", "Reservation not found.");
   }
@@ -459,6 +508,6 @@ export function softDeleteReservation(id: string): ReservationRecord {
   }
 
   const nowIso = new Date().toISOString();
-  db.prepare("UPDATE reservations SET deleted_at = ?, updated_at = ? WHERE id = ?").run(nowIso, nowIso, id);
-  return getById(id)!;
+  await db.prepare("UPDATE reservations SET deleted_at = ?, updated_at = ? WHERE id = ?").bind(nowIso, nowIso, id).run();
+  return (await getById(id))!;
 }

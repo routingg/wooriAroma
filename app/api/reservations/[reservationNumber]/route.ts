@@ -20,11 +20,11 @@ export async function GET(
 ) {
   try {
     const { reservationNumber } = await params;
-    const reservation = getByReservationNumber(reservationNumber);
+    const reservation = await getByReservationNumber(reservationNumber);
     if (!reservation) {
       throw new BookingError("RESERVATION_NOT_FOUND", "No reservation with that number was found.");
     }
-    return NextResponse.json({ reservation: toPublicReservation(reservation) });
+    return NextResponse.json({ reservation: await toPublicReservation(reservation) });
   } catch (error) {
     return bookingErrorResponse(error);
   }

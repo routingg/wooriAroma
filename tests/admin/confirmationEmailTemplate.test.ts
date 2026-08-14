@@ -29,7 +29,7 @@ function futureDateKey(daysAhead: number): string {
 }
 
 async function makeReservationFields(overrides: { name?: string } = {}) {
-  const { reservation } = createHold({
+  const { reservation } = await createHold({
     serviceOptionId: "aroma-oil-90",
     guestCount: 2,
     date: futureDateKey(7),
@@ -43,8 +43,8 @@ async function makeReservationFields(overrides: { name?: string } = {}) {
       preferredLanguage: "en",
     },
   });
-  const submitted = submitReservationRequest({ holdId: reservation.id });
-  const customer = getCustomerById(submitted.customerId)!;
+  const submitted = await submitReservationRequest({ holdId: reservation.id });
+  const customer = (await getCustomerById(submitted.customerId))!;
   return resolveConfirmationEmailFields(submitted, customer);
 }
 
@@ -58,7 +58,7 @@ const baseTextFields = {
 
 describe("resolveConfirmationEmailFields", () => {
   it("returns null when the service option can no longer be resolved", async () => {
-    const { reservation } = createHold({
+    const { reservation } = await createHold({
       serviceOptionId: "aroma-oil-90",
       guestCount: 1,
       date: futureDateKey(7),
@@ -67,8 +67,8 @@ describe("resolveConfirmationEmailFields", () => {
       source: "DIRECT",
       customer: { name: "X", phone: "+82 10-1234-5678", email: "x@example.com", preferredLanguage: "en" },
     });
-    const submitted = submitReservationRequest({ holdId: reservation.id });
-    const customer = getCustomerById(submitted.customerId)!;
+    const submitted = await submitReservationRequest({ holdId: reservation.id });
+    const customer = (await getCustomerById(submitted.customerId))!;
 
     const fields = await resolveConfirmationEmailFields({ ...submitted, serviceOptionId: "nope" }, customer);
     expect(fields).toBeNull();

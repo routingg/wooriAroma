@@ -5,8 +5,8 @@ import { ReservationRow } from "@/components/admin/ReservationRow";
 import { listAll } from "@/lib/repositories/reservationRepository";
 
 export default async function AdminDashboardPage() {
-  const stats = getTodayStats();
-  const pendingCount = listAll(["PENDING"]).length;
+  const [stats, pending] = await Promise.all([getTodayStats(), listAll(["PENDING"])]);
+  const pendingCount = pending.length;
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-10">

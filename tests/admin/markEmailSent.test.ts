@@ -19,7 +19,7 @@ function futureDateKey(daysAhead: number): string {
 
 describe("markConfirmationEmailSentAction — manual 발송 여부 tracker", () => {
   it("records a manual SENT marker without changing reservation status", async () => {
-    const { reservation } = createHold({
+    const { reservation } = await createHold({
       serviceOptionId: "aroma-oil-90",
       guestCount: 2,
       date: futureDateKey(6),
@@ -28,15 +28,15 @@ describe("markConfirmationEmailSentAction — manual 발송 여부 tracker", () 
       source: "DIRECT",
       customer: { name: "Jane Doe", phone: "+82 10-1234-5678", email: "jane@example.com", preferredLanguage: "en" },
     });
-    const pending = submitReservationRequest({ holdId: reservation.id });
+    const pending = await submitReservationRequest({ holdId: reservation.id });
     await updateReservationStatusAction(pending.id, "CONFIRMED");
 
     await markConfirmationEmailSentAction(pending.id, "jane@example.com");
 
     // Reservation status is untouched by the email-status marker (AGENTS.md §20).
-    expect(getById(pending.id)?.status).toBe("CONFIRMED");
+    expect((await getById(pending.id))?.status).toBe("CONFIRMED");
 
-    const logs = listByReservation(pending.id);
+    const logs = await listByReservation(pending.id);
     const emailLog = logs.find((l) => l.channel === "EMAIL" && l.eventType === "RESERVATION_CONFIRMED");
     expect(emailLog?.status).toBe("SENT");
     expect(emailLog?.provider).toBe("manual");
@@ -44,7 +44,7 @@ describe("markConfirmationEmailSentAction — manual 발송 여부 tracker", () 
   });
 
   it("is independent of reservation status — can be marked even while still PENDING", async () => {
-    const { reservation } = createHold({
+    const { reservation } = await createHold({
       serviceOptionId: "aroma-oil-90",
       guestCount: 1,
       date: futureDateKey(6),
@@ -53,12 +53,12 @@ describe("markConfirmationEmailSentAction — manual 발송 여부 tracker", () 
       source: "DIRECT",
       customer: { name: "Still Pending", phone: "+82 10-1234-5678", email: "pending@example.com", preferredLanguage: "en" },
     });
-    const pending = submitReservationRequest({ holdId: reservation.id });
+    const pending = await submitReservationRequest({ holdId: reservation.id });
 
     await markConfirmationEmailSentAction(pending.id, "pending@example.com");
 
-    expect(getById(pending.id)?.status).toBe("PENDING");
-    const logs = listByReservation(pending.id);
+    expect((await getById(pending.id))?.status).toBe("PENDING");
+    const logs = await listByReservation(pending.id);
     expect(logs.find((l) => l.channel === "EMAIL")?.status).toBe("SENT");
   });
 });

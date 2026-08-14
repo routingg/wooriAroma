@@ -27,18 +27,21 @@ export async function searchReservationsAction(query: string): Promise<Reservati
   const trimmed = query.trim();
   if (trimmed.length < 2) return [];
 
-  return searchReservations(trimmed).map((r) => {
-    const customer = getCustomerById(r.customerId);
-    return {
-      id: r.id,
-      reservationNumber: r.reservationNumber,
-      customerName: customer?.name ?? "-",
-      customerEmail: customer?.email ?? "-",
-      dateKey: r.dateKey,
-      serviceStart: r.serviceStart,
-      status: r.status,
-    };
-  });
+  const found = await searchReservations(trimmed);
+  return Promise.all(
+    found.map(async (r) => {
+      const customer = await getCustomerById(r.customerId);
+      return {
+        id: r.id,
+        reservationNumber: r.reservationNumber,
+        customerName: customer?.name ?? "-",
+        customerEmail: customer?.email ?? "-",
+        dateKey: r.dateKey,
+        serviceStart: r.serviceStart,
+        status: r.status,
+      };
+    }),
+  );
 }
 
 export interface ManualPreviewState {

@@ -19,8 +19,10 @@ export interface ReservationDeletionSummary {
  * resolved is left as an empty string; DeleteReservationButton omits that
  * row entirely rather than rendering "undefined"/"null".
  */
-export function resolveReservationDeletionSummary(reservation: ReservationRecord): ReservationDeletionSummary {
-  const customer = getCustomerById(reservation.customerId);
+export async function resolveReservationDeletionSummary(
+  reservation: ReservationRecord,
+): Promise<ReservationDeletionSummary> {
+  const customer = await getCustomerById(reservation.customerId);
   const option = getServiceOption(reservation.serviceOptionId);
   const service = option ? getService(option.serviceId) : undefined;
 

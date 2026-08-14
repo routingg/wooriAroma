@@ -12,9 +12,9 @@ export interface TodayStats {
 }
 
 /** Backs the 오늘 현황 dashboard (AGENTS.md §12.1) — CONFIRMED-only, since HOLD isn't a real booking yet. */
-export function getTodayStats(): TodayStats {
+export async function getTodayStats(): Promise<TodayStats> {
   const now = getSeoulNow();
-  const all = listByDate(now.dateKey);
+  const all = await listByDate(now.dateKey);
   const confirmed = all.filter((r) => r.status === "CONFIRMED");
 
   const nextReservation =

@@ -55,7 +55,7 @@ export async function sendAdminConfirmationEmail(
   const result = await resendEmailProvider.send(payload, { includeMap: options.includeMap });
 
   if (options.persist ?? true) {
-    recordAttempt({
+    await recordAttempt({
       reservationId: payload.reservationId,
       channel: "EMAIL",
       event: payload.event,

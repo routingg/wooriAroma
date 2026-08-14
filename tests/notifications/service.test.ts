@@ -25,7 +25,7 @@ function futureDateKey(daysAhead: number): string {
 describe("notificationService — failure isolation", () => {
   it("never throws when a provider throws, and logs the failure instead", async () => {
     const date = futureDateKey(6);
-    const { reservation } = createHold({
+    const { reservation } = await createHold({
       serviceOptionId: "aroma-oil-90",
       guestCount: 1,
       date,
@@ -39,7 +39,7 @@ describe("notificationService — failure isolation", () => {
         preferredLanguage: "en",
       },
     });
-    const confirmed = confirmReservation({ holdId: reservation.id, depositTransactionId: "TEST-TX" });
+    const confirmed = await confirmReservation({ holdId: reservation.id, depositTransactionId: "TEST-TX" });
 
     const payload: ReservationNotificationPayload = {
       event: "RESERVATION_CONFIRMED",
@@ -64,7 +64,7 @@ describe("notificationService — failure isolation", () => {
     // no matter how badly the email provider misbehaves.
     await expect(notificationService.sendReservationConfirmation(payload)).resolves.toBeUndefined();
 
-    const logs = listByReservation(confirmed.id);
+    const logs = await listByReservation(confirmed.id);
     const emailLog = logs.find((l) => l.channel === "EMAIL");
     expect(emailLog?.status).toBe("FAILED");
     expect(emailLog?.lastError).toContain("simulated Resend outage");

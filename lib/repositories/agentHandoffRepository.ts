@@ -41,30 +41,41 @@ function mapRow(row: RawRow): AgentHandoffRecord {
   };
 }
 
-export function createHandoff(input: AgentHandoffInput): AgentHandoffRecord {
+export async function createHandoff(input: AgentHandoffInput): Promise<AgentHandoffRecord> {
   const db = getDb();
   const id = randomUUID();
   const now = new Date().toISOString();
-  db.prepare(
-    `INSERT INTO agent_handoffs (id, reason, summary, customer_contact, status, admin_notes, created_at, updated_at)
-     VALUES (?, ?, ?, ?, 'OPEN', NULL, ?, ?)`,
-  ).run(id, input.reason, input.summary, input.customerContact ?? null, now, now);
-  return { id, reason: input.reason, summary: input.summary, customerContact: input.customerContact, status: "OPEN", adminNotes: null, createdAt: now, updatedAt: now };
-}
-
-export function listHandoffs(status?: AgentHandoffStatus): AgentHandoffRecord[] {
-  const db = getDb();
-  const rows = status
-    ? (db.prepare("SELECT * FROM agent_handoffs WHERE status = ? ORDER BY created_at DESC").all(status) as unknown as RawRow[])
-    : (db.prepare("SELECT * FROM agent_handoffs ORDER BY created_at DESC").all() as unknown as RawRow[]);
-  return rows.map(mapRow);
-}
-
-export function resolveHandoff(id: string, adminNotes?: string): void {
-  const db = getDb();
-  db.prepare("UPDATE agent_handoffs SET status = 'RESOLVED', admin_notes = ?, updated_at = ? WHERE id = ?").run(
-    adminNotes ?? null,
-    new Date().toISOString(),
+  await db
+    .prepare(
+      `INSERT INTO agent_handoffs (id, reason, summary, customer_contact, status, admin_notes, created_at, updated_at)
+       VALUES (?, ?, ?, ?, 'OPEN', NULL, ?, ?)`,
+    )
+    .bind(id, input.reason, input.summary, input.customerContact ?? null, now, now)
+    .run();
+  return {
     id,
-  );
+    reason: input.reason,
+    summary: input.summary,
+    customerContact: input.customerContact,
+    status: "OPEN",
+    adminNotes: null,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+export async function listHandoffs(status?: AgentHandoffStatus): Promise<AgentHandoffRecord[]> {
+  const db = getDb();
+  const { results } = status
+    ? await db.prepare("SELECT * FROM agent_handoffs WHERE status = ? ORDER BY created_at DESC").bind(status).all<RawRow>()
+    : await db.prepare("SELECT * FROM agent_handoffs ORDER BY created_at DESC").all<RawRow>();
+  return results.map(mapRow);
+}
+
+export async function resolveHandoff(id: string, adminNotes?: string): Promise<void> {
+  const db = getDb();
+  await db
+    .prepare("UPDATE agent_handoffs SET status = 'RESOLVED', admin_notes = ?, updated_at = ? WHERE id = ?")
+    .bind(adminNotes ?? null, new Date().toISOString(), id)
+    .run();
 }

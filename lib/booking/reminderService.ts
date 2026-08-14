@@ -37,7 +37,7 @@ export interface ReminderRunResult {
 export async function sendDueReminders(now: Date = new Date()): Promise<ReminderRunResult> {
   const seoulToday = getSeoulNow(now).dateKey;
   const seoulTomorrow = addDaysToDateKey(seoulToday, 1);
-  const candidates = listConfirmedReservationsForDates([seoulToday, seoulTomorrow]);
+  const candidates = await listConfirmedReservationsForDates([seoulToday, seoulTomorrow]);
 
   let sent = 0;
   for (const reservation of candidates) {

@@ -19,11 +19,11 @@ const customer = {
 };
 
 describe("agent tools", () => {
-  it("getServices/getAvailability/calculatePrice mirror the public API", () => {
+  it("getServices/getAvailability/calculatePrice mirror the public API", async () => {
     expect(agentTools.getServices().length).toBeGreaterThan(0);
 
     const date = futureDateKey(5);
-    const slots = agentTools.getAvailability(date, "aroma-oil-90");
+    const slots = await agentTools.getAvailability(date, "aroma-oil-90");
     expect(slots.length).toBeGreaterThan(0);
 
     const price = agentTools.calculatePrice("aroma-oil-90", 2);
@@ -33,7 +33,7 @@ describe("agent tools", () => {
 
   it("T11: getReservation denies access without a matching identity", async () => {
     const date = futureDateKey(5);
-    const { reservation } = agentTools.createReservationHold({
+    const { reservation } = await agentTools.createReservationHold({
       serviceOptionId: "aroma-oil-90",
       guestCount: 2,
       date,
@@ -43,17 +43,17 @@ describe("agent tools", () => {
     });
     await agentTools.confirmReservation(reservation.id, "MOCK-TX-AGENT-1");
 
-    expect(() => agentTools.getReservation(reservation.reservationNumber, {})).toThrowError(BookingError);
-    expect(() =>
+    await expect(agentTools.getReservation(reservation.reservationNumber, {})).rejects.toThrowError(BookingError);
+    await expect(
       agentTools.getReservation(reservation.reservationNumber, { email: "someone-else@example.com" }),
-    ).toThrowError(BookingError);
+    ).rejects.toThrowError(BookingError);
 
-    const ok = agentTools.getReservation(reservation.reservationNumber, { email: customer.email });
+    const ok = await agentTools.getReservation(reservation.reservationNumber, { email: customer.email });
     expect(ok.status).toBe("CONFIRMED");
   });
 
-  it("handoffToAdmin records an open case", () => {
-    const handoff = agentTools.handoffToAdmin({
+  it("handoffToAdmin records an open case", async () => {
+    const handoff = await agentTools.handoffToAdmin({
       reason: "5+ guests",
       summary: "Customer asked about a 6-person booking",
       customerContact: "jane@example.com",

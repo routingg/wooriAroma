@@ -44,7 +44,7 @@ function mapRow(row: RawRow): BlockedTimeRecord {
 }
 
 /** Admin-created manual block: a closed day, maintenance window, or private event. */
-export function createBlockedTime(input: BlockedTimeInput): BlockedTimeRecord {
+export async function createBlockedTime(input: BlockedTimeInput): Promise<BlockedTimeRecord> {
   const db = getDb();
   const id = randomUUID();
   const now = new Date().toISOString();
@@ -52,34 +52,39 @@ export function createBlockedTime(input: BlockedTimeInput): BlockedTimeRecord {
   const startTime = fullDay ? "00:00" : input.startTime;
   const endTime = fullDay ? "24:00" : input.endTime;
 
-  db.prepare(
-    `INSERT INTO blocked_times (id, date_key, start_time, end_time, full_day, reason, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-  ).run(id, input.dateKey, startTime, endTime, fullDay ? 1 : 0, input.reason ?? null, now);
+  await db
+    .prepare(
+      `INSERT INTO blocked_times (id, date_key, start_time, end_time, full_day, reason, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .bind(id, input.dateKey, startTime, endTime, fullDay ? 1 : 0, input.reason ?? null, now)
+    .run();
 
   return { id, dateKey: input.dateKey, startTime, endTime, fullDay, reason: input.reason, createdAt: now };
 }
 
-export function removeBlockedTime(id: string): boolean {
-  const result = getDb().prepare("DELETE FROM blocked_times WHERE id = ?").run(id);
-  return result.changes > 0;
+export async function removeBlockedTime(id: string): Promise<boolean> {
+  const result = await getDb().prepare("DELETE FROM blocked_times WHERE id = ?").bind(id).run();
+  return result.meta.changes > 0;
 }
 
-export function listBlockedTimesByDate(dateKey: string): BlockedTimeRecord[] {
-  const rows = getDb()
+export async function listBlockedTimesByDate(dateKey: string): Promise<BlockedTimeRecord[]> {
+  const { results } = await getDb()
     .prepare("SELECT * FROM blocked_times WHERE date_key = ? ORDER BY start_time")
-    .all(dateKey) as unknown as RawRow[];
-  return rows.map(mapRow);
+    .bind(dateKey)
+    .all<RawRow>();
+  return results.map(mapRow);
 }
 
-export function listUpcomingBlockedTimes(fromDateKey: string): BlockedTimeRecord[] {
-  const rows = getDb()
+export async function listUpcomingBlockedTimes(fromDateKey: string): Promise<BlockedTimeRecord[]> {
+  const { results } = await getDb()
     .prepare("SELECT * FROM blocked_times WHERE date_key >= ? ORDER BY date_key, start_time")
-    .all(fromDateKey) as unknown as RawRow[];
-  return rows.map(mapRow);
+    .bind(fromDateKey)
+    .all<RawRow>();
+  return results.map(mapRow);
 }
 
 /** Admin manual blocks for `dateKey`, as blocked windows the availability engine understands. */
-export function getAdminBlockedWindows(dateKey: string): BlockedWindow[] {
-  return listBlockedTimesByDate(dateKey).map((b) => ({ start: b.startTime, end: b.endTime }));
+export async function getAdminBlockedWindows(dateKey: string): Promise<BlockedWindow[]> {
+  return (await listBlockedTimesByDate(dateKey)).map((b) => ({ start: b.startTime, end: b.endTime }));
 }

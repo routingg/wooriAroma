@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const validated = validateReservationHoldRequest(body);
-    const { reservation } = createHold(validated);
+    const { reservation } = await createHold(validated);
 
     return NextResponse.json(
       {

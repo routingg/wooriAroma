@@ -26,8 +26,8 @@ export interface PublicReservation {
   createdAt: string;
 }
 
-export function toPublicReservation(reservation: ReservationRecord): PublicReservation {
-  const customer = getCustomerById(reservation.customerId);
+export async function toPublicReservation(reservation: ReservationRecord): Promise<PublicReservation> {
+  const customer = await getCustomerById(reservation.customerId);
   return {
     reservationNumber: reservation.reservationNumber,
     status: reservation.status,

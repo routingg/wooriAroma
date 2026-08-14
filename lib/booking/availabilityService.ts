@@ -11,7 +11,8 @@ import { getAdminBlockedWindows } from "@/lib/repositories/blockedTimeRepository
  * data. This is what GET /api/availability calls — never compute this in
  * the browser for a real booking decision.
  */
-export function getAvailableSlotsForDate(dateKey: string, durationMinutes: number): TimeSlot[] {
-  const blockedWindows = [...getActiveBlockedWindows(dateKey), ...getAdminBlockedWindows(dateKey)];
+export async function getAvailableSlotsForDate(dateKey: string, durationMinutes: number): Promise<TimeSlot[]> {
+  const [active, admin] = await Promise.all([getActiveBlockedWindows(dateKey), getAdminBlockedWindows(dateKey)]);
+  const blockedWindows = [...active, ...admin];
   return generateAvailableSlots(dateKey, durationMinutes, blockedWindows, getSeoulNow());
 }

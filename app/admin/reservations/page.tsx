@@ -18,7 +18,7 @@ export default async function AdminReservationsPage({
   const params = await searchParams;
   const statusFilter = params.status as ReservationStatus | undefined;
 
-  const reservations = listAll(statusFilter ? [statusFilter] : undefined);
+  const reservations = await listAll(statusFilter ? [statusFilter] : undefined);
 
   const now = getSeoulNow();
   const isUpcoming = (r: ReservationRecord) =>
@@ -65,34 +65,35 @@ export default async function AdminReservationsPage({
   );
 }
 
-function ReservationSection({ title, reservations }: { title: string; reservations: ReservationRecord[] }) {
+async function ReservationSection({ title, reservations }: { title: string; reservations: ReservationRecord[] }) {
+  const rows = await Promise.all(
+    reservations.map(async (r) => ({ reservation: r, summary: await resolveReservationDeletionSummary(r) })),
+  );
+
   return (
     <section className="flex flex-col gap-3">
       <h2 className="text-lg font-semibold text-stone-900">{title}</h2>
       <ul className="divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white">
-        {reservations.length === 0 ? (
+        {rows.length === 0 ? (
           <li className="p-4 text-sm text-stone-500">조건에 맞는 예약이 없습니다.</li>
         ) : (
-          reservations.map((r) => {
-            const summary = resolveReservationDeletionSummary(r);
-            return (
-              <li key={r.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <ReservationRow reservation={r} />
-                <div className="flex shrink-0 flex-wrap gap-2">
-                  <ReservationStatusActions reservation={r} />
-                  <DeleteReservationButton
-                    reservationId={r.id}
-                    status={r.status}
-                    deletedAt={r.deletedAt}
-                    customerName={summary.customerName}
-                    dateTimeLabel={summary.dateTimeLabel}
-                    serviceLabel={summary.serviceLabel}
-                    guestCount={summary.guestCount}
-                  />
-                </div>
-              </li>
-            );
-          })
+          rows.map(({ reservation: r, summary }) => (
+            <li key={r.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <ReservationRow reservation={r} />
+              <div className="flex shrink-0 flex-wrap gap-2">
+                <ReservationStatusActions reservation={r} />
+                <DeleteReservationButton
+                  reservationId={r.id}
+                  status={r.status}
+                  deletedAt={r.deletedAt}
+                  customerName={summary.customerName}
+                  dateTimeLabel={summary.dateTimeLabel}
+                  serviceLabel={summary.serviceLabel}
+                  guestCount={summary.guestCount}
+                />
+              </div>
+            </li>
+          ))
         )}
       </ul>
     </section>

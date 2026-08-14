@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { submitReservationRequest } from "@/lib/repositories/reservationRepository";
 import { toPublicReservation } from "@/lib/booking/publicReservation";
 import { notifyReservationRequestReceived } from "@/lib/booking/reservationNotifications";
@@ -17,22 +18,27 @@ import { BookingError } from "@/lib/booking/errors";
  */
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as { holdId?: unknown } | null;
     const holdId = typeof body?.holdId === "string" ? body.holdId : "";
 
     if (!holdId) {
       throw new BookingError("VALIDATION_ERROR", "holdId is required.");
     }
 
-    const reservation = submitReservationRequest({ holdId });
+    const reservation = await submitReservationRequest({ holdId });
 
     // Fire-and-forget: never let notification delivery affect the response
-    // for a reservation that has already succeeded.
-    void notifyReservationRequestReceived(reservation).catch((error) => {
-      console.error(`[api/reservations] notification trigger failed for ${reservation.reservationNumber}`, error);
-    });
+    // for a reservation that has already succeeded. Registered with
+    // ctx.waitUntil() so Workers doesn't tear it down once this response
+    // is sent.
+    const { ctx } = getCloudflareContext();
+    ctx.waitUntil(
+      notifyReservationRequestReceived(reservation).catch((error) => {
+        console.error(`[api/reservations] notification trigger failed for ${reservation.reservationNumber}`, error);
+      }),
+    );
 
-    return NextResponse.json({ reservation: toPublicReservation(reservation) });
+    return NextResponse.json({ reservation: await toPublicReservation(reservation) });
   } catch (error) {
     return bookingErrorResponse(error);
   }

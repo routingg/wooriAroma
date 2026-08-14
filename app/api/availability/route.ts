@@ -33,7 +33,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ slots: [] });
     }
 
-    const slots = getAvailableSlotsForDate(date, option.durationMinutes);
+    const slots = await getAvailableSlotsForDate(date, option.durationMinutes);
     return NextResponse.json({ slots });
   } catch (error) {
     return bookingErrorResponse(error);

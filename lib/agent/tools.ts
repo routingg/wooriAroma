@@ -1,3 +1,4 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getBookableServices, getServiceOption } from "@/data/services";
 import { getAvailableSlotsForDate } from "@/lib/booking/availabilityService";
 import { calculateDepositAmount, calculateRemainingAmount, calculateTotalAmount } from "@/lib/booking/pricing";
@@ -37,7 +38,7 @@ export function getServices() {
   return getBookableServices();
 }
 
-export function getAvailability(date: string, serviceOptionId: string) {
+export async function getAvailability(date: string, serviceOptionId: string) {
   const option = getServiceOption(serviceOptionId);
   if (!option) {
     throw new BookingError("SERVICE_NOT_BOOKABLE", "Unknown or unpublished service option.");
@@ -65,16 +66,19 @@ export function calculatePrice(serviceOptionId: string, guestCount: number) {
  * it performs the same server-side re-validation and atomic conflict check
  * as POST /api/reservation-holds (AGENTS.md §16.3 step 11).
  */
-export function createReservationHold(rawRequest: unknown) {
+export async function createReservationHold(rawRequest: unknown) {
   const request = validateReservationHoldRequest(rawRequest);
   return createHoldRecord(request);
 }
 
 export async function confirmReservation(holdId: string, depositTransactionId: string): Promise<PublicReservation> {
-  const reservation = confirmReservationRecord({ holdId, depositTransactionId });
-  void notifyReservationConfirmed(reservation).catch((error) => {
-    console.error(`[agent/confirmReservation] notification trigger failed for ${reservation.reservationNumber}`, error);
-  });
+  const reservation = await confirmReservationRecord({ holdId, depositTransactionId });
+  const { ctx } = getCloudflareContext();
+  ctx.waitUntil(
+    notifyReservationConfirmed(reservation).catch((error) => {
+      console.error(`[agent/confirmReservation] notification trigger failed for ${reservation.reservationNumber}`, error);
+    }),
+  );
   return toPublicReservation(reservation);
 }
 
@@ -88,16 +92,16 @@ export async function confirmReservation(holdId: string, depositTransactionId: s
  * higher-risk trust boundary — a stranger could type in a guessed or
  * overheard number in a chat — so it must prove identity first.
  */
-export function getReservation(
+export async function getReservation(
   reservationNumber: string,
   identity: { email?: string; phone?: string },
-): PublicReservation {
-  const reservation = getByReservationNumber(reservationNumber);
+): Promise<PublicReservation> {
+  const reservation = await getByReservationNumber(reservationNumber);
   if (!reservation) {
     throw new BookingError("RESERVATION_NOT_FOUND", "No reservation with that number was found.");
   }
 
-  const customer = getCustomerById(reservation.customerId);
+  const customer = await getCustomerById(reservation.customerId);
   const emailMatches = Boolean(identity.email && customer?.email === identity.email.trim().toLowerCase());
   const phoneMatches = Boolean(identity.phone && customer?.phone === identity.phone.trim());
   if (!emailMatches && !phoneMatches) {
@@ -108,7 +112,7 @@ export function getReservation(
 }
 
 export async function sendConfirmation(reservationNumber: string): Promise<void> {
-  const reservation = getByReservationNumber(reservationNumber);
+  const reservation = await getByReservationNumber(reservationNumber);
   if (!reservation) {
     throw new BookingError("RESERVATION_NOT_FOUND", "No reservation with that number was found.");
   }
@@ -116,6 +120,6 @@ export async function sendConfirmation(reservationNumber: string): Promise<void>
 }
 
 /** AGENTS.md §18 — the only way the agent can respond to a case it isn't allowed to resolve itself. */
-export function handoffToAdmin(input: AgentHandoffInput) {
+export async function handoffToAdmin(input: AgentHandoffInput) {
   return createHandoff(input);
 }

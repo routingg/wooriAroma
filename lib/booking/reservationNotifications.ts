@@ -29,7 +29,7 @@ export async function buildReservationNotificationPayload(
   reservation: ReservationRecord,
   event: NotificationEvent,
 ): Promise<ReservationNotificationPayload | null> {
-  const customer = getCustomerById(reservation.customerId);
+  const customer = await getCustomerById(reservation.customerId);
   const option = getServiceOption(reservation.serviceOptionId);
   const service = option ? getService(option.serviceId) : undefined;
 

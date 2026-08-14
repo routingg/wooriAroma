@@ -17,16 +17,20 @@ import { DeleteReservationButton } from "@/components/admin/DeleteReservationBut
 
 export default async function AdminReservationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const reservation = getById(id);
+  const reservation = await getById(id);
   if (!reservation) notFound();
 
-  const customer = getCustomerById(reservation.customerId);
   const option = getServiceOption(reservation.serviceOptionId);
   const service = option ? getService(option.serviceId) : undefined;
 
+  const [customer, notifications, deletionSummary] = await Promise.all([
+    getCustomerById(reservation.customerId),
+    listByReservation(reservation.id),
+    resolveReservationDeletionSummary(reservation),
+  ]);
+
   const emailFields = customer ? await resolveConfirmationEmailFields(reservation, customer) : null;
 
-  const notifications = listByReservation(reservation.id);
   const lastConfirmationEmail = notifications
     .filter((n) => n.channel === "EMAIL" && n.eventType === "RESERVATION_CONFIRMED" && n.status === "SENT")
     .sort((a, b) => (b.sentAt ?? "").localeCompare(a.sentAt ?? ""))[0];
@@ -34,8 +38,6 @@ export default async function AdminReservationDetailPage({ params }: { params: P
   const dateLabel = new Intl.DateTimeFormat("ko-KR", { timeZone: SEOUL_TIME_ZONE, dateStyle: "long" }).format(
     new Date(`${reservation.dateKey}T00:00:00+09:00`),
   );
-
-  const deletionSummary = resolveReservationDeletionSummary(reservation);
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-10">

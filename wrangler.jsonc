@@ -1,0 +1,33 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"main": ".open-next/worker.js",
+	"name": "woori-aroma",
+	"compatibility_date": "2026-08-01",
+	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"services": [
+		{
+			// Self-reference service binding, required by @opennextjs/cloudflare for
+			// ISR/tag revalidation self-fetches. Service name must match "name" above.
+			// See https://opennext.js.org/cloudflare/caching
+			"binding": "WORKER_SELF_REFERENCE",
+			"service": "woori-aroma"
+		}
+	],
+	"d1_databases": [
+		{
+			// See lib/db/client.ts. Run `wrangler d1 create woori-aroma-db` once
+			// against your Cloudflare account, then paste the returned database_id
+			// below. Migrations live in migrations/*.sql — apply with
+			// `wrangler d1 migrations apply woori-aroma-db --local` (dev) or
+			// `--remote` (production, only after you're ready to deploy).
+			"binding": "DB",
+			"database_name": "woori-aroma-db",
+			"database_id": "0bf909bf-a256-4fcb-90ac-7c047c395f03",
+			"migrations_dir": "migrations"
+		}
+	]
+}

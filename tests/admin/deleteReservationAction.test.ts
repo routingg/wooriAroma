@@ -16,8 +16,8 @@ function futureDateKey(daysAhead: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-function makeCompletedReservationId(): string {
-  const { reservation } = createHold({
+async function makeCompletedReservationId(): Promise<string> {
+  const { reservation } = await createHold({
     serviceOptionId: "aroma-oil-90",
     guestCount: 1,
     date: futureDateKey(5),
@@ -26,24 +26,24 @@ function makeCompletedReservationId(): string {
     source: "DIRECT",
     customer: { name: "Jane Doe", phone: "+82 10-1234-5678", email: "jane@example.com", preferredLanguage: "en" },
   });
-  submitReservationRequest({ holdId: reservation.id });
-  updateStatus(reservation.id, "CONFIRMED");
-  updateStatus(reservation.id, "COMPLETED");
+  await submitReservationRequest({ holdId: reservation.id });
+  await updateStatus(reservation.id, "CONFIRMED");
+  await updateStatus(reservation.id, "COMPLETED");
   return reservation.id;
 }
 
 describe("deleteReservationAction", () => {
   it("soft-deletes a COMPLETED reservation and returns success", async () => {
-    const id = makeCompletedReservationId();
+    const id = await makeCompletedReservationId();
 
     const result = await deleteReservationAction(id);
 
     expect(result).toEqual({ success: true });
-    expect(getById(id)?.deletedAt).not.toBeNull();
+    expect((await getById(id))?.deletedAt).not.toBeNull();
   });
 
   it("rejects a PENDING reservation with a BookingErrorCode, and does not delete it", async () => {
-    const { reservation } = createHold({
+    const { reservation } = await createHold({
       serviceOptionId: "aroma-oil-90",
       guestCount: 1,
       date: futureDateKey(5),
@@ -52,17 +52,17 @@ describe("deleteReservationAction", () => {
       source: "DIRECT",
       customer: { name: "Still Pending", phone: "+82 10-1234-5678", email: "pending@example.com", preferredLanguage: "en" },
     });
-    submitReservationRequest({ holdId: reservation.id });
+    await submitReservationRequest({ holdId: reservation.id });
 
     const result = await deleteReservationAction(reservation.id);
 
     expect(result.success).toBe(false);
     expect(result.error).toBe("RESERVATION_NOT_DELETABLE");
-    expect(getById(reservation.id)?.deletedAt).toBeNull();
+    expect((await getById(reservation.id))?.deletedAt).toBeNull();
   });
 
   it("rejects a second delete of the same reservation as already-deleted", async () => {
-    const id = makeCompletedReservationId();
+    const id = await makeCompletedReservationId();
     await deleteReservationAction(id);
 
     const second = await deleteReservationAction(id);

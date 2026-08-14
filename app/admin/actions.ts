@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getById, softDeleteReservation, updateStatus, type ReservationStatus } from "@/lib/repositories/reservationRepository";
 import { createBlockedTime, removeBlockedTime } from "@/lib/repositories/blockedTimeRepository";
 import { resolveHandoff } from "@/lib/repositories/agentHandoffRepository";
@@ -10,8 +11,8 @@ import { BookingError } from "@/lib/booking/errors";
 
 /** Status changes only — never physically deletes reservation history (AGENTS.md §12.2). */
 export async function updateReservationStatusAction(id: string, status: ReservationStatus) {
-  const before = getById(id);
-  const updated = updateStatus(id, status);
+  const before = await getById(id);
+  const updated = await updateStatus(id, status);
   revalidatePath("/admin");
   revalidatePath("/admin/reservations");
 
@@ -19,9 +20,15 @@ export async function updateReservationStatusAction(id: string, status: Reservat
   // cancellation — a HOLD lapsing or an already-CANCELLED reservation being
   // touched again isn't a new event worth notifying about.
   if (status === "CANCELLED" && before?.status === "CONFIRMED") {
-    void notifyReservationCancelled(updated).catch((error) => {
-      console.error(`[admin/actions] cancellation notification trigger failed for ${updated.reservationNumber}`, error);
-    });
+    // Fire-and-forget, but registered with ctx.waitUntil() so Workers
+    // doesn't tear down this notification mid-flight once the action's
+    // own response is done — see notifyReservationCancelled's contract.
+    const { ctx } = getCloudflareContext();
+    ctx.waitUntil(
+      notifyReservationCancelled(updated).catch((error) => {
+        console.error(`[admin/actions] cancellation notification trigger failed for ${updated.reservationNumber}`, error);
+      }),
+    );
   }
 }
 
@@ -35,7 +42,7 @@ export async function updateReservationStatusAction(id: string, status: Reservat
  * implies the email was sent (AGENTS.md §20).
  */
 export async function markConfirmationEmailSentAction(reservationId: string, customerEmail: string) {
-  recordAttempt({
+  await recordAttempt({
     reservationId,
     channel: "EMAIL",
     event: "RESERVATION_CONFIRMED",
@@ -64,7 +71,7 @@ export interface DeleteReservationResult {
  */
 export async function deleteReservationAction(id: string): Promise<DeleteReservationResult> {
   try {
-    softDeleteReservation(id);
+    await softDeleteReservation(id);
   } catch (error) {
     if (error instanceof BookingError) {
       return { success: false, error: error.code };
@@ -88,19 +95,19 @@ export async function createBlockedTimeAction(formData: FormData) {
   const endTime = String(formData.get("endTime") ?? "21:00");
   const reasonRaw = String(formData.get("reason") ?? "").trim();
 
-  createBlockedTime({ dateKey, startTime, endTime, fullDay, reason: reasonRaw || undefined });
+  await createBlockedTime({ dateKey, startTime, endTime, fullDay, reason: reasonRaw || undefined });
   revalidatePath("/admin/blocked-times");
   revalidatePath("/admin");
 }
 
 export async function removeBlockedTimeAction(id: string) {
-  removeBlockedTime(id);
+  await removeBlockedTime(id);
   revalidatePath("/admin/blocked-times");
   revalidatePath("/admin");
 }
 
 export async function resolveHandoffAction(id: string, formData: FormData) {
   const adminNotes = String(formData.get("adminNotes") ?? "").trim() || undefined;
-  resolveHandoff(id, adminNotes);
+  await resolveHandoff(id, adminNotes);
   revalidatePath("/admin/agent-handoffs");
 }

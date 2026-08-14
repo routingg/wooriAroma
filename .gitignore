@@ -13,8 +13,13 @@
 # testing
 /coverage
 
-# local sqlite database (see lib/db/client.ts) — never commit booking data
+# Stale local sqlite data from before the Cloudflare D1 migration — no code
+# writes here anymore, but keep it out of git status if it still exists locally.
 /.data/
+
+# Cloudflare/Wrangler local state (local D1 SQLite, etc.) and OpenNext build output
+/.wrangler/
+/.open-next/
 
 # next.js
 /.next/

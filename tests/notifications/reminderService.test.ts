@@ -48,7 +48,7 @@ describe("sendDueReminders — idempotency", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const date = futureDateKey(6);
-    const { reservation } = createHold({
+    const { reservation } = await createHold({
       serviceOptionId: "aroma-oil-90",
       guestCount: 2,
       date,
@@ -62,7 +62,7 @@ describe("sendDueReminders — idempotency", () => {
         preferredLanguage: "en",
       },
     });
-    const confirmed = confirmReservation({ holdId: reservation.id, depositTransactionId: "TEST-TX" });
+    const confirmed = await confirmReservation({ holdId: reservation.id, depositTransactionId: "TEST-TX" });
 
     const startInstant = new Date(`${confirmed.dateKey}T${confirmed.serviceStart}:00+09:00`);
     const exactly24hBefore = new Date(startInstant.getTime() - 24 * 60 * 60 * 1000);
@@ -76,7 +76,7 @@ describe("sendDueReminders — idempotency", () => {
     // The actual observable guarantee: only one real email request ever went out.
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
-    const emailLogs = listByReservation(confirmed.id).filter((l) => l.channel === "EMAIL");
+    const emailLogs = (await listByReservation(confirmed.id)).filter((l) => l.channel === "EMAIL");
     expect(emailLogs).toHaveLength(1);
     expect(emailLogs[0].status).toBe("SENT");
     expect(emailLogs[0].eventType).toBe("RESERVATION_REMINDER");
@@ -87,7 +87,7 @@ describe("sendDueReminders — idempotency", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const date = futureDateKey(6);
-    const { reservation } = createHold({
+    const { reservation } = await createHold({
       serviceOptionId: "aroma-oil-90",
       guestCount: 1,
       date,
@@ -101,7 +101,7 @@ describe("sendDueReminders — idempotency", () => {
         preferredLanguage: "en",
       },
     });
-    const confirmed = confirmReservation({ holdId: reservation.id, depositTransactionId: "TEST-TX-2" });
+    const confirmed = await confirmReservation({ holdId: reservation.id, depositTransactionId: "TEST-TX-2" });
 
     const startInstant = new Date(`${confirmed.dateKey}T${confirmed.serviceStart}:00+09:00`);
     // Same calendar day, so it's in the candidate date range, but only 5h
@@ -111,6 +111,6 @@ describe("sendDueReminders — idempotency", () => {
     await sendDueReminders(fiveHoursBefore);
 
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(listByReservation(confirmed.id)).toHaveLength(0);
+    expect(await listByReservation(confirmed.id)).toHaveLength(0);
   });
 });

@@ -34,9 +34,9 @@ export const STATUS_BADGE_CLASS: Record<ReservationStatus, string> = {
  * is finished, one way or another" terminal state. Lives here (not in
  * lib/repositories/reservationRepository.ts) specifically so client
  * components like DeleteReservationButton can import it as a plain value
- * without pulling that module's `node:sqlite` dependency into the browser
- * bundle — reservationRepository.ts's softDeleteReservation() imports it
- * back from here, so there's still exactly one source of truth.
+ * without pulling that module's D1/server-only dependencies into the
+ * browser bundle — reservationRepository.ts's softDeleteReservation()
+ * imports it back from here, so there's still exactly one source of truth.
  */
 export const DELETABLE_RESERVATION_STATUSES: ReservationStatus[] = ["COMPLETED", "CANCELLED", "NO_SHOW"];
 
