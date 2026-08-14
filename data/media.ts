@@ -1,7 +1,7 @@
 import type { StaticImageData } from "next/image";
 import exterior from "@/docs/images/woori-aroma-exterior-sunny-wide.jpg";
 import treatmentRoom from "@/docs/images/woori-aroma-treatment-room-three-beds-close.jpg";
-import backMassage from "@/docs/images/woori-aroma-back-massage.jpg";
+import aromaMassage from "@/docs/images/aroma-massage.jpg";
 import hotStoneMassage from "@/docs/images/woori-aroma-hot-stone-massage.jpg";
 import thaiMassage from "@/docs/images/thai-massage.jpg";
 import floralFootSpa from "@/docs/images/woori-aroma-floral-foot-spa.jpg";
@@ -51,7 +51,7 @@ export const heroImagesByTheme: Record<ThemeId, StaticImageData[]> = {
 
 /** Atmosphere image per service, for the treatment cards. */
 export const serviceImages: Record<string, StaticImageData> = {
-  "aroma-oil": backMassage,
+  "aroma-oil": aromaMassage,
   "hot-stone": hotStoneMassage,
   "thai-massage": thaiMassage,
   "quick-spa-foot": floralFootSpa,
