@@ -14,7 +14,7 @@ import { getAdminBlockedWindows } from "./blockedTimeRepository";
 
 const HOLD_MINUTES = Number(process.env.BOOKING_HOLD_MINUTES ?? 10);
 
-export type ReservationStatus = "DRAFT" | "HOLD" | "CONFIRMED" | "CANCELLED" | "NO_SHOW" | "COMPLETED";
+export type ReservationStatus = "DRAFT" | "HOLD" | "PENDING" | "CONFIRMED" | "CANCELLED" | "NO_SHOW" | "COMPLETED";
 
 export interface ReservationRecord {
   id: string;
@@ -98,8 +98,10 @@ function mapRow(row: RawReservationRow): ReservationRecord {
 
 /**
  * Blocked windows from reservations that currently occupy the calendar:
- * CONFIRMED, or a HOLD that hasn't expired yet. `excludeReservationId` lets
- * confirmReservation() re-check without conflicting with its own hold.
+ * CONFIRMED, PENDING (a submitted request awaiting admin review still holds
+ * its slot — AGENTS.md deposit removal), or a HOLD that hasn't expired yet.
+ * `excludeReservationId` lets submitReservationRequest()/confirmReservation()
+ * re-check without conflicting with their own hold.
  */
 export function getActiveBlockedWindows(dateKey: string, excludeReservationId?: string): BlockedWindow[] {
   const db = getDb();
@@ -109,13 +111,13 @@ export function getActiveBlockedWindows(dateKey: string, excludeReservationId?: 
     ? (db
         .prepare(
           `SELECT blocked_start, blocked_end FROM reservations
-           WHERE date_key = ? AND id != ? AND (status = 'CONFIRMED' OR (status = 'HOLD' AND hold_expires_at > ?))`,
+           WHERE date_key = ? AND id != ? AND (status IN ('CONFIRMED','PENDING') OR (status = 'HOLD' AND hold_expires_at > ?))`,
         )
         .all(dateKey, excludeReservationId, nowIso) as { blocked_start: string; blocked_end: string }[])
     : (db
         .prepare(
           `SELECT blocked_start, blocked_end FROM reservations
-           WHERE date_key = ? AND (status = 'CONFIRMED' OR (status = 'HOLD' AND hold_expires_at > ?))`,
+           WHERE date_key = ? AND (status IN ('CONFIRMED','PENDING') OR (status = 'HOLD' AND hold_expires_at > ?))`,
         )
         .all(dateKey, nowIso) as { blocked_start: string; blocked_end: string }[]);
 
@@ -204,6 +206,61 @@ export function createHold(request: ReservationHoldRequest): CreateHoldResult {
     );
 
     return { reservation: getById(id)!, customer };
+  });
+}
+
+export interface SubmitReservationInput {
+  holdId: string;
+}
+
+/**
+ * Flips a HOLD to PENDING once the customer submits their reservation
+ * request — no deposit/payment is collected (AGENTS.md deposit removal).
+ * This is what the customer booking flow calls; the reservation only
+ * becomes CONFIRMED later, when an admin reviews and approves it (see
+ * app/admin/reservations/[id]/actions.ts). Mirrors confirmReservation()'s
+ * hold-expiry/conflict re-check (an admin block could have been added after
+ * the hold was created) inside the same transaction as the update.
+ * Idempotent: submitting an already-PENDING or already-CONFIRMED hold just
+ * returns it, so a client retry after a dropped response can't error.
+ */
+export function submitReservationRequest(input: SubmitReservationInput): ReservationRecord {
+  const db = getDb();
+
+  return withTransaction(db, () => {
+    const row = db.prepare("SELECT * FROM reservations WHERE id = ?").get(input.holdId) as
+      | RawReservationRow
+      | undefined;
+    if (!row) {
+      throw new BookingError("HOLD_NOT_FOUND", "Reservation hold not found.");
+    }
+    if (row.status === "PENDING" || row.status === "CONFIRMED") {
+      return mapRow(row);
+    }
+    if (row.status !== "HOLD") {
+      throw new BookingError("HOLD_EXPIRED", `Reservation is ${row.status.toLowerCase()}, not submittable.`);
+    }
+
+    const nowIso = new Date().toISOString();
+    if (!row.hold_expires_at || row.hold_expires_at <= nowIso) {
+      throw new BookingError("HOLD_EXPIRED", "This hold has expired. Please choose a time again.");
+    }
+
+    const candidate: BlockedWindow = { start: row.blocked_start, end: row.blocked_end };
+    const otherWindows = [
+      ...getActiveBlockedWindows(row.date_key, row.id),
+      ...getAdminBlockedWindows(row.date_key),
+    ];
+    if (checkBookingConflict(candidate, otherWindows)) {
+      throw new BookingError("SLOT_UNAVAILABLE", "This time is no longer available.");
+    }
+
+    db.prepare(`UPDATE reservations SET status = 'PENDING', hold_expires_at = NULL, updated_at = ? WHERE id = ?`).run(
+      nowIso,
+      input.holdId,
+    );
+
+    return getById(input.holdId)!;
   });
 }
 

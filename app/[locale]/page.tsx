@@ -1,8 +1,10 @@
-import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { getBookableServices } from "@/data/services";
-import { media, serviceImages } from "@/data/media";
+import { getService, getServiceOption } from "@/data/services";
+import { treatmentShowcase } from "@/data/treatmentShowcase";
+import { serviceImages } from "@/data/media";
 import { Hero } from "@/components/marketing/Hero";
+import { TreatmentCard } from "@/components/marketing/TreatmentCard";
+import { SiteFooter } from "@/components/marketing/SiteFooter";
 
 export default async function LandingPage({
   params,
@@ -14,7 +16,9 @@ export default async function LandingPage({
 
   const t = await getTranslations("landing");
   const tServices = await getTranslations("services");
-  const services = getBookableServices();
+  const tShowcase = await getTranslations("treatmentShowcase");
+  const tCommon = await getTranslations("common");
+  const tFooter = await getTranslations("footer");
 
   return (
     <main className="flex flex-1 flex-col">
@@ -22,7 +26,7 @@ export default async function LandingPage({
 
       {/* Treatments */}
       <section className="bg-stone-50 px-6 py-16 sm:py-20">
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-6xl">
           <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold text-stone-900 sm:text-3xl">
             {t("treatmentsHeading")}
           </h2>
@@ -30,51 +34,59 @@ export default async function LandingPage({
             {t("treatmentsSubheading")}
           </p>
 
-          <div className="mt-10 grid gap-8 sm:grid-cols-3">
-            {services.map((service) => {
-              const image = serviceImages[service.id];
+          <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {treatmentShowcase.map((item) => {
+              const service = getService(item.serviceId);
+              const image = serviceImages[item.serviceId];
+              if (!service || !image) return null;
+
+              const options = item.options
+                .map((entry) => {
+                  const option = getServiceOption(entry.optionId);
+                  if (!option) return null;
+                  return {
+                    durationMinutes: option.durationMinutes,
+                    price: option.pricePerPerson,
+                    contents: tShowcase.raw(`${item.translationKey}.options.${option.durationMinutes}`) as string[],
+                    mostPopular: Boolean(entry.mostPopular),
+                  };
+                })
+                .filter((option): option is NonNullable<typeof option> => option !== null);
+
+              const everyCourseIncludes = item.hasEveryCourseIncludes
+                ? (tShowcase.raw(`${item.translationKey}.everyCourseIncludes`) as string[])
+                : undefined;
+              const tagline = item.hasTagline ? tShowcase(`${item.translationKey}.tagline`) : undefined;
+
               return (
-                <div key={service.id} className="group">
-                  <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-stone-200">
-                    {image ? (
-                      <Image
-                        src={image}
-                        alt=""
-                        fill
-                        placeholder="blur"
-                        sizes="(min-width: 640px) 33vw, 100vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    ) : null}
-                  </div>
-                  <h3 className="mt-4 font-[family-name:var(--font-display)] text-lg font-semibold text-stone-900">
-                    {tServices(service.nameKey.replace("services.", ""))}
-                  </h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-stone-600">
-                    {tServices(service.descriptionKey.replace("services.", ""))}
-                  </p>
-                </div>
+                <TreatmentCard
+                  key={service.id}
+                  image={image}
+                  imageAlt={item.imageAlt}
+                  name={tServices(service.nameKey.replace("services.", ""))}
+                  description={tShowcase(`${item.translationKey}.description`)}
+                  tagline={tagline}
+                  options={options}
+                  everyCourseLabel={tShowcase("everyCourseLabel")}
+                  everyCourseIncludes={everyCourseIncludes}
+                  includesLabel={tShowcase("includesLabel")}
+                  bestForLabel={tShowcase("bestForLabel")}
+                  bestFor={tShowcase.raw(`${item.translationKey}.bestFor`) as string[]}
+                  mostPopularLabel={tShowcase("mostPopularLabel")}
+                  minLabel={tCommon("min")}
+                />
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* Location strip */}
-      <section className="relative flex min-h-[40vh] items-center overflow-hidden">
-        <Image
-          src={media.exterior}
-          alt=""
-          fill
-          placeholder="blur"
-          sizes="100vw"
-          className="object-cover"
-        />
-        <div aria-hidden="true" className="absolute inset-0 bg-stone-900/55" />
-        <p className="relative mx-auto px-6 text-center text-sm tracking-wide text-stone-50">
-          {t("footerNote")}
-        </p>
-      </section>
+      <SiteFooter
+        heading={tFooter("heading")}
+        tagline={tFooter("tagline")}
+        mapsCta={tFooter("mapsCta")}
+        instagramLabel={tFooter("instagram")}
+      />
     </main>
   );
 }

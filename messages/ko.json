@@ -18,8 +18,65 @@
     "capacity": "최대 4인까지.",
     "cta": "예약 시작하기",
     "treatmentsHeading": "트리트먼트 안내",
-    "treatmentsSubheading": "모든 트리트먼트는 프라이빗하게 진행됩니다 — 스파에는 오직 우리 팀뿐입니다.",
-    "footerNote": "제주 중문 · 예약제로 운영됩니다"
+    "treatmentsSubheading": "모든 트리트먼트는 프라이빗하게 진행됩니다 — 스파에는 오직 우리 팀뿐입니다."
+  },
+  "footer": {
+    "heading": "Woori Aroma · Jeju",
+    "tagline": "Private wellness in Jeju — one group at a time.",
+    "mapsCta": "View Woori Aroma on Google Maps",
+    "instagram": "Instagram"
+  },
+  "treatmentShowcase": {
+    "mostPopularLabel": "Most Popular",
+    "everyCourseLabel": "Every Course Includes",
+    "includesLabel": "Includes",
+    "bestForLabel": "Best For",
+    "aromaOil": {
+      "description": "A relaxing full-body massage using aromatherapy oils, ideal for relieving stress and travel fatigue.",
+      "tagline": "Best for gentle relaxation.",
+      "everyCourseIncludes": ["Foot Bath", "Aromatherapy Massage", "Stretching"],
+      "bestFor": ["Relaxation", "Stress Relief", "Travel Fatigue"],
+      "options": {
+        "60": ["Back & foot focus"],
+        "90": ["Full body"],
+        "120": ["Full body", "Facial Treatment & Mask"]
+      }
+    },
+    "hotStone": {
+      "description": "A soothing treatment that combines warm stones with aromatherapy massage for deep relaxation.",
+      "tagline": "Best for deep warmth and tired muscles.",
+      "everyCourseIncludes": ["Foot Bath", "Aroma", "Hot Stones", "Stretching"],
+      "bestFor": ["Deep Relaxation", "Tired Muscles", "Recovery"],
+      "options": {
+        "60": ["Back & foot aroma", "Back & leg stones"],
+        "90": ["Full-body aroma & stones"],
+        "120": ["Full body", "Facial & Mask"]
+      }
+    },
+    "thaiMassage": {
+      "description": "A traditional massage using pressure-point techniques and stretching, for guests who want a firmer, more active treatment.",
+      "tagline": "Stretching · Pressure · Active",
+      "bestFor": ["Body Stiffness", "Deep Stretching"],
+      "options": {
+        "60": ["Foot Bath", "Full-Body Thai Massage", "Stretching"],
+        "90": ["Includes the 60-minute treatment", "Foot & Leg Cream Massage"],
+        "120": ["Includes the previous treatment", "Facial Massage & Mask"]
+      }
+    },
+    "quickSpaFoot": {
+      "description": "A focused foot and leg treatment for tired feet after walking, sightseeing, or traveling.",
+      "bestFor": ["Tired Feet", "After Walking", "Light Relaxation"],
+      "options": {
+        "50": ["Foot Bath", "Foot & Leg Massage", "Stretching"]
+      }
+    },
+    "facial": {
+      "description": "A refreshing facial care treatment focused on cleansing, moisturizing, and gentle facial relaxation.",
+      "bestFor": ["Skin Hydration", "Refreshing Care", "A Relaxing Break"],
+      "options": {
+        "60": ["Cleansing", "Exfoliation", "Facial Massage", "Mask", "Moisturizing"]
+      }
+    }
   },
   "services": {
     "thaiMassage": {
@@ -107,30 +164,29 @@
       "guestsLabel": "{count}인",
       "treatmentLine": "{price} × {count}",
       "totalLabel": "총 금액",
-      "depositLabel": "예약금",
-      "payAtSpaLabel": "현장 결제",
       "edit": "수정",
-      "confirmAndPay": "예약금 결제하고 확정하기",
-      "termsNote": "잔금은 트리트먼트 후 현장에서 결제하시면 됩니다."
+      "submitRequest": "예약 요청 보내기",
+      "termsNote": "이것은 예약 요청입니다 — 우리아로마에서 일정을 확인한 후 이메일로 확정해 드립니다."
     },
-    "payment": {
-      "processing": "예약금을 결제하고 있습니다…",
-      "failed": "결제를 완료하지 못했습니다. 다시 시도해 주세요.",
+    "submit": {
+      "processing": "예약 요청을 제출하고 있습니다…",
       "retry": "다시 시도",
       "chooseAnotherTime": "다른 시간 선택"
     },
     "confirmation": {
-      "title": "예약이 확정되었습니다",
-      "subtitle": "우리아로마에서 뵙게 되어 기쁩니다.",
+      "title": "예약 요청이 접수되었습니다",
+      "subtitle": "감사합니다. 예약 요청이 정상적으로 접수되었습니다.",
+      "subtitleDetail": "일정을 확인한 후 곧 확정 이메일을 보내드리겠습니다.",
+      "pendingNotice": "확정 이메일을 받으시기 전까지는 예약이 확정된 것이 아닙니다.",
       "reservationNumber": "예약 번호",
+      "detailsHeading": "요청 내역",
       "customerName": "이름",
-      "date": "날짜",
-      "time": "시간",
+      "email": "이메일",
+      "phone": "전화번호",
+      "requestedDate": "요청 날짜",
+      "requestedTime": "요청 시간",
       "guests": "인원",
       "treatment": "트리트먼트",
-      "totalAmount": "총 금액",
-      "depositPaid": "결제된 예약금",
-      "remainingBalance": "잔금",
       "needHelpTitle": "예약 관련 도움이 필요하신가요?",
       "viewLocation": "위치 보기",
       "addToCalendar": "캘린더에 추가",
@@ -147,23 +203,27 @@
   "notifications": {
     "email": {
       "subject": {
+        "RESERVATION_REQUEST_RECEIVED": "예약 요청이 접수되었습니다 – 우리아로마",
         "RESERVATION_CONFIRMED": "우리같이아로마 예약이 확정되었습니다 — {reservationNumber}",
         "RESERVATION_UPDATED": "우리같이아로마 예약이 변경되었습니다 — {reservationNumber}",
         "RESERVATION_CANCELLED": "우리같이아로마 예약이 취소되었습니다 — {reservationNumber}",
         "RESERVATION_REMINDER": "내일 우리같이아로마에서 뵙겠습니다 — {reservationNumber}"
       },
       "heading": {
+        "RESERVATION_REQUEST_RECEIVED": "예약 요청이 접수되었습니다",
         "RESERVATION_CONFIRMED": "예약이 확정되었습니다",
         "RESERVATION_UPDATED": "예약이 변경되었습니다",
         "RESERVATION_CANCELLED": "예약이 취소되었습니다",
         "RESERVATION_REMINDER": "내일 뵙겠습니다"
       },
       "intro": {
+        "RESERVATION_REQUEST_RECEIVED": "{name}님, 우리아로마를 찾아주셔서 감사합니다. 예약 요청이 접수되었습니다.",
         "RESERVATION_CONFIRMED": "{name}님, 예약이 확정되었습니다.",
         "RESERVATION_UPDATED": "{name}님, 예약 내용이 변경되었습니다.",
         "RESERVATION_CANCELLED": "{name}님, 예약이 취소되었습니다.",
         "RESERVATION_REMINDER": "{name}님, 내일 예약 방문을 안내드립니다."
       },
+      "pendingNotice": "일정을 확인한 후 별도의 확정 이메일을 보내드리겠습니다. 확정 이메일을 받으시기 전까지는 예약이 확정된 것이 아닙니다.",
       "reservationNumber": "예약 번호",
       "date": "날짜",
       "time": "시간",
@@ -171,8 +231,6 @@
       "duration": "소요 시간",
       "guests": "인원",
       "totalAmount": "총 금액",
-      "depositPaid": "결제된 예약금",
-      "remainingBalance": "잔금 (현장 결제)",
       "location": "위치",
       "mapAlt": "우리아로마 찾아오시는 길 지도",
       "viewOnMap": "구글 지도에서 보기",

@@ -5,12 +5,7 @@ import { useBooking } from "../BookingProvider";
 import { StepShell } from "../StepShell";
 import { PrimaryButton } from "@/components/common/PrimaryButton";
 import { getService, getServiceOption } from "@/data/services";
-import {
-  calculateDepositAmount,
-  calculateRemainingAmount,
-  calculateTotalAmount,
-  formatCurrency,
-} from "@/lib/booking/pricing";
+import { calculateTotalAmount, formatCurrency } from "@/lib/booking/pricing";
 import { formatTimeLabel } from "@/lib/booking/time";
 import type { AppLocale } from "@/i18n/routing";
 
@@ -30,8 +25,6 @@ export function ReviewStep() {
   }
 
   const total = calculateTotalAmount(option.pricePerPerson, guestCount);
-  const deposit = calculateDepositAmount(guestCount);
-  const remaining = calculateRemainingAmount(total, deposit);
 
   const dateLabel = new Intl.DateTimeFormat(locale, {
     year: "numeric",
@@ -43,7 +36,7 @@ export function ReviewStep() {
     <StepShell
       title={t("title")}
       footer={
-        <PrimaryButton onClick={goNext}>{t("confirmAndPay")}</PrimaryButton>
+        <PrimaryButton onClick={goNext}>{t("submitRequest")}</PrimaryButton>
       }
     >
       <div className="flex flex-col gap-4">
@@ -89,14 +82,6 @@ export function ReviewStep() {
           <div className="mt-3 flex items-center justify-between border-t border-stone-100 pt-3 font-medium text-stone-900">
             <span>{t("totalLabel")}</span>
             <span>{formatCurrency(total, locale)}</span>
-          </div>
-          <div className="mt-3 flex items-center justify-between text-stone-600">
-            <span>{t("depositLabel")}</span>
-            <span>{formatCurrency(deposit, locale)}</span>
-          </div>
-          <div className="mt-1 flex items-center justify-between text-stone-600">
-            <span>{t("payAtSpaLabel")}</span>
-            <span>{formatCurrency(remaining, locale)}</span>
           </div>
         </div>
 

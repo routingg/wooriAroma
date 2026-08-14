@@ -10,7 +10,7 @@ import {
 } from "@/lib/notifications/adminDispatch";
 import { renderEmailPreview, type EmailPreview } from "@/lib/notifications/preview";
 import type { ReservationNotificationPayload } from "@/lib/notifications/types";
-import { getById } from "@/lib/repositories/reservationRepository";
+import { getById, updateStatus } from "@/lib/repositories/reservationRepository";
 
 export type { SendResultState };
 
@@ -29,13 +29,32 @@ async function loadConfirmationPayload(reservationId: string): Promise<LoadedPay
   return { payload };
 }
 
-/** Real confirmation send — initial send or resend. Goes through the sandbox/production recipient policy and is logged to the notifications table. */
+/**
+ * Real confirmation send — initial send or resend. Goes through the
+ * sandbox/production recipient policy and is logged to the notifications
+ * table.
+ *
+ * This is also the admin's Pending → Confirmed action (AGENTS.md deposit
+ * removal / pending-review flow): a reservation still awaiting review is
+ * flipped to CONFIRMED right before the email goes out, so "send the
+ * confirmation" and "the reservation is now confirmed" can never drift
+ * apart into two separate, out-of-sync mechanisms. A reservation that's
+ * already CONFIRMED (a resend) is left untouched.
+ */
 export async function sendConfirmationEmailAction(
   reservationId: string,
   _prevState: SendResultState,
   formData: FormData,
 ): Promise<SendResultState> {
   const includeMap = formData.get("includeMap") === "on";
+
+  const reservation = getById(reservationId);
+  if (!reservation) {
+    return { status: "failed", reason: "reservation_not_found" };
+  }
+  if (reservation.status === "PENDING") {
+    updateStatus(reservationId, "CONFIRMED");
+  }
 
   const loaded = await loadConfirmationPayload(reservationId);
   if ("error" in loaded) {
@@ -44,6 +63,8 @@ export async function sendConfirmationEmailAction(
 
   const result = await sendAdminConfirmationEmail(loaded.payload, { includeMap });
   revalidatePath(`/admin/reservations/${reservationId}`);
+  revalidatePath("/admin/reservations");
+  revalidatePath("/admin");
 
   return toSendResultState(result);
 }

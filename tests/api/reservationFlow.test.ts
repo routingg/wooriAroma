@@ -29,7 +29,7 @@ const customer = {
 };
 
 describe("reservation-holds + reservations API routes", () => {
-  it("creates a hold, rejects a conflicting one, then confirms and can be looked up", async () => {
+  it("creates a hold, rejects a conflicting one, then submits as PENDING and can be looked up", async () => {
     const date = futureDateKey(5);
 
     const holdRes = await createHoldRoute(
@@ -62,25 +62,27 @@ describe("reservation-holds + reservations API routes", () => {
     const conflictBody = await conflictRes.json();
     expect(conflictBody.error.code).toBe("SLOT_UNAVAILABLE");
 
-    const confirmRes = await confirmRoute(
+    // No deposit/payment is collected — submitting only requires the holdId
+    // (AGENTS.md deposit removal). The reservation lands as PENDING, not
+    // CONFIRMED, until an admin reviews and approves it.
+    const submitRes = await confirmRoute(
       jsonRequest("http://localhost/api/reservations", {
         holdId: hold.holdId,
-        depositTransactionId: "MOCK-TX-1",
       }),
     );
-    expect(confirmRes.status).toBe(200);
-    const confirmed = await confirmRes.json();
-    expect(confirmed.reservation.status).toBe("CONFIRMED");
-    expect(confirmed.reservation.customerName).toBe("Jane Doe");
+    expect(submitRes.status).toBe(200);
+    const submitted = await submitRes.json();
+    expect(submitted.reservation.status).toBe("PENDING");
+    expect(submitted.reservation.customerName).toBe("Jane Doe");
 
     const lookupRes = await getByNumberRoute(new Request(`http://localhost/api/reservations/${hold.reservationNumber}`), {
       params: Promise.resolve({ reservationNumber: hold.reservationNumber }),
     });
     expect(lookupRes.status).toBe(200);
     const lookup = await lookupRes.json();
-    expect(lookup.reservation.status).toBe("CONFIRMED");
+    expect(lookup.reservation.status).toBe("PENDING");
 
-    // T10-adjacent: availability now excludes the confirmed slot's full buffer.
+    // A PENDING request still occupies the slot until an admin acts on it.
     const availRes = await availabilityRoute(
       new Request(`http://localhost/api/availability?date=${date}&serviceOptionId=aroma-oil-90`),
     );
@@ -89,7 +91,7 @@ describe("reservation-holds + reservations API routes", () => {
     expect(at1600.available).toBe(false);
   });
 
-  it("T09: never returns a CONFIRMED reservation for a holdId that was never confirmed", async () => {
+  it("T09-adjacent: never returns a PENDING/CONFIRMED reservation for a holdId that was never submitted", async () => {
     const date = futureDateKey(5);
     const holdRes = await createHoldRoute(
       jsonRequest("http://localhost/api/reservation-holds", {
@@ -108,6 +110,7 @@ describe("reservation-holds + reservations API routes", () => {
     });
     const lookup = await lookupRes.json();
     expect(lookup.reservation.status).toBe("HOLD");
+    expect(lookup.reservation.status).not.toBe("PENDING");
     expect(lookup.reservation.status).not.toBe("CONFIRMED");
   });
 

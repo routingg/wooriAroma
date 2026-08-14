@@ -18,8 +18,65 @@
     "capacity": "Up to 4 Guests.",
     "cta": "Book Your Experience",
     "treatmentsHeading": "Our Treatments",
-    "treatmentsSubheading": "Every treatment is private — your group is the only one in the spa.",
-    "footerNote": "Jungmun, Jeju Island · By reservation only"
+    "treatmentsSubheading": "Every treatment is private — your group is the only one in the spa."
+  },
+  "footer": {
+    "heading": "Woori Aroma · Jeju",
+    "tagline": "Private wellness in Jeju — one group at a time.",
+    "mapsCta": "View Woori Aroma on Google Maps",
+    "instagram": "Instagram"
+  },
+  "treatmentShowcase": {
+    "mostPopularLabel": "Most Popular",
+    "everyCourseLabel": "Every Course Includes",
+    "includesLabel": "Includes",
+    "bestForLabel": "Best For",
+    "aromaOil": {
+      "description": "A relaxing full-body massage using aromatherapy oils, ideal for relieving stress and travel fatigue.",
+      "tagline": "Best for gentle relaxation.",
+      "everyCourseIncludes": ["Foot Bath", "Aromatherapy Massage", "Stretching"],
+      "bestFor": ["Relaxation", "Stress Relief", "Travel Fatigue"],
+      "options": {
+        "60": ["Back & foot focus"],
+        "90": ["Full body"],
+        "120": ["Full body", "Facial Treatment & Mask"]
+      }
+    },
+    "hotStone": {
+      "description": "A soothing treatment that combines warm stones with aromatherapy massage for deep relaxation.",
+      "tagline": "Best for deep warmth and tired muscles.",
+      "everyCourseIncludes": ["Foot Bath", "Aroma", "Hot Stones", "Stretching"],
+      "bestFor": ["Deep Relaxation", "Tired Muscles", "Recovery"],
+      "options": {
+        "60": ["Back & foot aroma", "Back & leg stones"],
+        "90": ["Full-body aroma & stones"],
+        "120": ["Full body", "Facial & Mask"]
+      }
+    },
+    "thaiMassage": {
+      "description": "A traditional massage using pressure-point techniques and stretching, for guests who want a firmer, more active treatment.",
+      "tagline": "Stretching · Pressure · Active",
+      "bestFor": ["Body Stiffness", "Deep Stretching"],
+      "options": {
+        "60": ["Foot Bath", "Full-Body Thai Massage", "Stretching"],
+        "90": ["Includes the 60-minute treatment", "Foot & Leg Cream Massage"],
+        "120": ["Includes the previous treatment", "Facial Massage & Mask"]
+      }
+    },
+    "quickSpaFoot": {
+      "description": "A focused foot and leg treatment for tired feet after walking, sightseeing, or traveling.",
+      "bestFor": ["Tired Feet", "After Walking", "Light Relaxation"],
+      "options": {
+        "50": ["Foot Bath", "Foot & Leg Massage", "Stretching"]
+      }
+    },
+    "facial": {
+      "description": "A refreshing facial care treatment focused on cleansing, moisturizing, and gentle facial relaxation.",
+      "bestFor": ["Skin Hydration", "Refreshing Care", "A Relaxing Break"],
+      "options": {
+        "60": ["Cleansing", "Exfoliation", "Facial Massage", "Mask", "Moisturizing"]
+      }
+    }
   },
   "services": {
     "thaiMassage": {
@@ -107,30 +164,29 @@
       "guestsLabel": "{count, plural, one {1 Guest} other {# Guests}}",
       "treatmentLine": "{price} × {count}",
       "totalLabel": "Total",
-      "depositLabel": "Deposit",
-      "payAtSpaLabel": "Pay at the Spa",
       "edit": "Edit",
-      "confirmAndPay": "Pay Deposit & Confirm",
-      "termsNote": "The remaining balance is paid at the spa after your treatment."
+      "submitRequest": "Submit Reservation Request",
+      "termsNote": "This is a reservation request — Woori Aroma will review availability and confirm by email."
     },
-    "payment": {
-      "processing": "Processing your deposit…",
-      "failed": "Payment could not be completed. Please try again.",
+    "submit": {
+      "processing": "Submitting your reservation request…",
       "retry": "Try Again",
       "chooseAnotherTime": "Choose Another Time"
     },
     "confirmation": {
-      "title": "Reservation Confirmed",
-      "subtitle": "We look forward to welcoming you to Woori Aroma.",
+      "title": "Reservation Request Received",
+      "subtitle": "Thank you. We've received your reservation request.",
+      "subtitleDetail": "We'll check our schedule and send you a confirmation email shortly.",
+      "pendingNotice": "Your appointment is not confirmed until you receive our confirmation email.",
       "reservationNumber": "Reservation Number",
+      "detailsHeading": "Request Details",
       "customerName": "Name",
-      "date": "Date",
-      "time": "Time",
+      "email": "Email",
+      "phone": "Phone",
+      "requestedDate": "Requested Date",
+      "requestedTime": "Requested Time",
       "guests": "Guests",
       "treatment": "Treatment",
-      "totalAmount": "Total",
-      "depositPaid": "Deposit Paid",
-      "remainingBalance": "Remaining Balance",
       "needHelpTitle": "Need help with your reservation?",
       "viewLocation": "View Location",
       "addToCalendar": "Add to Calendar",
@@ -147,23 +203,27 @@
   "notifications": {
     "email": {
       "subject": {
+        "RESERVATION_REQUEST_RECEIVED": "Reservation Request Received – Woori Aroma",
         "RESERVATION_CONFIRMED": "Your Woori Aroma reservation is confirmed — {reservationNumber}",
         "RESERVATION_UPDATED": "Your Woori Aroma reservation was updated — {reservationNumber}",
         "RESERVATION_CANCELLED": "Your Woori Aroma reservation was cancelled — {reservationNumber}",
         "RESERVATION_REMINDER": "See you tomorrow at Woori Aroma — {reservationNumber}"
       },
       "heading": {
+        "RESERVATION_REQUEST_RECEIVED": "Reservation Request Received",
         "RESERVATION_CONFIRMED": "Reservation Confirmed",
         "RESERVATION_UPDATED": "Reservation Updated",
         "RESERVATION_CANCELLED": "Reservation Cancelled",
         "RESERVATION_REMINDER": "See You Tomorrow"
       },
       "intro": {
+        "RESERVATION_REQUEST_RECEIVED": "Thank you for choosing Woori Aroma, {name}. We have received your reservation request.",
         "RESERVATION_CONFIRMED": "Thank you, {name}. Your reservation is confirmed.",
         "RESERVATION_UPDATED": "Hello {name}, your reservation has been updated.",
         "RESERVATION_CANCELLED": "Hello {name}, your reservation has been cancelled.",
         "RESERVATION_REMINDER": "Hello {name}, this is a reminder for your visit tomorrow."
       },
+      "pendingNotice": "We are checking our schedule and will send you a separate confirmation email once your appointment has been confirmed. Please note that your appointment is not confirmed until you receive our confirmation email.",
       "reservationNumber": "Reservation Number",
       "date": "Date",
       "time": "Time",
@@ -171,8 +231,6 @@
       "duration": "Duration",
       "guests": "Guests",
       "totalAmount": "Total",
-      "depositPaid": "Deposit Paid",
-      "remainingBalance": "Remaining Balance (pay at the spa)",
       "location": "Location",
       "mapAlt": "Woori Aroma directions map",
       "viewOnMap": "View on Google Maps",

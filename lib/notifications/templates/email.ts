@@ -50,6 +50,8 @@ export async function renderReservationEmail(
   const subject = t(`subject.${payload.event}`, { reservationNumber: payload.reservationNumber });
   const heading = t(`heading.${payload.event}`);
   const intro = t(`intro.${payload.event}`, { name: payload.customerName });
+  /** Only for RESERVATION_REQUEST_RECEIVED — must stay visually prominent, never buried (AGENTS.md §5/§9). */
+  const pendingNotice = payload.event === "RESERVATION_REQUEST_RECEIVED" ? t("pendingNotice") : null;
 
   const rows: [string, string][] = [
     [t("reservationNumber"), payload.reservationNumber],
@@ -60,12 +62,11 @@ export async function renderReservationEmail(
     [t("guests"), String(payload.guestCount)],
   ];
 
-  if (payload.event !== "RESERVATION_CANCELLED") {
-    rows.push(
-      [t("totalAmount"), formatCurrency(payload.totalAmount, payload.preferredLanguage)],
-      [t("depositPaid"), formatCurrency(payload.depositAmount, payload.preferredLanguage)],
-      [t("remainingBalance"), formatCurrency(payload.remainingAmount, payload.preferredLanguage)],
-    );
+  // Deposit removed (AGENTS.md) — only the informational total price
+  // remains, and only once the reservation is a real booking, not a
+  // pending request still awaiting review.
+  if (payload.event === "RESERVATION_CONFIRMED" || payload.event === "RESERVATION_UPDATED") {
+    rows.push([t("totalAmount"), formatCurrency(payload.totalAmount, payload.preferredLanguage)]);
   }
 
   const rowsHtml = rows
@@ -97,7 +98,12 @@ export async function renderReservationEmail(
             <tr>
               <td style="padding:28px 24px 8px;">
                 <h1 style="margin:0 0 8px;color:#1c1917;font-size:20px;">${escapeHtml(heading)}</h1>
-                <p style="margin:0 0 20px;color:#57534e;font-size:14px;line-height:1.5;">${escapeHtml(intro)}</p>
+                <p style="margin:0 0 ${pendingNotice ? "12px" : "20px"};color:#57534e;font-size:14px;line-height:1.5;">${escapeHtml(intro)}</p>
+                ${
+                  pendingNotice
+                    ? `<p style="margin:0 0 20px;padding:12px 14px;background-color:#fef3c7;border-radius:10px;color:#78350f;font-size:13px;font-weight:600;line-height:1.5;">${escapeHtml(pendingNotice)}</p>`
+                    : ""
+                }
               </td>
             </tr>
             <tr>
@@ -137,7 +143,8 @@ export async function renderReservationEmail(
 </html>`.trim();
 
   const locationLine = includeMap ? `${t("location")}: ${mapsUrl}` : mapsUrl;
-  const text = `${heading}\n\n${intro}\n\n${rowsText}\n\n${t("changeInstructions")}\n${BUSINESS.instagramUrl}\n${locationLine}\n\n${t("footer")} · ${BUSINESS.addressEn}`;
+  const noticeText = pendingNotice ? `${pendingNotice}\n\n` : "";
+  const text = `${heading}\n\n${intro}\n\n${noticeText}${rowsText}\n\n${t("changeInstructions")}\n${BUSINESS.instagramUrl}\n${locationLine}\n\n${t("footer")} · ${BUSINESS.addressEn}`;
 
   return { subject, html, text };
 }

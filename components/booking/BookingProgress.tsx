@@ -10,7 +10,7 @@ const PROGRESS_GROUPS: { key: string; steps: BookingStep[] }[] = [
   { key: "treatment", steps: ["treatment", "duration"] },
   { key: "dateTime", steps: ["date", "time"] },
   { key: "details", steps: ["details"] },
-  { key: "confirm", steps: ["review", "payment", "confirmation"] },
+  { key: "confirm", steps: ["review", "submit", "confirmation"] },
 ];
 
 export function BookingProgress({ currentStep }: { currentStep: BookingStep }) {

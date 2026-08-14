@@ -4,12 +4,17 @@ import { useLocale, useTranslations } from "next-intl";
 import { useBooking } from "../BookingProvider";
 import { Link } from "@/i18n/navigation";
 import { getService, getServiceOption } from "@/data/services";
-import { calculateDepositAmount, calculateRemainingAmount, calculateTotalAmount, formatCurrency } from "@/lib/booking/pricing";
 import { formatTimeLabel, fromMinutes, toMinutes } from "@/lib/booking/time";
 import { buildReservationIcs } from "@/lib/booking/ics";
 import { BUSINESS, googleMapsUrl } from "@/lib/config/business";
 import type { AppLocale } from "@/i18n/routing";
 
+/**
+ * "Reservation Request Received" — NOT a confirmation screen. Submitting
+ * the form only creates a PENDING request; the appointment becomes
+ * CONFIRMED (and the customer gets a separate email) only after Woori
+ * Aroma reviews it (AGENTS.md deposit removal / pending-review flow).
+ */
 export function ConfirmationStep() {
   const t = useTranslations("steps.confirmation");
   const tCommon = useTranslations("common");
@@ -25,9 +30,6 @@ export function ConfirmationStep() {
     return null;
   }
 
-  const total = calculateTotalAmount(option.pricePerPerson, guestCount);
-  const deposit = calculateDepositAmount(guestCount);
-  const remaining = calculateRemainingAmount(total, deposit);
   const treatmentName = tServices(service.nameKey.replace("services.", ""));
 
   const dateLabel = new Intl.DateTimeFormat(locale, {
@@ -65,36 +67,29 @@ export function ConfirmationStep() {
           {t("title")}
         </h1>
         <p className="mt-2 text-sm text-stone-600">{t("subtitle")}</p>
+        <p className="mt-1 text-sm text-stone-600">{t("subtitleDetail")}</p>
       </div>
 
-      <div className="mt-8 rounded-2xl border border-stone-200 bg-stone-100 p-5">
+      <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-center">
+        <p className="text-sm font-medium text-amber-900">{t("pendingNotice")}</p>
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-stone-200 bg-stone-100 p-5">
         <div className="flex items-center justify-between border-b border-stone-100 pb-4">
           <span className="text-sm text-stone-500">{t("reservationNumber")}</span>
           <span className="font-mono text-sm font-medium text-stone-900">{draft.reservationNumber}</span>
         </div>
 
-        <dl className="mt-4 flex flex-col gap-3 text-sm">
-          <Row label={t("customerName")} value={draft.details.name} />
-          <Row label={t("date")} value={dateLabel} />
-          <Row label={t("time")} value={formatTimeLabel(draft.time, locale)} />
-          <Row label={t("guests")} value={String(guestCount)} />
+        <p className="mt-4 text-xs font-medium tracking-wide text-stone-500 uppercase">{t("detailsHeading")}</p>
+        <dl className="mt-2 flex flex-col gap-3 text-sm">
           <Row label={t("treatment")} value={`${treatmentName} · ${option.durationMinutes} ${tCommon("min")}`} />
+          <Row label={t("requestedDate")} value={dateLabel} />
+          <Row label={t("requestedTime")} value={formatTimeLabel(draft.time, locale)} />
+          <Row label={t("guests")} value={String(guestCount)} />
+          <Row label={t("customerName")} value={draft.details.name} />
+          <Row label={t("email")} value={draft.details.email} />
+          {draft.details.phone ? <Row label={t("phone")} value={draft.details.phone} /> : null}
         </dl>
-
-        <div className="mt-4 flex flex-col gap-2 border-t border-stone-100 pt-4 text-sm">
-          <div className="flex items-center justify-between text-stone-600">
-            <span>{t("totalAmount")}</span>
-            <span>{formatCurrency(total, locale)}</span>
-          </div>
-          <div className="flex items-center justify-between font-medium text-stone-900">
-            <span>{t("depositPaid")}</span>
-            <span>{formatCurrency(deposit, locale)}</span>
-          </div>
-          <div className="flex items-center justify-between text-stone-600">
-            <span>{t("remainingBalance")}</span>
-            <span>{formatCurrency(remaining, locale)}</span>
-          </div>
-        </div>
       </div>
 
       <div className="mt-6 rounded-2xl border border-stone-200 bg-stone-100 p-5">

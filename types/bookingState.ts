@@ -8,7 +8,7 @@ export const BOOKING_STEPS = [
   "time",
   "details",
   "review",
-  "payment",
+  "submit",
   "confirmation",
 ] as const;
 
@@ -24,8 +24,10 @@ export interface BookingDetailsDraft {
 
 /**
  * In-progress booking selections, kept in memory + localStorage while
- * the customer moves through the wizard. Nothing here is submitted
- * until the mock payment succeeds (see lib/payment).
+ * the customer moves through the wizard. Nothing here is submitted to the
+ * server as a reservation request until the "submit" step succeeds (see
+ * components/booking/steps/SubmitStep.tsx) — no payment is collected;
+ * submitting only creates a PENDING request pending admin review.
  */
 export interface BookingDraft {
   step: BookingStep;
@@ -36,7 +38,6 @@ export interface BookingDraft {
   time: string | null; // "HH:mm"
   details: BookingDetailsDraft | null;
   reservationNumber: string | null;
-  depositTransactionId: string | null;
 }
 
 export const emptyBookingDraft: BookingDraft = {
@@ -48,5 +49,4 @@ export const emptyBookingDraft: BookingDraft = {
   time: null,
   details: null,
   reservationNumber: null,
-  depositTransactionId: null,
 };

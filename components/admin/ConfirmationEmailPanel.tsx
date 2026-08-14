@@ -10,17 +10,20 @@ import {
 import { describeSendResult } from "@/lib/admin/emailResultLabels";
 import type { EmailPreview } from "@/lib/notifications/preview";
 import type { EmailDeliveryMode } from "@/lib/notifications/recipientPolicy";
+import type { ReservationStatus } from "@/lib/repositories/reservationRepository";
 
 const IDLE: SendResultState = { status: "idle" };
 
 export function ConfirmationEmailPanel({
   reservationId,
+  reservationStatus,
   initialPreview,
   deliveryMode,
   testRecipientConfigured,
   lastSentAt,
 }: {
   reservationId: string;
+  reservationStatus: ReservationStatus;
   initialPreview: EmailPreview;
   deliveryMode: EmailDeliveryMode;
   testRecipientConfigured: boolean;
@@ -71,6 +74,12 @@ export function ConfirmationEmailPanel({
         )}
       </div>
 
+      {reservationStatus === "PENDING" && (
+        <p className="mt-3 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
+          이 예약은 아직 대기중입니다. 확정 메일을 보내면 예약이 확정 상태로 전환됩니다.
+        </p>
+      )}
+
       {deliveryMode === "sandbox" && (
         <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
           테스트 모드 — 모든 확정 메일은 실제 고객이 아닌 EMAIL_TEST_RECIPIENT로만 전달됩니다.
@@ -105,7 +114,13 @@ export function ConfirmationEmailPanel({
             disabled={isSending}
             className="rounded-lg bg-stone-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
           >
-            {isSending ? "발송 중…" : lastSentLabel ? "재발송" : "확정 메일 보내기"}
+            {isSending
+              ? "발송 중…"
+              : reservationStatus === "PENDING"
+                ? "예약 확정하고 메일 보내기"
+                : lastSentLabel
+                  ? "재발송"
+                  : "확정 메일 보내기"}
           </button>
         </form>
         <form action={testAction}>

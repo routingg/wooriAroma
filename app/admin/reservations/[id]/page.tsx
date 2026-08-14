@@ -5,7 +5,7 @@ import { buildReservationNotificationPayload } from "@/lib/booking/reservationNo
 import { formatCurrency } from "@/lib/booking/pricing";
 import { formatTimeLabel } from "@/lib/booking/time";
 import { SEOUL_TIME_ZONE } from "@/lib/booking/timezone";
-import { STATUS_LABELS_KO, SERVICE_NAMES_KO } from "@/lib/admin/labels";
+import { STATUS_BADGE_CLASS, STATUS_LABELS_KO, SERVICE_NAMES_KO } from "@/lib/admin/labels";
 import { renderEmailPreview } from "@/lib/notifications/preview";
 import { resolveEmailDeliveryMode } from "@/lib/notifications/recipientPolicy";
 import { getCustomerById } from "@/lib/repositories/customerRepository";
@@ -49,7 +49,7 @@ export default async function AdminReservationDetailPage({ params }: { params: P
       <section className="rounded-xl border border-stone-200 bg-white p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-lg font-semibold text-stone-900">{reservation.reservationNumber}</p>
-          <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">
+          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_BADGE_CLASS[reservation.status]}`}>
             {STATUS_LABELS_KO[reservation.status]}
           </span>
         </div>
@@ -73,6 +73,7 @@ export default async function AdminReservationDetailPage({ params }: { params: P
       ) : (
         <ConfirmationEmailPanel
           reservationId={reservation.id}
+          reservationStatus={reservation.status}
           initialPreview={initialPreview}
           deliveryMode={deliveryMode}
           testRecipientConfigured={testRecipientConfigured}

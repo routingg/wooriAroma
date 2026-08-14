@@ -18,8 +18,65 @@
     "capacity": "最大4名様まで。",
     "cta": "予約をはじめる",
     "treatmentsHeading": "トリートメント紹介",
-    "treatmentsSubheading": "すべてのトリートメントはプライベート空間で — スパにはあなたのグループだけ。",
-    "footerNote": "済州島 中文 · 完全予約制"
+    "treatmentsSubheading": "すべてのトリートメントはプライベート空間で — スパにはあなたのグループだけ。"
+  },
+  "footer": {
+    "heading": "Woori Aroma · Jeju",
+    "tagline": "Private wellness in Jeju — one group at a time.",
+    "mapsCta": "View Woori Aroma on Google Maps",
+    "instagram": "Instagram"
+  },
+  "treatmentShowcase": {
+    "mostPopularLabel": "Most Popular",
+    "everyCourseLabel": "Every Course Includes",
+    "includesLabel": "Includes",
+    "bestForLabel": "Best For",
+    "aromaOil": {
+      "description": "A relaxing full-body massage using aromatherapy oils, ideal for relieving stress and travel fatigue.",
+      "tagline": "Best for gentle relaxation.",
+      "everyCourseIncludes": ["Foot Bath", "Aromatherapy Massage", "Stretching"],
+      "bestFor": ["Relaxation", "Stress Relief", "Travel Fatigue"],
+      "options": {
+        "60": ["Back & foot focus"],
+        "90": ["Full body"],
+        "120": ["Full body", "Facial Treatment & Mask"]
+      }
+    },
+    "hotStone": {
+      "description": "A soothing treatment that combines warm stones with aromatherapy massage for deep relaxation.",
+      "tagline": "Best for deep warmth and tired muscles.",
+      "everyCourseIncludes": ["Foot Bath", "Aroma", "Hot Stones", "Stretching"],
+      "bestFor": ["Deep Relaxation", "Tired Muscles", "Recovery"],
+      "options": {
+        "60": ["Back & foot aroma", "Back & leg stones"],
+        "90": ["Full-body aroma & stones"],
+        "120": ["Full body", "Facial & Mask"]
+      }
+    },
+    "thaiMassage": {
+      "description": "A traditional massage using pressure-point techniques and stretching, for guests who want a firmer, more active treatment.",
+      "tagline": "Stretching · Pressure · Active",
+      "bestFor": ["Body Stiffness", "Deep Stretching"],
+      "options": {
+        "60": ["Foot Bath", "Full-Body Thai Massage", "Stretching"],
+        "90": ["Includes the 60-minute treatment", "Foot & Leg Cream Massage"],
+        "120": ["Includes the previous treatment", "Facial Massage & Mask"]
+      }
+    },
+    "quickSpaFoot": {
+      "description": "A focused foot and leg treatment for tired feet after walking, sightseeing, or traveling.",
+      "bestFor": ["Tired Feet", "After Walking", "Light Relaxation"],
+      "options": {
+        "50": ["Foot Bath", "Foot & Leg Massage", "Stretching"]
+      }
+    },
+    "facial": {
+      "description": "A refreshing facial care treatment focused on cleansing, moisturizing, and gentle facial relaxation.",
+      "bestFor": ["Skin Hydration", "Refreshing Care", "A Relaxing Break"],
+      "options": {
+        "60": ["Cleansing", "Exfoliation", "Facial Massage", "Mask", "Moisturizing"]
+      }
+    }
   },
   "services": {
     "thaiMassage": {
@@ -107,30 +164,29 @@
       "guestsLabel": "{count}名",
       "treatmentLine": "{price} × {count}",
       "totalLabel": "合計金額",
-      "depositLabel": "予約金",
-      "payAtSpaLabel": "現地でのお支払い",
       "edit": "編集",
-      "confirmAndPay": "予約金を支払って確定する",
-      "termsNote": "残額はトリートメント後、現地にてお支払いください。"
+      "submitRequest": "予約リクエストを送信する",
+      "termsNote": "これは予約リクエストです — Woori Aroma が空き状況を確認の上、メールにてご案内いたします。"
     },
-    "payment": {
-      "processing": "予約金を処理しています…",
-      "failed": "お支払いを完了できませんでした。もう一度お試しください。",
+    "submit": {
+      "processing": "予約リクエストを送信しています…",
       "retry": "再試行",
       "chooseAnotherTime": "別の時間を選ぶ"
     },
     "confirmation": {
-      "title": "ご予約が確定しました",
-      "subtitle": "Woori Aroma にてお会いできることを楽しみにしております。",
+      "title": "予約リクエストを受け付けました",
+      "subtitle": "ありがとうございます。予約リクエストを受け付けました。",
+      "subtitleDetail": "空き状況を確認の上、確定メールをお送りいたします。",
+      "pendingNotice": "確定メールが届くまでは、ご予約は確定していません。",
       "reservationNumber": "予約番号",
+      "detailsHeading": "リクエスト内容",
       "customerName": "お名前",
-      "date": "日付",
-      "time": "時間",
+      "email": "メールアドレス",
+      "phone": "電話番号",
+      "requestedDate": "希望日",
+      "requestedTime": "希望時間",
       "guests": "人数",
       "treatment": "トリートメント",
-      "totalAmount": "合計金額",
-      "depositPaid": "お支払い済みの予約金",
-      "remainingBalance": "残額",
       "needHelpTitle": "ご予約について、お困りのことはありませんか？",
       "viewLocation": "場所を見る",
       "addToCalendar": "カレンダーに追加",
@@ -147,23 +203,27 @@
   "notifications": {
     "email": {
       "subject": {
+        "RESERVATION_REQUEST_RECEIVED": "予約リクエストを受け付けました – Woori Aroma",
         "RESERVATION_CONFIRMED": "Woori Aromaのご予約が確定しました — {reservationNumber}",
         "RESERVATION_UPDATED": "Woori Aromaのご予約内容が変更されました — {reservationNumber}",
         "RESERVATION_CANCELLED": "Woori Aromaのご予約がキャンセルされました — {reservationNumber}",
         "RESERVATION_REMINDER": "明日Woori Aromaでお待ちしております — {reservationNumber}"
       },
       "heading": {
+        "RESERVATION_REQUEST_RECEIVED": "予約リクエストを受け付けました",
         "RESERVATION_CONFIRMED": "ご予約確定のお知らせ",
         "RESERVATION_UPDATED": "ご予約変更のお知らせ",
         "RESERVATION_CANCELLED": "ご予約キャンセルのお知らせ",
         "RESERVATION_REMINDER": "明日のご来店について"
       },
       "intro": {
+        "RESERVATION_REQUEST_RECEIVED": "{name}様、Woori Aromaをお選びいただきありがとうございます。予約リクエストを受け付けました。",
         "RESERVATION_CONFIRMED": "{name}様、ご予約が確定しました。",
         "RESERVATION_UPDATED": "{name}様、ご予約内容が変更されました。",
         "RESERVATION_CANCELLED": "{name}様、ご予約がキャンセルされました。",
         "RESERVATION_REMINDER": "{name}様、明日のご来店のリマインドです。"
       },
+      "pendingNotice": "空き状況を確認の上、確定メールを別途お送りいたします。確定メールが届くまでは、ご予約は確定していませんのでご注意ください。",
       "reservationNumber": "予約番号",
       "date": "日付",
       "time": "時間",
@@ -171,8 +231,6 @@
       "duration": "所要時間",
       "guests": "人数",
       "totalAmount": "合計金額",
-      "depositPaid": "お支払い済みデポジット",
-      "remainingBalance": "残額（当日店舗にてお支払い）",
       "location": "所在地",
       "mapAlt": "Woori Aromaへの道案内地図",
       "viewOnMap": "Googleマップで見る",

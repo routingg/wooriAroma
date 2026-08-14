@@ -18,8 +18,65 @@
     "capacity": "最多4位。",
     "cta": "开始预约",
     "treatmentsHeading": "特色护理项目",
-    "treatmentsSubheading": "所有护理均为私享空间 — 水疗中心同一时间只接待您这一组客人。",
-    "footerNote": "济州中文洞 · 仅接受预约"
+    "treatmentsSubheading": "所有护理均为私享空间 — 水疗中心同一时间只接待您这一组客人。"
+  },
+  "footer": {
+    "heading": "Woori Aroma · Jeju",
+    "tagline": "Private wellness in Jeju — one group at a time.",
+    "mapsCta": "View Woori Aroma on Google Maps",
+    "instagram": "Instagram"
+  },
+  "treatmentShowcase": {
+    "mostPopularLabel": "Most Popular",
+    "everyCourseLabel": "Every Course Includes",
+    "includesLabel": "Includes",
+    "bestForLabel": "Best For",
+    "aromaOil": {
+      "description": "A relaxing full-body massage using aromatherapy oils, ideal for relieving stress and travel fatigue.",
+      "tagline": "Best for gentle relaxation.",
+      "everyCourseIncludes": ["Foot Bath", "Aromatherapy Massage", "Stretching"],
+      "bestFor": ["Relaxation", "Stress Relief", "Travel Fatigue"],
+      "options": {
+        "60": ["Back & foot focus"],
+        "90": ["Full body"],
+        "120": ["Full body", "Facial Treatment & Mask"]
+      }
+    },
+    "hotStone": {
+      "description": "A soothing treatment that combines warm stones with aromatherapy massage for deep relaxation.",
+      "tagline": "Best for deep warmth and tired muscles.",
+      "everyCourseIncludes": ["Foot Bath", "Aroma", "Hot Stones", "Stretching"],
+      "bestFor": ["Deep Relaxation", "Tired Muscles", "Recovery"],
+      "options": {
+        "60": ["Back & foot aroma", "Back & leg stones"],
+        "90": ["Full-body aroma & stones"],
+        "120": ["Full body", "Facial & Mask"]
+      }
+    },
+    "thaiMassage": {
+      "description": "A traditional massage using pressure-point techniques and stretching, for guests who want a firmer, more active treatment.",
+      "tagline": "Stretching · Pressure · Active",
+      "bestFor": ["Body Stiffness", "Deep Stretching"],
+      "options": {
+        "60": ["Foot Bath", "Full-Body Thai Massage", "Stretching"],
+        "90": ["Includes the 60-minute treatment", "Foot & Leg Cream Massage"],
+        "120": ["Includes the previous treatment", "Facial Massage & Mask"]
+      }
+    },
+    "quickSpaFoot": {
+      "description": "A focused foot and leg treatment for tired feet after walking, sightseeing, or traveling.",
+      "bestFor": ["Tired Feet", "After Walking", "Light Relaxation"],
+      "options": {
+        "50": ["Foot Bath", "Foot & Leg Massage", "Stretching"]
+      }
+    },
+    "facial": {
+      "description": "A refreshing facial care treatment focused on cleansing, moisturizing, and gentle facial relaxation.",
+      "bestFor": ["Skin Hydration", "Refreshing Care", "A Relaxing Break"],
+      "options": {
+        "60": ["Cleansing", "Exfoliation", "Facial Massage", "Mask", "Moisturizing"]
+      }
+    }
   },
   "services": {
     "thaiMassage": {
@@ -107,30 +164,29 @@
       "guestsLabel": "{count}位",
       "treatmentLine": "{price} × {count}",
       "totalLabel": "总金额",
-      "depositLabel": "订金",
-      "payAtSpaLabel": "现场支付",
       "edit": "编辑",
-      "confirmAndPay": "支付订金并确认",
-      "termsNote": "剩余尾款请在护理结束后于现场支付。"
+      "submitRequest": "提交预约请求",
+      "termsNote": "这是一份预约请求 — Woori Aroma 将确认档期后通过邮件与您确认。"
     },
-    "payment": {
-      "processing": "正在处理您的订金支付…",
-      "failed": "支付未能完成，请重试。",
+    "submit": {
+      "processing": "正在提交您的预约请求…",
       "retry": "重试",
       "chooseAnotherTime": "选择其他时间"
     },
     "confirmation": {
-      "title": "预约已确认",
-      "subtitle": "期待在 Woori Aroma 与您相见。",
+      "title": "预约请求已收到",
+      "subtitle": "感谢您，我们已收到您的预约请求。",
+      "subtitleDetail": "我们将确认档期后尽快发送确认邮件。",
+      "pendingNotice": "在您收到确认邮件之前，您的预约尚未确认。",
       "reservationNumber": "预约编号",
+      "detailsHeading": "请求详情",
       "customerName": "姓名",
-      "date": "日期",
-      "time": "时间",
+      "email": "邮箱",
+      "phone": "电话号码",
+      "requestedDate": "申请日期",
+      "requestedTime": "申请时间",
       "guests": "人数",
       "treatment": "护理项目",
-      "totalAmount": "总金额",
-      "depositPaid": "已付订金",
-      "remainingBalance": "剩余尾款",
       "needHelpTitle": "预约有问题？",
       "viewLocation": "查看位置",
       "addToCalendar": "添加到日历",
@@ -147,23 +203,27 @@
   "notifications": {
     "email": {
       "subject": {
+        "RESERVATION_REQUEST_RECEIVED": "预约请求已收到 – Woori Aroma",
         "RESERVATION_CONFIRMED": "您的 Woori Aroma 预约已确认 — {reservationNumber}",
         "RESERVATION_UPDATED": "您的 Woori Aroma 预约已更新 — {reservationNumber}",
         "RESERVATION_CANCELLED": "您的 Woori Aroma 预约已取消 — {reservationNumber}",
         "RESERVATION_REMINDER": "明天在 Woori Aroma 恭候您 — {reservationNumber}"
       },
       "heading": {
+        "RESERVATION_REQUEST_RECEIVED": "预约请求已收到",
         "RESERVATION_CONFIRMED": "预约已确认",
         "RESERVATION_UPDATED": "预约已更新",
         "RESERVATION_CANCELLED": "预约已取消",
         "RESERVATION_REMINDER": "明天见"
       },
       "intro": {
+        "RESERVATION_REQUEST_RECEIVED": "{name}，感谢您选择 Woori Aroma。我们已收到您的预约请求。",
         "RESERVATION_CONFIRMED": "{name}，您好，您的预约已确认。",
         "RESERVATION_UPDATED": "{name}，您好，您的预约信息已更新。",
         "RESERVATION_CANCELLED": "{name}，您好，您的预约已取消。",
         "RESERVATION_REMINDER": "{name}，您好，提醒您明天的预约。"
       },
+      "pendingNotice": "我们将确认档期后另行发送确认邮件。请注意，在您收到确认邮件之前，您的预约尚未确认。",
       "reservationNumber": "预约编号",
       "date": "日期",
       "time": "时间",
@@ -171,8 +231,6 @@
       "duration": "时长",
       "guests": "人数",
       "totalAmount": "总额",
-      "depositPaid": "已付定金",
-      "remainingBalance": "尾款（到店支付）",
       "location": "位置",
       "mapAlt": "Woori Aroma 路线图",
       "viewOnMap": "在 Google 地图查看",

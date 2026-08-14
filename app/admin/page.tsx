@@ -2,9 +2,11 @@ import Link from "next/link";
 import { getTodayStats } from "@/lib/admin/dashboardStats";
 import { formatCurrency } from "@/lib/booking/pricing";
 import { ReservationRow } from "@/components/admin/ReservationRow";
+import { listAll } from "@/lib/repositories/reservationRepository";
 
 export default async function AdminDashboardPage() {
   const stats = getTodayStats();
+  const pendingCount = listAll(["PENDING"]).length;
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-10">
@@ -25,6 +27,16 @@ export default async function AdminDashboardPage() {
           </Link>
         </nav>
       </header>
+
+      {pendingCount > 0 && (
+        <Link
+          href="/admin/reservations?status=PENDING"
+          className="flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm font-medium text-blue-800 hover:bg-blue-100"
+        >
+          <span>검토 대기 중인 예약 요청 {pendingCount}건</span>
+          <span>보러 가기 →</span>
+        </Link>
+      )}
 
       <section className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatCard label="오늘 예약 팀 수" value={`${stats.confirmedTeams}팀`} />

@@ -6,21 +6,13 @@ import { BUSINESS } from "@/lib/config/business";
 import {
   NOTIFICATION_CHANNEL_LABELS_KO,
   NOTIFICATION_STATUS_LABELS_KO,
+  STATUS_BADGE_CLASS,
   STATUS_LABELS_KO,
   SERVICE_NAMES_KO,
 } from "@/lib/admin/labels";
 import { getCustomerById } from "@/lib/repositories/customerRepository";
 import { listByReservation } from "@/lib/repositories/notificationRepository";
 import type { ReservationRecord } from "@/lib/repositories/reservationRepository";
-
-const STATUS_CLASS: Record<ReservationRecord["status"], string> = {
-  DRAFT: "bg-stone-100 text-stone-600",
-  HOLD: "bg-amber-100 text-amber-700",
-  CONFIRMED: "bg-emerald-100 text-emerald-700",
-  CANCELLED: "bg-stone-200 text-stone-500 line-through",
-  NO_SHOW: "bg-red-100 text-red-700",
-  COMPLETED: "bg-stone-100 text-stone-500",
-};
 
 const NOTIFICATION_STATUS_ICON: Record<string, string> = {
   SENT: "✓",
@@ -54,7 +46,7 @@ export function ReservationRow({ reservation }: { reservation: ReservationRecord
         </div>
         <div className="flex items-center gap-3">
           <span className="text-stone-600">{formatCurrency(reservation.totalAmount, "ko")}</span>
-          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_CLASS[reservation.status]}`}>
+          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_BADGE_CLASS[reservation.status]}`}>
             {STATUS_LABELS_KO[reservation.status]}
           </span>
           <span className="text-xs text-stone-400 group-open:hidden">알림 보기 ▾</span>

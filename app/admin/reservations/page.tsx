@@ -7,7 +7,7 @@ import { ConfirmSubmitButton } from "@/components/admin/ConfirmSubmitButton";
 import { STATUS_LABELS_KO } from "@/lib/admin/labels";
 import { updateReservationStatusAction } from "../actions";
 
-const STATUS_OPTIONS: ReservationStatus[] = ["HOLD", "CONFIRMED", "CANCELLED", "NO_SHOW", "COMPLETED"];
+const STATUS_OPTIONS: ReservationStatus[] = ["PENDING", "HOLD", "CONFIRMED", "CANCELLED", "NO_SHOW", "COMPLETED"];
 
 export default async function AdminReservationsPage({
   searchParams,

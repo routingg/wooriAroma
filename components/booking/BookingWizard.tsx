@@ -9,7 +9,7 @@ import { DateStep } from "./steps/DateStep";
 import { TimeStep } from "./steps/TimeStep";
 import { DetailsStep } from "./steps/DetailsStep";
 import { ReviewStep } from "./steps/ReviewStep";
-import { PaymentStep } from "./steps/PaymentStep";
+import { SubmitStep } from "./steps/SubmitStep";
 import { ConfirmationStep } from "./steps/ConfirmationStep";
 import type { BookingDraft, BookingStep } from "@/types/bookingState";
 
@@ -20,7 +20,7 @@ function firstIncompleteStep(draft: BookingDraft): BookingStep | null {
   if (!draft.serviceOptionId) return "duration";
   if (!draft.date) return "date";
   if (!draft.time) return "time";
-  if (draft.step === "review" || draft.step === "payment" || draft.step === "confirmation") {
+  if (draft.step === "review" || draft.step === "submit" || draft.step === "confirmation") {
     if (!draft.details) return "details";
   }
   if (draft.step === "confirmation" && !draft.reservationNumber) return "review";
@@ -63,8 +63,8 @@ export function BookingWizard() {
       return <DetailsStep />;
     case "review":
       return <ReviewStep />;
-    case "payment":
-      return <PaymentStep />;
+    case "submit":
+      return <SubmitStep />;
     case "confirmation":
       return <ConfirmationStep />;
     default:

@@ -3,10 +3,19 @@ import exterior from "@/docs/images/woori-aroma-exterior-sunny-wide.jpg";
 import treatmentRoom from "@/docs/images/woori-aroma-treatment-room-three-beds-close.jpg";
 import backMassage from "@/docs/images/woori-aroma-back-massage.jpg";
 import hotStoneMassage from "@/docs/images/woori-aroma-hot-stone-massage.jpg";
-import shoulderNeckMassage from "@/docs/images/woori-aroma-shoulder-neck-massage.jpg";
+import thaiMassage from "@/docs/images/thai-massage.jpg";
+import floralFootSpa from "@/docs/images/woori-aroma-floral-foot-spa.jpg";
+import facialMassage from "@/docs/images/facial-massage.jpg";
 import treatmentBedByWindow from "@/docs/images/woori-aroma-treatment-bed-by-window.jpg";
 import treatmentRoomWarmLight from "@/docs/images/woori-aroma-treatment-room-warm-light.jpg";
 import exteriorBacklit from "@/docs/images/woori-aroma-exterior-backlit.jpg";
+import exteriorFrontEntrance from "@/docs/images/woori-aroma-exterior-front-entrance.jpg";
+import treatmentRoomThreeBeds from "@/docs/images/woori-aroma-treatment-room-three-beds.jpg";
+import treatmentBedFront from "@/docs/images/woori-aroma-treatment-bed-front.jpg";
+import exteriorCornerWide from "@/docs/images/woori-aroma-exterior-corner-wide.jpg";
+import exteriorRainyWalkway from "@/docs/images/woori-aroma-exterior-rainy-walkway.jpg";
+import exteriorDeckGarden from "@/docs/images/woori-aroma-exterior-deck-garden.jpg";
+import treatmentBedTopView from "@/docs/images/woori-aroma-treatment-bed-top-view.jpg";
 import type { ThemeId } from "@/lib/themes/types";
 
 /**
@@ -24,21 +33,27 @@ export const media = {
 export const heroImage = media.treatmentRoom;
 
 /**
- * One real photo per theme's hero (AGENTS §11: prioritize actual Woori
- * Aroma photography over stock/placeholders). Same booking data, same
- * copy — only the visual mood changes per skin.
+ * Real photos per theme's hero, cycled as a slideshow that alternates
+ * store exterior and interior shots (AGENTS §11: prioritize actual
+ * Woori Aroma photography over stock/placeholders). Same booking data,
+ * same copy — only the visual mood changes per skin. Each list starts
+ * with the theme's original single hero image so first paint is
+ * unchanged; the rest alternate interior/exterior to match that
+ * theme's mood.
  */
-export const heroImageByTheme: Record<ThemeId, StaticImageData> = {
-  "jeju-forest": treatmentRoom,
-  "jeju-resort": exterior,
-  "korean-minimal": treatmentBedByWindow,
-  "modern-wellness": treatmentRoomWarmLight,
-  "dark-luxury": exteriorBacklit,
+export const heroImagesByTheme: Record<ThemeId, StaticImageData[]> = {
+  "jeju-forest": [treatmentRoom, exteriorFrontEntrance, treatmentRoomThreeBeds],
+  "jeju-resort": [exterior, treatmentBedFront, exteriorCornerWide],
+  "korean-minimal": [treatmentBedByWindow, exteriorRainyWalkway],
+  "modern-wellness": [treatmentRoomWarmLight, exteriorDeckGarden],
+  "dark-luxury": [exteriorBacklit, treatmentBedTopView],
 };
 
 /** Atmosphere image per service, for the treatment cards. */
 export const serviceImages: Record<string, StaticImageData> = {
   "aroma-oil": backMassage,
   "hot-stone": hotStoneMassage,
-  facial: shoulderNeckMassage,
+  "thai-massage": thaiMassage,
+  "quick-spa-foot": floralFootSpa,
+  facial: facialMassage,
 };

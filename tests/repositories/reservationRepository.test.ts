@@ -5,6 +5,7 @@ import {
   createHold,
   getByReservationNumber,
   searchReservations,
+  submitReservationRequest,
 } from "@/lib/repositories/reservationRepository";
 import { createBlockedTime } from "@/lib/repositories/blockedTimeRepository";
 import { getAvailableSlotsForDate } from "@/lib/booking/availabilityService";
@@ -120,6 +121,38 @@ describe("T09: failed payment must not confirm a reservation", () => {
     // confirmReservation(); simulating real clock expiry here would require
     // faking time, so this asserts the not-found branch of the same guard.
     expect(reservation.status).toBe("HOLD");
+  });
+});
+
+describe("submitReservationRequest — deposit removal / pending-review flow", () => {
+  it("flips a HOLD to PENDING without requiring or storing a deposit transaction id", () => {
+    const { reservation } = createHold(holdRequest());
+    const submitted = submitReservationRequest({ holdId: reservation.id });
+
+    expect(submitted.status).toBe("PENDING");
+    expect(submitted.depositTransactionId).toBeNull();
+  });
+
+  it("is idempotent: submitting an already-PENDING hold just returns it", () => {
+    const { reservation } = createHold(holdRequest());
+    submitReservationRequest({ holdId: reservation.id });
+    const second = submitReservationRequest({ holdId: reservation.id });
+
+    expect(second.status).toBe("PENDING");
+  });
+
+  it("a PENDING reservation still occupies the slot — a later hold for the same time is rejected", () => {
+    const date = futureDateKey(5);
+    const { reservation } = createHold(holdRequest({ date, time: "16:00" }));
+    submitReservationRequest({ holdId: reservation.id });
+
+    expect(() =>
+      createHold(holdRequest({ date, time: "16:00", customer: { ...holdRequest().customer, email: "other@example.com" } })),
+    ).toThrowError(BookingError);
+  });
+
+  it("refuses to submit a non-existent hold", () => {
+    expect(() => submitReservationRequest({ holdId: "not-a-real-id" })).toThrowError(BookingError);
   });
 });
 

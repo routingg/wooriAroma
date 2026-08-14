@@ -7,6 +7,7 @@ import type { AppLocale } from "@/i18n/routing";
  * policy/template entries it needs, not a schema change.
  */
 export type NotificationEvent =
+  | "RESERVATION_REQUEST_RECEIVED"
   | "RESERVATION_CONFIRMED"
   | "RESERVATION_UPDATED"
   | "RESERVATION_CANCELLED"

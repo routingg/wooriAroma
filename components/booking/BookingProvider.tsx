@@ -28,7 +28,7 @@ interface BookingContextValue {
   setDate: (date: string) => void;
   setTime: (time: string) => void;
   setDetails: (details: BookingDetailsDraft) => void;
-  setPaymentResult: (reservationNumber: string, depositTransactionId: string) => void;
+  setReservationResult: (reservationNumber: string) => void;
   goToStep: (step: BookingStep) => void;
   goNext: () => void;
   goBack: () => void;
@@ -120,12 +120,9 @@ export function BookingProvider({ children }: { children: ReactNode }) {
     setDraft((prev) => ({ ...prev, details }));
   }, []);
 
-  const setPaymentResult = useCallback(
-    (reservationNumber: string, depositTransactionId: string) => {
-      setDraft((prev) => ({ ...prev, reservationNumber, depositTransactionId }));
-    },
-    [],
-  );
+  const setReservationResult = useCallback((reservationNumber: string) => {
+    setDraft((prev) => ({ ...prev, reservationNumber }));
+  }, []);
 
   const resetBooking = useCallback(() => {
     setDraft(emptyBookingDraft);
@@ -141,7 +138,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
       setDate,
       setTime,
       setDetails,
-      setPaymentResult,
+      setReservationResult,
       goToStep,
       goNext,
       goBack,
@@ -156,7 +153,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
       setDate,
       setTime,
       setDetails,
-      setPaymentResult,
+      setReservationResult,
       goToStep,
       goNext,
       goBack,

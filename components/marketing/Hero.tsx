@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { THEMES } from "@/lib/themes/theme-config";
-import { heroImageByTheme } from "@/data/media";
+import { heroImagesByTheme } from "@/data/media";
+import { HeroSlideshow } from "@/components/marketing/HeroSlideshow";
 
 /**
  * The one genuine layout variant in the theme system (AGENTS §20's own
@@ -18,7 +18,7 @@ export function Hero() {
   const t = useTranslations("landing");
   const { themeId } = useTheme();
   const heroVariant = THEMES[themeId].heroVariant;
-  const image = heroImageByTheme[themeId];
+  const images = heroImagesByTheme[themeId];
 
   const kicker = <p className="text-xs font-medium tracking-[0.3em] uppercase">{t("kicker")}</p>;
   const brand = (
@@ -57,7 +57,13 @@ export function Hero() {
           )}
         </div>
         <div className="relative mx-auto aspect-[16/9] w-full max-w-3xl overflow-hidden rounded-[var(--radius-2xl)]">
-          <Image src={image} alt="" fill priority placeholder="blur" sizes="(min-width: 768px) 768px, 100vw" className="object-cover" />
+          <HeroSlideshow
+            key={themeId}
+            images={images}
+            alt=""
+            sizes="(min-width: 768px) 768px, 100vw"
+            className="object-cover"
+          />
         </div>
       </section>
     );
@@ -68,7 +74,13 @@ export function Hero() {
     return (
       <section className="grid gap-0 sm:grid-cols-[1.2fr_1fr]">
         <div className="relative min-h-[45vh] sm:min-h-[80vh]">
-          <Image src={image} alt="" fill priority placeholder="blur" sizes="(min-width: 640px) 55vw, 100vw" className="object-cover" />
+          <HeroSlideshow
+            key={themeId}
+            images={images}
+            alt=""
+            sizes="(min-width: 640px) 55vw, 100vw"
+            className="object-cover"
+          />
         </div>
         <div className="flex flex-col justify-center gap-6 bg-stone-100 px-6 py-16 text-stone-900 sm:px-12">
           <div className="text-stone-500">{kicker}</div>
@@ -88,7 +100,7 @@ export function Hero() {
     // Dark Luxury: moody full-bleed, gold-accented CTA used sparingly.
     return (
       <section className="relative flex min-h-[80svh] items-center justify-center overflow-hidden sm:min-h-[80vh]">
-        <Image src={image} alt="" fill priority placeholder="blur" sizes="100vw" className="object-cover" />
+        <HeroSlideshow key={themeId} images={images} alt="" sizes="100vw" className="object-cover" />
         <div aria-hidden="true" className="absolute inset-0 bg-stone-50/85" />
         <div className="relative flex w-full flex-col items-center px-6 text-center text-stone-900">
           <div className="text-stone-600">{kicker}</div>
@@ -109,7 +121,7 @@ export function Hero() {
     // Jeju Resort: full-bleed, centered composition, generous vertical room.
     return (
       <section className="relative flex min-h-[85svh] items-center justify-center overflow-hidden sm:min-h-[85vh]">
-        <Image src={image} alt="" fill priority placeholder="blur" sizes="100vw" className="object-cover" />
+        <HeroSlideshow key={themeId} images={images} alt="" sizes="100vw" className="object-cover" />
         <div aria-hidden="true" className="absolute inset-0 bg-stone-900/45" />
         <div className="relative flex w-full flex-col items-center px-6 text-center text-stone-50">
           <div className="opacity-90">{kicker}</div>
@@ -128,12 +140,10 @@ export function Hero() {
   // "forest" — the original, highest-polish default: bottom-anchored, warm scrim.
   return (
     <section className="relative flex min-h-[80svh] items-end overflow-hidden sm:min-h-[80vh]">
-      <Image
-        src={image}
+      <HeroSlideshow
+        key={themeId}
+        images={images}
         alt=""
-        fill
-        priority
-        placeholder="blur"
         sizes="100vw"
         className="object-cover object-[center_75%]"
       />

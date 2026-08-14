@@ -60,6 +60,11 @@ export async function buildReservationNotificationPayload(
   };
 }
 
+export async function notifyReservationRequestReceived(reservation: ReservationRecord): Promise<void> {
+  const payload = await buildReservationNotificationPayload(reservation, "RESERVATION_REQUEST_RECEIVED");
+  if (payload) await notificationService.sendReservationRequestReceived(payload);
+}
+
 export async function notifyReservationConfirmed(reservation: ReservationRecord): Promise<void> {
   const payload = await buildReservationNotificationPayload(reservation, "RESERVATION_CONFIRMED");
   if (payload) await notificationService.sendReservationConfirmation(payload);

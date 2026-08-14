@@ -11,6 +11,7 @@ import type { NotificationResult, ReservationNotificationPayload } from "./types
  * (reservationId, channel, event) idempotency key the reminder job relies on.
  */
 export const notificationService = {
+  sendReservationRequestReceived: (payload: ReservationNotificationPayload) => dispatch(payload),
   sendReservationConfirmation: (payload: ReservationNotificationPayload) => dispatch(payload),
   sendReservationUpdated: (payload: ReservationNotificationPayload) => dispatch(payload),
   sendReservationCancelled: (payload: ReservationNotificationPayload) => dispatch(payload),
