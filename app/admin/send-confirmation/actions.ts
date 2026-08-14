@@ -51,7 +51,7 @@ export interface ManualPreviewState {
  * Called directly from the client (not via a <form> action) — the composer
  * keeps every field as controlled React state and invokes these as plain
  * async functions inside useTransition, the same pattern
- * ConfirmationEmailPanel's live preview already uses. All admin-typed
+ * EmailComposer's live preview already uses. All admin-typed
  * fields are still fully re-validated here server-side regardless of how
  * the client packaged them (buildManualConfirmationPayload never trusts
  * the caller).

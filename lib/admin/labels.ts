@@ -5,11 +5,11 @@ import type { NotificationChannel, NotificationStatus } from "@/lib/notification
 export const STATUS_LABELS_KO: Record<ReservationStatus, string> = {
   DRAFT: "임시",
   HOLD: "임시보류",
-  PENDING: "대기중",
-  CONFIRMED: "확정",
-  CANCELLED: "취소",
+  PENDING: "예약 대기",
+  CONFIRMED: "예약 확정",
+  CANCELLED: "예약 취소",
   NO_SHOW: "노쇼",
-  COMPLETED: "완료",
+  COMPLETED: "예약 완료",
 };
 
 /**
@@ -28,6 +28,17 @@ export const STATUS_BADGE_CLASS: Record<ReservationStatus, string> = {
   NO_SHOW: "bg-red-100 text-red-700",
   COMPLETED: "bg-stone-100 text-stone-500",
 };
+
+/**
+ * Statuses eligible for admin 삭제 (soft delete) — every "this reservation
+ * is finished, one way or another" terminal state. Lives here (not in
+ * lib/repositories/reservationRepository.ts) specifically so client
+ * components like DeleteReservationButton can import it as a plain value
+ * without pulling that module's `node:sqlite` dependency into the browser
+ * bundle — reservationRepository.ts's softDeleteReservation() imports it
+ * back from here, so there's still exactly one source of truth.
+ */
+export const DELETABLE_RESERVATION_STATUSES: ReservationStatus[] = ["COMPLETED", "CANCELLED", "NO_SHOW"];
 
 export const SERVICE_NAMES_KO: Record<string, string> = {
   "thai-massage": "전통 타이 마사지",

@@ -25,3 +25,12 @@ export function googleMapsUrl(): string {
 
 /** Direct Google Maps pin link for the "/" footer CTA (distinct from the search-query link above). */
 export const googleMapsPinUrl = "https://maps.app.goo.gl/ozNriq55tKG9qPAs5?g_st=ac";
+
+/**
+ * Google Maps link for admin-composed confirmation emails (lib/admin/confirmationEmailTemplate.ts) —
+ * a distinct short link supplied specifically for that feature, different
+ * from googleMapsUrl()'s computed search-query link and the "/" footer's
+ * googleMapsPinUrl above. Kept as its own constant rather than reusing
+ * either, per explicit instruction to use this exact URL for emails.
+ */
+export const confirmationEmailMapsUrl = "https://maps.app.goo.gl/RQt5BTpazJTQ4WPV8";

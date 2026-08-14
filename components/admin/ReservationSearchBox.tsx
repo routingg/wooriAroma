@@ -10,7 +10,7 @@ import { formatTimeLabel } from "@/lib/booking/time";
  * Searches existing reservations and links each result to the
  * already-built /admin/reservations/[id] confirmation flow, rather than
  * re-implementing that panel here — a selected reservation's fields stay
- * read-only and DB-backed there (see ConfirmationEmailPanel.tsx). This box
+ * read-only and DB-backed there (see EmailComposer.tsx). This box
  * only exists to help the admin *find* that page quickly; the "직접 입력"
  * form below it is for reservations that don't exist in the database at all.
  */

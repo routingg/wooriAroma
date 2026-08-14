@@ -11,6 +11,7 @@ import { nextReservationNumber } from "@/lib/booking/reservationNumber";
 import type { ReservationHoldRequest } from "@/lib/booking/validation";
 import { upsertCustomer, type CustomerRecord } from "./customerRepository";
 import { getAdminBlockedWindows } from "./blockedTimeRepository";
+import { DELETABLE_RESERVATION_STATUSES } from "@/lib/admin/labels";
 
 const HOLD_MINUTES = Number(process.env.BOOKING_HOLD_MINUTES ?? 10);
 
@@ -38,6 +39,8 @@ export interface ReservationRecord {
   source: string;
   locale: AppLocale;
   depositTransactionId: string | null;
+  /** Soft-delete marker (admin "삭제" of a COMPLETED reservation) — null unless the admin removed it from the working dashboard. See softDeleteReservation(). */
+  deletedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -64,6 +67,7 @@ interface RawReservationRow {
   source: string;
   locale: string;
   deposit_transaction_id: string | null;
+  deleted_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -91,6 +95,7 @@ function mapRow(row: RawReservationRow): ReservationRecord {
     source: row.source,
     locale: row.locale as AppLocale,
     depositTransactionId: row.deposit_transaction_id,
+    deletedAt: row.deleted_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -328,25 +333,28 @@ export function getByReservationNumber(reservationNumber: string): ReservationRe
   return row ? mapRow(row) : undefined;
 }
 
+/** Excludes soft-deleted rows — every reservation-list function below is an admin-facing "working list" (AGENTS.md §15), never the record store itself. */
 export function listByDate(dateKey: string): ReservationRecord[] {
   const rows = getDb()
-    .prepare("SELECT * FROM reservations WHERE date_key = ? ORDER BY blocked_start")
+    .prepare("SELECT * FROM reservations WHERE date_key = ? AND deleted_at IS NULL ORDER BY blocked_start")
     .all(dateKey) as unknown as RawReservationRow[];
   return rows.map(mapRow);
 }
 
-/** Every reservation regardless of date — powers the admin's all-reservations list (split into upcoming/past there). */
+/** Every non-deleted reservation regardless of date — powers the admin's all-reservations list (split into upcoming/past there). */
 export function listAll(statusFilter?: ReservationStatus[]): ReservationRecord[] {
   const db = getDb();
   if (statusFilter && statusFilter.length > 0) {
     const placeholders = statusFilter.map(() => "?").join(",");
     const rows = db
-      .prepare(`SELECT * FROM reservations WHERE status IN (${placeholders}) ORDER BY date_key, blocked_start`)
+      .prepare(
+        `SELECT * FROM reservations WHERE status IN (${placeholders}) AND deleted_at IS NULL ORDER BY date_key, blocked_start`,
+      )
       .all(...statusFilter) as unknown as RawReservationRow[];
     return rows.map(mapRow);
   }
   const rows = db
-    .prepare("SELECT * FROM reservations ORDER BY date_key, blocked_start")
+    .prepare("SELECT * FROM reservations WHERE deleted_at IS NULL ORDER BY date_key, blocked_start")
     .all() as unknown as RawReservationRow[];
   return rows.map(mapRow);
 }
@@ -361,14 +369,16 @@ export function listByDateRange(
     const placeholders = statusFilter.map(() => "?").join(",");
     const rows = db
       .prepare(
-        `SELECT * FROM reservations WHERE date_key BETWEEN ? AND ? AND status IN (${placeholders})
+        `SELECT * FROM reservations WHERE date_key BETWEEN ? AND ? AND status IN (${placeholders}) AND deleted_at IS NULL
          ORDER BY date_key, blocked_start`,
       )
       .all(fromDateKey, toDateKey, ...statusFilter) as unknown as RawReservationRow[];
     return rows.map(mapRow);
   }
   const rows = db
-    .prepare("SELECT * FROM reservations WHERE date_key BETWEEN ? AND ? ORDER BY date_key, blocked_start")
+    .prepare(
+      "SELECT * FROM reservations WHERE date_key BETWEEN ? AND ? AND deleted_at IS NULL ORDER BY date_key, blocked_start",
+    )
     .all(fromDateKey, toDateKey) as unknown as RawReservationRow[];
   return rows.map(mapRow);
 }
@@ -385,7 +395,9 @@ export function listConfirmedReservationsForDates(dateKeys: string[]): Reservati
   const db = getDb();
   const placeholders = dateKeys.map(() => "?").join(",");
   const rows = db
-    .prepare(`SELECT * FROM reservations WHERE status = 'CONFIRMED' AND date_key IN (${placeholders})`)
+    .prepare(
+      `SELECT * FROM reservations WHERE status = 'CONFIRMED' AND deleted_at IS NULL AND date_key IN (${placeholders})`,
+    )
     .all(...dateKeys) as unknown as RawReservationRow[];
   return rows.map(mapRow);
 }
@@ -403,7 +415,7 @@ export function searchReservations(query: string, limit = 20): ReservationRecord
     .prepare(
       `SELECT r.* FROM reservations r
        JOIN customers c ON c.id = r.customer_id
-       WHERE r.reservation_number LIKE ? OR c.name LIKE ? OR c.email LIKE ?
+       WHERE (r.reservation_number LIKE ? OR c.name LIKE ? OR c.email LIKE ?) AND r.deleted_at IS NULL
        ORDER BY r.created_at DESC
        LIMIT ?`,
     )
@@ -419,5 +431,34 @@ export function updateStatus(id: string, status: ReservationStatus): Reservation
   if (result.changes === 0) {
     throw new BookingError("RESERVATION_NOT_FOUND", "Reservation not found.");
   }
+  return getById(id)!;
+}
+
+/**
+ * Soft-deletes a finished reservation (COMPLETED, CANCELLED, or NO_SHOW) —
+ * sets deleted_at so it drops out of every admin working list
+ * (listAll/listByDate/searchReservations/etc.) without physically removing
+ * the row, preserving reservation history (AGENTS.md §7/§9). The server
+ * re-verifies eligibility itself — existence, deletable status, not
+ * already deleted — rather than trusting the caller (AGENTS.md §17); this
+ * is distinct from, and never triggered by, cancellation itself (§21) —
+ * deleting a CANCELLED reservation removes it from the dashboard, it does
+ * not un-cancel or re-cancel it.
+ */
+export function softDeleteReservation(id: string): ReservationRecord {
+  const db = getDb();
+  const row = db.prepare("SELECT * FROM reservations WHERE id = ?").get(id) as RawReservationRow | undefined;
+  if (!row) {
+    throw new BookingError("RESERVATION_NOT_FOUND", "Reservation not found.");
+  }
+  if (row.deleted_at) {
+    throw new BookingError("RESERVATION_ALREADY_DELETED", "This reservation has already been deleted.");
+  }
+  if (!DELETABLE_RESERVATION_STATUSES.includes(row.status)) {
+    throw new BookingError("RESERVATION_NOT_DELETABLE", "Only completed, cancelled, or no-show reservations can be deleted.");
+  }
+
+  const nowIso = new Date().toISOString();
+  db.prepare("UPDATE reservations SET deleted_at = ?, updated_at = ? WHERE id = ?").run(nowIso, nowIso, id);
   return getById(id)!;
 }

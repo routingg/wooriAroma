@@ -240,4 +240,16 @@ export const migrations: Migration[] = [
       CREATE INDEX idx_notifications_reservation ON notifications(reservation_id);
     `,
   },
+  {
+    id: "006_reservation_soft_delete",
+    sql: `
+      -- Soft delete for completed reservations (AGENTS.md admin "삭제"
+      -- feature): removing an item from the admin dashboard only ever sets
+      -- deleted_at, never physically deletes the row — reservation history
+      -- (and any future analytics) stays intact. No CHECK constraint is
+      -- involved, so a plain ADD COLUMN is sufficient here (unlike 004/005).
+      ALTER TABLE reservations ADD COLUMN deleted_at TEXT;
+      CREATE INDEX idx_reservations_deleted_at ON reservations(deleted_at);
+    `,
+  },
 ];

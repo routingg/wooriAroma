@@ -1,6 +1,6 @@
 import type { SendResultState } from "@/lib/notifications/adminDispatch";
 
-/** Shared by ConfirmationEmailPanel (reservation-linked) and ManualConfirmationComposer (manual entry) so the two send flows report results identically. */
+/** Used by ManualConfirmationComposer (manual/unlinked entry send flow on /admin/send-confirmation). The reservation-linked flow on /admin/reservations no longer sends anything itself — see EmailComposer.tsx. */
 export const REASON_LABELS_KO: Record<string, string> = {
   provider_not_configured: "이메일 발송 서비스(RESEND_API_KEY)가 설정되지 않았습니다.",
   sandbox_mode_no_test_recipient: "테스트 모드인데 EMAIL_TEST_RECIPIENT가 설정되지 않아 발송을 건너뛰었습니다.",

@@ -31,7 +31,7 @@ function todayDateKey(): string {
  * exist in the database (walk-in, offline booking, or anything outside the
  * online booking system). Fields are controlled React state; each button
  * calls the corresponding server action directly (inside useTransition),
- * the same pattern ConfirmationEmailPanel's live preview already uses —
+ * the same pattern EmailComposer's live preview already uses —
  * not a <form> submission, since a shared <form> with three different
  * per-button `formAction`s round-tripped through a real page navigation
  * here instead of a client-side action dispatch.
