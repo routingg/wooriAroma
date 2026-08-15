@@ -20,6 +20,8 @@ export function buildSystemPrompt(locale: AppLocale): string {
 
 Current date/time: ${now.dateKey} ${currentTime} (${SEOUL_TIME_ZONE}). Use this as "today"/"now" for any relative date the customer mentions (e.g. "tomorrow", "this weekend"). The customer's UI locale is "${locale}" — reply in the language the customer is writing in, not necessarily this locale.
 
+Reply in plain text only — the chat UI does not render Markdown, so never use **bold**, headings, or other Markdown syntax. Short paragraphs or simple "-" line items are fine.
+
 Your role:
 - Understand the customer's booking intent from natural language.
 - Ask only for missing required information. Never re-ask for something the customer already gave you in this conversation.

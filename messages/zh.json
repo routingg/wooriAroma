@@ -26,6 +26,47 @@
     "mapsCta": "View Woori Aroma on Google Maps",
     "instagram": "Instagram"
   },
+  "aiAssistant": {
+    "ctaLabel": "与我们的AI预约助手聊天",
+    "dialogTitle": "Woori Aroma 助手",
+    "dialogSubtitle": "您的私人预约管家",
+    "greeting": "有什么可以帮您的吗？",
+    "inputPlaceholder": "请随时询问预约相关问题...",
+    "send": "发送",
+    "close": "关闭",
+    "thinking": "Woori Aroma 助手正在查询中...",
+    "moreQuestions": "更多问题",
+    "viewOnMaps": "在Google地图上查看",
+    "unavailableTitle": "AI助手暂时无法使用。",
+    "unavailableBody": "您仍然可以通过标准预约表单进行预约。",
+    "standardBookingCta": "立即预约",
+    "quickActions": {
+      "todayAvailability": {
+        "label": "今天还有空位吗？",
+        "prompt": "我想确认一下今天还有哪些可预约的时间。"
+      },
+      "twoGuests": {
+        "label": "预约2位客人",
+        "prompt": "我想为2位客人预约。"
+      },
+      "recommend": {
+        "label": "有什么推荐的按摩吗？",
+        "prompt": "您有什么推荐的按摩项目吗？"
+      },
+      "prices": {
+        "label": "查看护理价格",
+        "prompt": "可以告诉我护理项目的价格吗？"
+      },
+      "location": {
+        "label": "你们在哪里？",
+        "prompt": "Woori Aroma 的具体位置在哪里？"
+      },
+      "duration": {
+        "label": "每种按摩需要多长时间？",
+        "prompt": "每种按摩项目大概需要多长时间？"
+      }
+    }
+  },
   "treatmentShowcase": {
     "mostPopularLabel": "Most Popular",
     "everyCourseLabel": "Every Course Includes",

@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { Work_Sans, Cormorant_Garamond, Playfair_Display, Inter, Fraunces } from "next/font/google";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { localeHtmlLang } from "@/i18n/config";
@@ -77,13 +77,20 @@ export default async function LocaleLayout({
   // Enables static rendering for this locale subtree.
   setRequestLocale(locale);
 
+  // next-intl only auto-forwards to client components the namespaces a
+  // Server Component actually read via getTranslations() during this
+  // render — passing the full set explicitly is required for
+  // client-only-used namespaces like "aiAssistant" (AiBookingDialog),
+  // which no Server Component ever touches, to reach the browser at all.
+  const messages = await getMessages();
+
   return (
     <html
       lang={localeHtmlLang[locale as AppLocale]}
       className={`${bodySans.variable} ${cormorant.variable} ${playfair.variable} ${inter.variable} ${fraunces.variable} h-full`}
     >
       <body className="flex min-h-full flex-col bg-stone-50 font-sans text-stone-900 antialiased">
-        <NextIntlClientProvider>
+        <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
             <SiteHeader />
             <div className="flex flex-1 flex-col">{children}</div>

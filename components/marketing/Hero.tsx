@@ -6,6 +6,7 @@ import { useTheme } from "@/components/theme/ThemeProvider";
 import { THEMES } from "@/lib/themes/theme-config";
 import { heroImagesByTheme } from "@/data/media";
 import { HeroSlideshow } from "@/components/marketing/HeroSlideshow";
+import { AiBookingButton } from "@/components/ai-booking/AiBookingButton";
 
 /**
  * The one genuine layout variant in the theme system (AGENTS §20's own
@@ -55,6 +56,7 @@ export function Hero() {
             t("cta"),
             "mt-2 inline-flex min-h-14 w-full max-w-xs items-center justify-center rounded-[var(--radius-button)] border border-stone-900 px-8 text-base font-medium text-stone-900 transition-colors hover:bg-stone-900 hover:text-stone-50 sm:w-auto",
           )}
+          <AiBookingButton tone="light" />
         </div>
         <div className="relative mx-auto aspect-[16/9] w-full max-w-3xl overflow-hidden rounded-[var(--radius-2xl)]">
           <HeroSlideshow
@@ -91,6 +93,7 @@ export function Hero() {
             t("cta"),
             "mt-2 inline-flex min-h-14 w-full max-w-xs items-center justify-center rounded-[var(--radius-button)] bg-stone-900 px-8 text-base font-medium text-stone-50 transition-colors hover:bg-stone-800",
           )}
+          <AiBookingButton tone="light" />
         </div>
       </section>
     );
@@ -112,6 +115,7 @@ export function Hero() {
             t("cta"),
             "mt-8 inline-flex min-h-14 w-full max-w-xs items-center justify-center rounded-[var(--radius-button)] bg-forest-500 px-8 text-base font-medium text-stone-50 shadow-lg transition-colors hover:bg-forest-600 sm:w-auto",
           )}
+          <AiBookingButton tone="light" />
         </div>
       </section>
     );
@@ -132,6 +136,7 @@ export function Hero() {
             t("cta"),
             "mt-9 inline-flex min-h-14 w-full max-w-xs items-center justify-center rounded-[var(--radius-button)] bg-stone-50 px-8 text-base font-medium text-stone-900 shadow-lg transition-colors hover:bg-stone-100 sm:w-auto",
           )}
+          <AiBookingButton tone="dark" />
         </div>
       </section>
     );
@@ -157,10 +162,14 @@ export function Hero() {
           <div className="mt-4 text-4xl text-stone-50 sm:text-6xl">{brand}</div>
           <div className="mt-6 max-w-md text-lg sm:text-xl">{heroLines}</div>
           <div className="mt-5 text-xl text-stone-50">{tagline}</div>
-          {cta(
-            t("cta"),
-            "mt-8 inline-flex min-h-14 w-full max-w-xs items-center justify-center rounded-[var(--radius-button)] bg-stone-50 px-8 text-base font-medium text-stone-900 shadow-lg shadow-stone-900/20 transition-colors hover:bg-stone-100 sm:w-auto",
-          )}
+          {/* Wrapped in its own block (unlike the flex-col hero variants above) so the secondary AI CTA stacks under the primary one instead of sharing its inline-flex line. */}
+          <div className="flex flex-col items-start">
+            {cta(
+              t("cta"),
+              "mt-8 inline-flex min-h-14 w-full max-w-xs items-center justify-center rounded-[var(--radius-button)] bg-stone-50 px-8 text-base font-medium text-stone-900 shadow-lg shadow-stone-900/20 transition-colors hover:bg-stone-100 sm:w-auto",
+            )}
+            <AiBookingButton tone="dark" />
+          </div>
         </div>
       </div>
     </section>
