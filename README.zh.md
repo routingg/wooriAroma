@@ -3,7 +3,7 @@
 [한국어](./README.md) | [English](./README.en.md) | [中文](./README.zh.md)
 
 这是济州中文洞私人水疗中心 **Woori Aroma** 的多语言预约/运营平台。完整的产品/架构说明见
-`proposal.md`，最初的详细提案（顶部含架构变更说明）见 `README2.md`。
+`proposal.md`。
 
 ## 环境要求
 

@@ -3,8 +3,7 @@
 [한국어](./README.md) | [English](./README.en.md) | [中文](./README.zh.md)
 
 Private spa reservation platform for Woori Aroma (Jungmun, Jeju). See `proposal.md`
-for the full product/architecture spec and `README2.md` for the original detailed
-proposal (with an architecture-update note at the top).
+for the full product/architecture spec.
 
 ## Requirements
 
