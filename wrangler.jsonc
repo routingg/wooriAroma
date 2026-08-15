@@ -8,13 +8,24 @@
 		"directory": ".open-next/assets",
 		"binding": "ASSETS"
 	},
+	// Custom domain, previously attached via the Cloudflare Dashboard only —
+	// codified here so `wrangler deploy` stops warning about local/remote
+	// config drift and (more importantly) never silently detaches it again.
+	"routes": [
+		{
+			"pattern": "wooriaroma.site",
+			"zone_name": "wooriaroma.site",
+			"custom_domain": true
+		}
+	],
 	"services": [
 		{
 			// Self-reference service binding, required by @opennextjs/cloudflare for
 			// ISR/tag revalidation self-fetches. Service name must match "name" above.
 			// See https://opennext.js.org/cloudflare/caching
 			"binding": "WORKER_SELF_REFERENCE",
-			"service": "woori-aroma"
+			"service": "woori-aroma",
+			"environment": "production"
 		}
 	],
 	"d1_databases": [
