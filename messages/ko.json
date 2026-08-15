@@ -26,6 +26,47 @@
     "mapsCta": "View Woori Aroma on Google Maps",
     "instagram": "Instagram"
   },
+  "aiAssistant": {
+    "ctaLabel": "AI와 예약상담하기",
+    "dialogTitle": "Woori Aroma 어시스턴트",
+    "dialogSubtitle": "프라이빗 예약 컨시어지",
+    "greeting": "무엇을 도와드릴까요?",
+    "inputPlaceholder": "예약에 대해 무엇이든 물어보세요",
+    "send": "전송",
+    "close": "닫기",
+    "thinking": "Woori Aroma 어시스턴트가 확인하고 있어요...",
+    "moreQuestions": "더 많은 질문 보기",
+    "viewOnMaps": "Google 지도에서 보기",
+    "unavailableTitle": "AI 어시스턴트를 잠시 이용할 수 없습니다.",
+    "unavailableBody": "일반 예약 양식을 통해 예약을 계속 진행하실 수 있습니다.",
+    "standardBookingCta": "예약하기",
+    "quickActions": {
+      "todayAvailability": {
+        "label": "오늘 예약 가능한가요?",
+        "prompt": "오늘 예약 가능한 시간을 확인하고 싶어요."
+      },
+      "twoGuests": {
+        "label": "2명 예약하고 싶어요",
+        "prompt": "2명 예약하고 싶어요."
+      },
+      "recommend": {
+        "label": "어떤 마사지를 추천하나요?",
+        "prompt": "어떤 마사지를 추천해 주실 수 있나요?"
+      },
+      "prices": {
+        "label": "마사지 가격이 궁금해요",
+        "prompt": "트리트먼트 가격을 알려주세요."
+      },
+      "location": {
+        "label": "매장 위치가 어디인가요?",
+        "prompt": "매장 위치가 어디인가요?"
+      },
+      "duration": {
+        "label": "마사지 시간은 얼마나 걸리나요?",
+        "prompt": "각 마사지는 얼마나 걸리나요?"
+      }
+    }
+  },
   "treatmentShowcase": {
     "mostPopularLabel": "Most Popular",
     "everyCourseLabel": "Every Course Includes",

@@ -26,6 +26,47 @@
     "mapsCta": "View Woori Aroma on Google Maps",
     "instagram": "Instagram"
   },
+  "aiAssistant": {
+    "ctaLabel": "Chat with our AI Booking Assistant",
+    "dialogTitle": "Woori Aroma Assistant",
+    "dialogSubtitle": "Your private booking concierge",
+    "greeting": "How can I help you today?",
+    "inputPlaceholder": "Ask anything about your booking...",
+    "send": "Send",
+    "close": "Close",
+    "thinking": "Woori Aroma Assistant is checking...",
+    "moreQuestions": "More questions",
+    "viewOnMaps": "View on Google Maps",
+    "unavailableTitle": "Our AI assistant is temporarily unavailable.",
+    "unavailableBody": "You can still make a reservation using our standard booking form.",
+    "standardBookingCta": "Book Now",
+    "quickActions": {
+      "todayAvailability": {
+        "label": "Check today's availability",
+        "prompt": "I'd like to check today's available reservation times."
+      },
+      "twoGuests": {
+        "label": "Book for 2 guests",
+        "prompt": "I'd like to book for 2 guests."
+      },
+      "recommend": {
+        "label": "Which massage do you recommend?",
+        "prompt": "Which massage would you recommend for me?"
+      },
+      "prices": {
+        "label": "See treatment prices",
+        "prompt": "Can you show me the prices for your treatments?"
+      },
+      "location": {
+        "label": "Where are you located?",
+        "prompt": "Where is Woori Aroma located?"
+      },
+      "duration": {
+        "label": "How long does each massage take?",
+        "prompt": "How long does each massage take?"
+      }
+    }
+  },
   "treatmentShowcase": {
     "mostPopularLabel": "Most Popular",
     "everyCourseLabel": "Every Course Includes",

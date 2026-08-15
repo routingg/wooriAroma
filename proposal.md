@@ -143,7 +143,7 @@ Google Maps / 검색 / Instagram
 
 ### 6.2 백엔드 / 데이터베이스 (결정됨 — 2026-08-10)
 
-`docs`(README2.md) 상의 원안(Cloudflare Workers + D1)과 이전 mock 데이터 계층 주석(Supabase 언급)이 서로 어긋나 있었다. 다음과 같이 확정하여 Phase 2를 진행했다.
+초기 제안서 원안(Cloudflare Workers + D1)과 이전 mock 데이터 계층 주석(Supabase 언급)이 서로 어긋나 있었다. 다음과 같이 확정하여 Phase 2를 진행했다.
 
 - 호스팅/함수: **Next.js Route Handlers** (`app/api/*/route.ts`)
 - DB: **SQLite, Node 내장 `node:sqlite` 모듈** (Node 22.5+ 필요 — `package.json`의 `engines.node` 참조)

@@ -26,6 +26,47 @@
     "mapsCta": "View Woori Aroma on Google Maps",
     "instagram": "Instagram"
   },
+  "aiAssistant": {
+    "ctaLabel": "AIブッキングアシスタントに相談する",
+    "dialogTitle": "Woori Aroma アシスタント",
+    "dialogSubtitle": "あなた専属の予約コンシェルジュ",
+    "greeting": "どのようなご用件でしょうか？",
+    "inputPlaceholder": "ご予約について何でもお尋ねください",
+    "send": "送信",
+    "close": "閉じる",
+    "thinking": "Woori Aroma アシスタントが確認しています...",
+    "moreQuestions": "他の質問を見る",
+    "viewOnMaps": "Googleマップで見る",
+    "unavailableTitle": "AIアシスタントは一時的にご利用いただけません。",
+    "unavailableBody": "通常の予約フォームからご予約いただけます。",
+    "standardBookingCta": "予約する",
+    "quickActions": {
+      "todayAvailability": {
+        "label": "本日の空き状況を確認する",
+        "prompt": "本日予約可能な時間を確認したいです。"
+      },
+      "twoGuests": {
+        "label": "2名で予約する",
+        "prompt": "2名で予約したいです。"
+      },
+      "recommend": {
+        "label": "おすすめのマッサージはありますか？",
+        "prompt": "おすすめのマッサージを教えてください。"
+      },
+      "prices": {
+        "label": "トリートメントの料金を見る",
+        "prompt": "トリートメントの料金を教えてください。"
+      },
+      "location": {
+        "label": "所在地はどこですか？",
+        "prompt": "Woori Aroma の所在地を教えてください。"
+      },
+      "duration": {
+        "label": "施術時間はどのくらいですか？",
+        "prompt": "各マッサージの所要時間はどのくらいですか？"
+      }
+    }
+  },
   "treatmentShowcase": {
     "mostPopularLabel": "Most Popular",
     "everyCourseLabel": "Every Course Includes",

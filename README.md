@@ -3,7 +3,7 @@
 [한국어](./README.md) | [English](./README.en.md) | [中文](./README.zh.md)
 
 제주 중문의 프라이빗 스파 **Woori Aroma**를 위한 다국어 예약/운영 플랫폼입니다. 전체 제품/아키텍처
-스펙은 `proposal.md`, 초기 제안서 원문(아키텍처 변경 안내 포함)은 `README2.md`를 참고하세요.
+스펙은 `proposal.md`를 참고하세요.
 
 ## 요구 사항
 
