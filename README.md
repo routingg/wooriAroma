@@ -3,28 +3,34 @@
 [한국어](./README.md) | [English](./README.en.md) | [中文](./README.zh.md)
 
 제주 중문의 프라이빗 스파 **Woori Aroma**를 위한 다국어 예약/운영 플랫폼입니다. 전체 제품/아키텍처
-스펙은 `proposal.md`를 참고하세요.
+스펙은 `proposal.md`를, 개발 진행 경과는 `report.md`를 참고하세요.
+
+**실제 서비스: [https://wooriaroma.site](https://wooriaroma.site) (www.wooriaroma.site)** — Cloudflare
+Workers에 배포되어 있습니다 (`wrangler.jsonc`).
 
 ## 요구 사항
 
-- Node.js **22.5.0 이상** (내장 `node:sqlite` 모듈 사용 — `package.json`의 `engines` 참고)
+- Node.js **22.5.0 이상** (`package.json`의 `engines` 참고)
 
 ## 시작하기
 
 ```bash
 npm install
+wrangler d1 migrations apply woori-aroma-db --local   # 로컬 D1 스키마 최초 1회 시딩
 npm run dev
 ```
 
 고객용 예약 사이트는 [http://localhost:3000](http://localhost:3000)(`/en`, `/ko`, `/zh`, `/ja`), 한국어
 전용 관리자 대시보드는 [http://localhost:3000/admin](http://localhost:3000/admin)에서 확인할 수 있습니다.
 
-로컬 개발에는 환경 변수가 필요 없습니다 — `.data/woori-aroma.sqlite3`(gitignore됨)에 로컬 SQLite DB를
-자동 생성하고, 이메일 발송 연동이 없으면 발송을 안전하게 건너뜁니다. 실제 이메일 프로바이더를 연동할
-때만 `.env.example`을 `.env.local`로 복사하세요.
+DB는 별도 환경 변수 없이 `next.config.ts`의 `initOpenNextCloudflareForDev()`가 로컬 Cloudflare D1
+바인딩을 자동으로 연결합니다(위 마이그레이션 명령은 최초 1회만 필요). 이메일 발송 연동이 없으면
+발송을 안전하게 건너뜁니다. 실제 이메일 프로바이더를 연동할 때만 `.env.example`을 `.env.local`로
+복사하세요.
 
-**⚠️ `/admin`에는 아직 인증이 없습니다.** 로컬 개발에는 안전하지만, 인증이 추가되기 전까지는 외부에
-공개 배포하면 안 됩니다 — `proposal.md` §11 참고.
+**⚠️ `/admin`은 HTTP Basic Auth로 보호됩니다.** `ADMIN_BASIC_AUTH_USER`/`ADMIN_BASIC_AUTH_PASSWORD`
+환경 변수가 설정되지 않으면 모든 요청을 거부하는 Fail-Closed 방식이라, 로컬 개발에서도 `/admin`을
+쓰려면 `.env.local`에 이 값을 설정해야 합니다 — `.env.example` 참고.
 
 ## 스크립트
 
@@ -35,6 +41,8 @@ npm run start        # 프로덕션 빌드 실행
 npm run lint          # eslint
 npm run typecheck      # tsc --noEmit
 npm test                # vitest — 도메인 로직 / API 라우트 / 관리자 기능 / 에이전트 도구
+npm run cf:preview        # OpenNext 빌드 + Cloudflare 로컬 프리뷰
+npm run cf:deploy          # OpenNext 빌드 + Cloudflare 배포
 ```
 
 ## 프로젝트 구조
@@ -47,9 +55,9 @@ app/api/cron/reminders/    24시간 전 리마인더 트리거 (외부 스케줄
 lib/booking/               순수 도메인 로직 (가용성, 가격, 검증)
 lib/admin/                   관리자 전용 로직 (확정 메일 문구 생성, 상태/라벨, 삭제 대상 판별)
 lib/notifications/           멀티채널 알림 서비스 (아래 참고)
-lib/db/                     SQLite 클라이언트 + 마이그레이션
+lib/db/                     Cloudflare D1 클라이언트 + 마이그레이션
 lib/repositories/             테이블/애그리게이트별 DB 접근 계층
-lib/agent/                     Gemini 에이전트 도구 레이어 (아직 LLM 미연동)
+lib/agent/                     Gemini 에이전트 도구 레이어 (Function Calling 연동 완료)
 data/services.ts                  시술 카탈로그 (가격 기준 소스)
 messages/{en,ko,zh,ja}.json          고객용 번역 리소스
 tests/                                 vitest 테스트 스위트
@@ -139,10 +147,9 @@ tests/                                 vitest 테스트 스위트
 
 - `RESERVATION_UPDATED` 이벤트는 아직 실제로 트리거되는 곳이 없습니다 — 예약 수정/변경 기능 자체가
   아직 없기 때문입니다. 이벤트 타입·템플릿·프로바이더 연동은 이미 준비되어 있습니다.
-- `node:sqlite`는 장기 실행 Node 프로세스를 전제로 합니다 — 리마인더 크론 엔드포인트는 이를 감안해
-  배포 환경에 구애받지 않도록 설계했지만, DB 선택 자체는 이 기능과 무관한 별개의 결정입니다.
 
 ## 더 알아보기
 
 이 프로젝트는 [Next.js](https://nextjs.org)(App Router) + TypeScript + Tailwind CSS + `next-intl`로
-만들어졌습니다.
+만들어졌으며, Cloudflare Workers(`@opennextjs/cloudflare` + Wrangler)와 Cloudflare D1에 배포되어
+있습니다. 개발 경과와 배포 세부 사항은 `report.md`를 참고하세요.

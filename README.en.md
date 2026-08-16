@@ -3,16 +3,20 @@
 [한국어](./README.md) | [English](./README.en.md) | [中文](./README.zh.md)
 
 Private spa reservation platform for Woori Aroma (Jungmun, Jeju). See `proposal.md`
-for the full product/architecture spec.
+for the full product/architecture spec, and `report.md` for the development log.
+
+**Live: [https://wooriaroma.site](https://wooriaroma.site) (www.wooriaroma.site)** — deployed
+on Cloudflare Workers (`wrangler.jsonc`).
 
 ## Requirements
 
-- Node.js **>= 22.5.0** (uses the built-in `node:sqlite` module — see `package.json`'s `engines`)
+- Node.js **>= 22.5.0** (see `package.json`'s `engines`)
 
 ## Getting Started
 
 ```bash
 npm install
+wrangler d1 migrations apply woori-aroma-db --local   # seed the local D1 schema (once)
 npm run dev
 ```
 
@@ -20,13 +24,15 @@ Open [http://localhost:3000](http://localhost:3000) for the customer booking sit
 (`/en`, `/ko`, `/zh`, `/ja`) or [http://localhost:3000/admin](http://localhost:3000/admin)
 for the Korean-only admin dashboard.
 
-No environment variables are required for local development — the app falls back to
-a local SQLite database at `.data/woori-aroma.sqlite3` (gitignored) and skips email
-delivery safely when no provider is configured. Copy `.env.example` to `.env.local`
-only once a real email provider is being wired up.
+No environment variables are needed to reach the database — `next.config.ts`'s
+`initOpenNextCloudflareForDev()` wires up a local Cloudflare D1 binding automatically
+(the migration command above is a one-time setup step). Email delivery is safely
+skipped when no provider is configured. Copy `.env.example` to `.env.local` only once
+a real email provider is being wired up.
 
-**⚠️ `/admin` has no authentication yet.** It is safe for local development but
-must not be deployed publicly until auth is added — see `proposal.md` §11.
+**⚠️ `/admin` is protected by HTTP Basic Auth.** It's fail-closed — if
+`ADMIN_BASIC_AUTH_USER`/`ADMIN_BASIC_AUTH_PASSWORD` aren't set, every request is
+refused, so local development needs these too — see `.env.example`.
 
 ## Scripts
 
@@ -37,6 +43,8 @@ npm run start        # run the production build
 npm run lint          # eslint
 npm run typecheck      # tsc --noEmit
 npm test                # vitest — domain logic, API routes, admin features, agent tools
+npm run cf:preview        # OpenNext build + local Cloudflare preview
+npm run cf:deploy          # OpenNext build + Cloudflare deploy
 ```
 
 ## Project layout
@@ -49,9 +57,9 @@ app/api/cron/reminders/    24h reminder trigger (external scheduler calls this)
 lib/booking/               pure domain logic (availability, pricing, validation)
 lib/admin/                   admin-only logic (confirmation email copy generation, status/labels, delete eligibility)
 lib/notifications/           multi-channel notification service (see below)
-lib/db/                     SQLite client + migrations
+lib/db/                     Cloudflare D1 client + migrations
 lib/repositories/             DB access, one file per table/aggregate
-lib/agent/                     Gemini agent tool layer (no LLM wired up yet)
+lib/agent/                     Gemini agent tool layer (Function Calling wired up)
 data/services.ts                  treatment catalog (source of truth for pricing)
 messages/{en,ko,zh,ja}.json          customer-facing translations
 tests/                                 vitest suite
@@ -152,10 +160,9 @@ directions map at `public/sketchmap.png` as an inline attachment
 - `RESERVATION_UPDATED` has no real trigger yet — the codebase has no
   reservation-edit/reschedule feature to hang it off of. The event type, templates,
   and provider wiring all already support it; it just isn't called anywhere today.
-- `node:sqlite` (this project's DB) assumes a long-lived Node process; the reminder
-  cron endpoint is intentionally deployment-agnostic to work around that, but the
-  underlying DB choice is unrelated to this feature and outside its scope.
 
 ## Learn More
 
-This project uses [Next.js](https://nextjs.org) (App Router) + TypeScript + Tailwind CSS + `next-intl`.
+This project uses [Next.js](https://nextjs.org) (App Router) + TypeScript + Tailwind CSS + `next-intl`,
+deployed on Cloudflare Workers (`@opennextjs/cloudflare` + Wrangler) with Cloudflare D1. See
+`report.md` for the development log and deployment details.

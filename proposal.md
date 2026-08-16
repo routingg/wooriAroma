@@ -141,20 +141,20 @@ Google Maps / 검색 / Instagram
 - `next-intl` (다국어 라우팅/번역)
 - React 19
 
-### 6.2 백엔드 / 데이터베이스 (결정됨 — 2026-08-10)
+### 6.2 백엔드 / 데이터베이스 (결정됨 — 2026-08-10, ~~SQLite~~ → **2026-08-16 Cloudflare D1로 전환, 실배포 완료**)
 
 초기 제안서 원안(Cloudflare Workers + D1)과 이전 mock 데이터 계층 주석(Supabase 언급)이 서로 어긋나 있었다. 다음과 같이 확정하여 Phase 2를 진행했다.
 
 - 호스팅/함수: **Next.js Route Handlers** (`app/api/*/route.ts`)
-- DB: **SQLite, Node 내장 `node:sqlite` 모듈** (Node 22.5+ 필요 — `package.json`의 `engines.node` 참조)
+- ~~DB: SQLite, Node 내장 `node:sqlite` 모듈~~ → **DB: Cloudflare D1** (`lib/db/client.ts`, `wrangler.jsonc`의 `d1_databases` 바인딩). 실제 배포 환경(Cloudflare Workers)이 `node:sqlite`가 전제하는 장기 실행 Node 프로세스를 지원하지 않아, Phase 9 배포 준비 과정에서 전환하였다. 상세는 `report.md` §9 참고.
 
-선택 이유:
+선택 이유(2026-08-10 시점, `node:sqlite` 기준):
 - 유료 계정/크레덴셜이 필요 없다 (Cloudflare/Supabase 프로비저닝 불필요).
 - `better-sqlite3` 등 네이티브 빌드 툴체인이 필요 없다 (Windows 개발 환경에서 특히 중요).
 - 트랜잭션(`BEGIN IMMEDIATE` ~ `COMMIT`)으로 더블부킹을 원자적으로 방지할 수 있다.
-- `lib/repositories/`가 순수 파라미터화 SQL만 사용하므로, 추후 Postgres(Supabase) 등으로 교체할 때 드라이버만 바꾸면 된다 — 도메인 로직(`lib/booking/`)은 변경 불필요.
+- `lib/repositories/`가 순수 파라미터화 SQL만 사용하므로, 추후 다른 DB로 교체할 때 드라이버만 바꾸면 된다 — 도메인 로직(`lib/booking/`)은 변경 불필요. 이 설계 덕분에 실제 D1 전환 시에도 `lib/booking/`은 수정하지 않았다.
 
-DB 파일은 기본적으로 `.data/woori-aroma.sqlite3`(gitignore 처리, `DATABASE_FILE` 환경변수로 재정의 가능)에 저장된다. 스키마 변경은 `lib/db/migrations.ts`에 번호가 매겨진 마이그레이션으로 관리하며, 이미 배포된 마이그레이션은 절대 수정하지 않고 새 마이그레이션을 추가한다.
+로컬 개발은 `next.config.ts`의 `initOpenNextCloudflareForDev()`가 자동으로 붙여주는 로컬 D1 바인딩을 사용한다 — `wrangler d1 migrations apply woori-aroma-db --local`을 한 번 실행해 스키마를 적용해야 한다. 스키마 변경은 `migrations/*.sql`에 번호가 매겨진 마이그레이션으로 관리하며, 이미 배포된 마이그레이션은 절대 수정하지 않고 새 마이그레이션을 추가한다.
 
 ### 6.3 향후 연동
 
@@ -195,30 +195,30 @@ GET  /api/reservations/:reservationNumber
 
 ---
 
-## 7. 현재 구현 상태 (2026-08-10 기준)
+## 7. 현재 구현 상태 (2026-08-10 기준, ⚠️ 2026-08-16 실배포 시점 기준 갱신 사항은 각 항목에 취소선으로 표시 — 최신 전체 현황은 `report.md` 참고)
 
-Phase 1~9(§22)가 구현되어 있다. 결제/이메일·SMS 발송만 여전히 mock이며, 그 외에는 실제 SQLite DB와 서버 API로 동작한다.
+Phase 1~9(§22)가 구현되어 있다. 결제/이메일·SMS 발송만 여전히 mock이며, 그 외에는 실제 ~~SQLite~~ **D1** DB와 서버 API로 동작한다.
 
 **구현됨**
 - `app/[locale]/book` — 다국어 라우팅 및 예약 위저드 (`BookingWizard`, `BookingProvider`, `BookingProgress`)
 - 예약 단계별 컴포넌트: 인원 → 시술 → 소요시간 → 날짜 → 시간(`TimeStep`, 실시간 가용성 API + 로딩/에러 상태) → 고객정보 → 검토 → 결제(`PaymentStep`, 실제 hold→confirm 플로우) → 확정(위치/캘린더/문의 액션 포함)
 - 가용성/가격 도메인 로직: `lib/booking/{availability,pricing,calendar,time,timezone,validation,reservationNumber,errors}.ts` — 순수 함수, DB로부터 분리
-- DB: `lib/db/{client,migrations,transaction}.ts` (SQLite, `node:sqlite`), 레포지토리 계층 `lib/repositories/{reservation,customer,blockedTime,notification,agentHandoff}Repository.ts`
+- DB: `lib/db/{client,migrations,transaction}.ts` (~~SQLite, `node:sqlite`~~ → **Cloudflare D1**, §6.2 참고), 레포지토리 계층 `lib/repositories/{reservation,customer,blockedTime,notification,agentHandoff}Repository.ts`
 - API: `GET /api/services`, `GET /api/availability`, `POST /api/reservation-holds`, `POST /api/reservations`, `GET /api/reservations/:reservationNumber` — 서버가 가용성을 트랜잭션 내에서 재검증하여 더블부킹을 원자적으로 방지
 - 서비스 정의 중앙화: `data/services.ts`
 - 다국어 메시지: `messages/{en,ko,zh,ja}.json` (에러 메시지 `errors.*` 포함)
-- 관리자 대시보드(`/admin`, 한국어 전용, 인증 없음 — 아래 미구현 참고): 오늘 현황, 예약 목록/상태 변경, 시간 차단 관리, 에이전트 예외함
+- 관리자 대시보드(`/admin`, 한국어 전용, ~~인증 없음~~ → **HTTP Basic Auth 적용됨(Fail-Closed), `middleware.ts` 참고**): 오늘 현황, 예약 목록/상태 변경, 시간 차단 관리, 에이전트 예외함
 - 알림: 예약 확정 API에서 서버 사이드로 트리거, `notifications` 테이블로 영속화 + idempotency 가드 (`lib/booking/notifyReservationConfirmed.ts`)
 - Google Maps 링크, `.ics` 캘린더 다운로드, Instagram 문의 링크 (`lib/config/business.ts`)
-- Gemini 에이전트 툴 레이어 준비: `lib/agent/tools.ts` — 동일한 도메인 함수만 재사용, `getReservation`은 신원 확인 필요, `handoffToAdmin`으로만 예외 처리
-- 테스트: `vitest`, `tests/` — 도메인 로직·API 라우트·에이전트 툴 커버 (`npm test`)
+- Gemini 에이전트 툴 레이어: `lib/agent/tools.ts` — 동일한 도메인 함수만 재사용, `getReservation`은 신원 확인 필요, `handoffToAdmin`으로만 예외 처리. ~~실제 LLM 미연동~~ → **`@google/genai` 공식 SDK로 Gemini Function Calling 연동 완료, 홈페이지 AI 상담 UI까지 배포됨 (`report.md` §13~14)**
+- 테스트: `vitest`, `tests/` — 도메인 로직·API 라우트·에이전트 툴 커버 (`npm test`, 134개 테스트 통과)
 - Mock 결제(`lib/payment/mockProvider.ts`), Mock 알림 채널(`lib/notifications/mockNotificationService.ts`) — 인터페이스는 실제 채널과 동일하게 동작, 실제 프로바이더로 교체만 하면 됨
+- **실제 배포: Cloudflare Workers, https://wooriaroma.site (www.wooriaroma.site) — `report.md` §16 참고**
 
 **미구현**
-- 실제 결제 게이트웨이(Toss 등), 실제 이메일/SMS/WhatsApp 발송
-- 관리자 인증 (현재 `/admin`은 누구나 접근 가능 — 배포 전 반드시 추가 필요)
+- 실제 결제 게이트웨이(Toss 등), 실제 SMS/WhatsApp 발송 (이메일은 Resend로 실제 발송됨)
+- ~~관리자 인증 (현재 `/admin`은 누구나 접근 가능 — 배포 전 반드시 추가 필요)~~ → **HTTP Basic Auth로 해결됨. 단, 직원별 계정·세션·감사 로그를 갖춘 정식 로그인 시스템으로의 고도화는 여전히 미구현 (`report.md` §18)**
 - 관리자 수기 예약 등록, 일/주 캘린더 그리드 뷰 (현재는 목록 뷰로 대체)
-- Gemini 실제 LLM 연동 (툴 레이어만 준비됨, 실제 모델 호출 없음)
 - 유입 경로 트래킹, 애널리틱스
 
 ---
@@ -266,10 +266,10 @@ Google Maps 예약 링크, 유입 경로 트래킹, 애널리틱스, 리뷰 요�
 
 ---
 
-## 11. 열린 질문 (배포 전 결정 필요)
+## 11. 열린 질문 (배포 전 결정 필요 → 2026-08-16 실배포 완료, 남은 항목은 `report.md` §18 참고)
 
-- ~~백엔드/DB~~ → §6.2에서 SQLite(`node:sqlite`) + Next.js Route Handlers로 확정
-- 결제 게이트웨이 선정 (해외 카드 결제 지원 여부 포함)
-- 관리자 인증 방식 — **현재 미구현, `/admin`이 공개 상태이므로 배포 전 최우선 처리 필요**
-- WhatsApp/이메일 알림 발송 주체(자체 구현 vs. 서드파티 서비스)
-- Gemini Enterprise 에이전트의 실제 LLM 연동 방식 (툴 레이어 `lib/agent/tools.ts`는 준비됨)
+- ~~백엔드/DB~~ → §6.2에서 Next.js Route Handlers + (최초 SQLite → **실배포 시 Cloudflare D1**)로 확정
+- 결제 게이트웨이 선정 (해외 카드 결제 지원 여부 포함) — **여전히 미결정, 매장 방문 시 현장 결제로 운영 중**
+- ~~관리자 인증 방식 — 현재 미구현, `/admin`이 공개 상태이므로 배포 전 최우선 처리 필요~~ → **HTTP Basic Auth(Fail-Closed)로 해결, 배포 환경에 Secret 등록 완료. 직원별 계정/세션/감사 로그 고도화는 향후 과제**
+- WhatsApp/이메일 알림 발송 주체(자체 구현 vs. 서드파티 서비스) → **이메일은 Resend로 확정, WhatsApp/카카오/텔레그램은 범위에서 제외**
+- ~~Gemini Enterprise 에이전트의 실제 LLM 연동 방식~~ → **`@google/genai` SDK로 Function Calling 연동 완료, 홈페이지 AI 상담 UI까지 실배포됨**

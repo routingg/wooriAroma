@@ -3,28 +3,33 @@
 [한국어](./README.md) | [English](./README.en.md) | [中文](./README.zh.md)
 
 这是济州中文洞私人水疗中心 **Woori Aroma** 的多语言预约/运营平台。完整的产品/架构说明见
-`proposal.md`。
+`proposal.md`，开发进度见 `report.md`。
+
+**正式上线：[https://wooriaroma.site](https://wooriaroma.site)（www.wooriaroma.site）** — 部署在
+Cloudflare Workers 上（见 `wrangler.jsonc`）。
 
 ## 环境要求
 
-- Node.js **22.5.0 或以上**（使用内置的 `node:sqlite` 模块 — 参见 `package.json` 的 `engines`）
+- Node.js **22.5.0 或以上**（参见 `package.json` 的 `engines`）
 
 ## 快速开始
 
 ```bash
 npm install
+wrangler d1 migrations apply woori-aroma-db --local   # 首次运行前，为本地 D1 填充schema
 npm run dev
 ```
 
 客户预约网站请访问 [http://localhost:3000](http://localhost:3000)（`/en`、`/ko`、`/zh`、`/ja`），
 仅限韩语的管理后台请访问 [http://localhost:3000/admin](http://localhost:3000/admin)。
 
-本地开发无需任何环境变量 — 应用会自动使用本地 SQLite 数据库
-`.data/woori-aroma.sqlite3`（已加入 gitignore），未配置邮件服务时也会安全地跳过发送。只有在接入
-真实邮件服务商时，才需要把 `.env.example` 复制为 `.env.local`。
+连接数据库无需配置任何环境变量 — `next.config.ts` 中的 `initOpenNextCloudflareForDev()`
+会自动绑定本地 Cloudflare D1（上面的迁移命令只需执行一次）。未配置邮件服务时也会安全地跳过发送。
+只有在接入真实邮件服务商时，才需要把 `.env.example` 复制为 `.env.local`。
 
-**⚠️ `/admin` 目前尚未接入身份验证。** 本地开发环境下是安全的，但在加入身份验证之前，不能公开部署到
-生产环境 — 详见 `proposal.md` §11。
+**⚠️ `/admin` 已接入 HTTP Basic Auth 身份验证。** 采用失败即拒绝（Fail-Closed）策略 —— 若未设置
+`ADMIN_BASIC_AUTH_USER`/`ADMIN_BASIC_AUTH_PASSWORD`，所有请求都会被拒绝，因此本地开发也需要配置
+这两个变量 — 详见 `.env.example`。
 
 ## 脚本命令
 
@@ -35,6 +40,8 @@ npm run start        # 运行生产环境构建
 npm run lint          # eslint 检查
 npm run typecheck      # tsc --noEmit
 npm test                # vitest — 业务逻辑 / API 路由 / 管理后台功能 / agent 工具
+npm run cf:preview        # OpenNext 构建 + Cloudflare 本地预览
+npm run cf:deploy          # OpenNext 构建 + 部署到 Cloudflare
 ```
 
 ## 项目结构
@@ -47,9 +54,9 @@ app/api/cron/reminders/    24 小时提醒触发端点（由外部调度器调�
 lib/booking/               纯业务逻辑（可预约时段、价格、校验）
 lib/admin/                   管理后台专用逻辑（确认邮件文案生成、状态/标签、可删除性判断）
 lib/notifications/           多渠道通知服务（见下文）
-lib/db/                     SQLite 客户端 + 数据库迁移
+lib/db/                     Cloudflare D1 客户端 + 数据库迁移
 lib/repositories/             数据访问层，每个表/聚合对应一个文件
-lib/agent/                     Gemini agent 工具层（尚未接入大模型）
+lib/agent/                     Gemini agent 工具层（已接入 Function Calling）
 data/services.ts                  疗程目录（价格的唯一数据来源）
 messages/{en,ko,zh,ja}.json          面向客户的多语言翻译文件
 tests/                                 vitest 测试套件
@@ -139,9 +146,9 @@ tests/                                 vitest 测试套件
 
 - `RESERVATION_UPDATED` 事件目前还没有实际的触发点 —— 因为目前代码库中还没有"修改/改期预约"这项
   功能。该事件类型、邮件模板以及服务商对接都已经准备就绪，只是目前尚未在任何地方被调用。
-- 本项目使用的数据库 `node:sqlite` 假定运行在长期存活的 Node 进程中；提醒定时任务的端点为此特意
-  设计为与部署环境无关，但数据库本身的选型与该功能并无直接关系，不在其讨论范围内。
 
 ## 了解更多
 
-本项目基于 [Next.js](https://nextjs.org)（App Router）+ TypeScript + Tailwind CSS + `next-intl` 构建。
+本项目基于 [Next.js](https://nextjs.org)（App Router）+ TypeScript + Tailwind CSS + `next-intl` 构建，
+并部署在 Cloudflare Workers（`@opennextjs/cloudflare` + Wrangler）与 Cloudflare D1 上。开发进度与部署
+细节见 `report.md`。
