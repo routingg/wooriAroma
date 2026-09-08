@@ -1,6 +1,7 @@
 import createMiddleware from "next-intl/middleware";
 import { NextResponse, type NextRequest } from "next/server";
 import { routing } from "./i18n/routing";
+import { checkAdminBasicAuth } from "./lib/admin/basicAuth";
 
 /**
  * Deliberately named middleware.ts, not Next.js 16's renamed proxy.ts:
@@ -26,38 +27,22 @@ const intlMiddleware = createMiddleware(routing);
  * admin-user system with per-user accounts/roles/audit trail — it's meant
  * to buy time until that's built.
  */
-function checkAdminBasicAuth(request: NextRequest): boolean {
-  const expectedUser = process.env.ADMIN_BASIC_AUTH_USER;
-  const expectedPassword = process.env.ADMIN_BASIC_AUTH_PASSWORD;
-  if (!expectedUser || !expectedPassword) return false;
-
-  const header = request.headers.get("authorization");
-  if (!header?.startsWith("Basic ")) return false;
-
-  let decoded: string;
-  try {
-    decoded = atob(header.slice("Basic ".length));
-  } catch {
-    return false;
-  }
-  const separatorIndex = decoded.indexOf(":");
-  if (separatorIndex === -1) return false;
-
-  const providedUser = decoded.slice(0, separatorIndex);
-  const providedPassword = decoded.slice(separatorIndex + 1);
-  return providedUser === expectedUser && providedPassword === expectedPassword;
-}
-
 function unauthorizedResponse(): NextResponse {
   return new NextResponse("Authentication required.", {
     status: 401,
-    headers: { "WWW-Authenticate": 'Basic realm="Woori Aroma Admin"' },
+    headers: {
+      "WWW-Authenticate": 'Basic realm="Woori Aroma Admin"',
+      "Cache-Control": "private, no-store",
+    },
   });
 }
 
 export default function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/admin")) {
-    return checkAdminBasicAuth(request) ? NextResponse.next() : unauthorizedResponse();
+    if (!checkAdminBasicAuth(request.headers.get("authorization"))) return unauthorizedResponse();
+    const response = NextResponse.next();
+    response.headers.set("Cache-Control", "private, no-store");
+    return response;
   }
   return intlMiddleware(request);
 }
@@ -65,9 +50,11 @@ export default function middleware(request: NextRequest) {
 export const config = {
   // Run on every customer-facing route (for locale detection) and on
   // /admin (for the Basic Auth gate above), but skip /dev (dev-only
-  // tooling, see app/dev/themes), API routes, Next.js internals and
-  // static files.
+  // tooling, see app/dev/themes), /welcome (staff-run guest kiosk, see
+  // app/welcome/layout.tsx — bilingual EN/KO on one page, not
+  // locale-routed), API routes, Next.js internals and static files.
   matcher: [
-    "/((?!api|dev|_next|_vercel|.*\\..*).*)",
+    "/admin/:path*",
+    "/((?!api|dev|welcome|_next|_vercel|.*\\..*).*)",
   ],
 };
