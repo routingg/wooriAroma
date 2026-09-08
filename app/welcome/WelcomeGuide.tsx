@@ -18,7 +18,7 @@ import closingImage from "@/docs/images/woori-aroma-exterior-backlit.jpg";
  * Staff-run guest kiosk (see app/welcome/page.tsx) — a tablet slideshow
  * staff hand to a guest the moment they arrive, walking through the same
  * welcome/consultation/treatment-menu/closing flow as the "Woori Aroma
- * welcome deck2.pdf" reference deck, rebuilt as a live page so pricing and
+ * welcome deck.pdf" reference deck, rebuilt as a live page so pricing and
  * treatment names can never drift from data/services.ts (the booking
  * flow's own source of truth) the way a static PDF inevitably would.
  *
@@ -173,6 +173,67 @@ function NextStepsSlide() {
       <p className="mt-10 max-w-lg text-sm text-stone-500">
         Your therapist will guide you through each step. There is nothing you need to prepare.
       </p>
+    </div>
+  );
+}
+
+type DrinkTemp = "hot" | "cold";
+type DrinkSelection = `${"coffee" | "tea"}-${DrinkTemp}` | null;
+
+const DRINKS: { id: "coffee" | "tea"; index: string; en: string; ko: string; bg: string }[] = [
+  { id: "coffee", index: "01", en: "Coffee", ko: "커피", bg: "bg-stone-900" },
+  { id: "tea", index: "02", en: "Tea", ko: "차", bg: "bg-forest-700" },
+];
+
+function DrinkSlide() {
+  const [selection, setSelection] = useState<DrinkSelection>(null);
+
+  return (
+    <div className="flex h-full w-full flex-col">
+      <div className="flex flex-wrap items-baseline justify-between gap-2 bg-stone-100 py-8 pr-24 pl-8 sm:pr-32 sm:pl-16">
+        <div>
+          <Eyebrow>A Drink Before We Begin</Eyebrow>
+          <Heading className="mt-2 text-stone-900">Choose one.</Heading>
+        </div>
+        <div className="text-right text-sm text-stone-500">
+          <p>Hot or cold — just tell your therapist.</p>
+          <p className="text-stone-400">따뜻하게 또는 차갑게, 편하게 말씀해 주세요.</p>
+        </div>
+      </div>
+      <div className="grid flex-1 grid-cols-1 sm:grid-cols-2">
+        {DRINKS.map((drink) => (
+          <div key={drink.id} className={`flex flex-col justify-center gap-8 px-8 py-10 sm:px-16 ${drink.bg}`}>
+            <div>
+              <p className="font-[family-name:var(--font-display)] text-sm text-stone-300 italic">{drink.index}</p>
+              <h3 className="mt-1 font-[family-name:var(--font-display)] text-5xl font-semibold text-white">
+                {drink.en}
+              </h3>
+              <p className="mt-1 text-base text-stone-300">{drink.ko}</p>
+            </div>
+            <div className="flex gap-3">
+              {(["hot", "cold"] as const).map((temp) => {
+                const key: DrinkSelection = `${drink.id}-${temp}`;
+                const active = selection === key;
+                return (
+                  <button
+                    key={temp}
+                    type="button"
+                    onClick={() => setSelection(key)}
+                    aria-pressed={active}
+                    className={`rounded-full border px-6 py-2.5 text-xs font-semibold tracking-wide uppercase transition-colors ${
+                      active
+                        ? "border-transparent bg-white text-stone-900"
+                        : "border-white/40 text-white hover:border-white"
+                    }`}
+                  >
+                    {temp === "hot" ? "Hot 따뜻하게" : "Cold 차갑게"}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -483,6 +544,140 @@ function AmbienceSlide() {
   );
 }
 
+type BodyMark = "none" | "attention" | "careful";
+
+const BODY_PARTS = [
+  { n: 1, en: "Neck & Shoulders", ko: "목 · 어깨" },
+  { n: 2, en: "Arms & Hands", ko: "팔 · 손" },
+  { n: 3, en: "Back", ko: "등" },
+  { n: 4, en: "Lower Back", ko: "허리" },
+  { n: 5, en: "Legs", ko: "다리" },
+  { n: 6, en: "Feet", ko: "발" },
+];
+
+function nextBodyMark(mark: BodyMark): BodyMark {
+  if (mark === "none") return "attention";
+  if (mark === "attention") return "careful";
+  return "none";
+}
+
+function bodyMarkColor(mark: BodyMark): string {
+  if (mark === "attention") return "#f59e0b"; // amber-500 — "more attention here"
+  if (mark === "careful") return "#e11d48"; // rose-600 — "please be careful here"
+  return "#434c35"; // forest-700 — unmarked default
+}
+
+function bodyBadge(n: number, x: number, y: number, marks: Record<number, BodyMark>): ReactNode {
+  return (
+    <g key={n}>
+      <circle cx={x} cy={y} r={10} fill={bodyMarkColor(marks[n] ?? "none")} />
+      <text x={x} y={y + 3.5} textAnchor="middle" fontSize="10" fontWeight="600" fill="#fff">
+        {n}
+      </text>
+    </g>
+  );
+}
+
+function BodyDiagram({ marks }: { marks: Record<number, BodyMark> }) {
+  return (
+    <svg viewBox="0 0 240 190" className="h-56 w-auto sm:h-64" role="img" aria-label="Front and back body diagram">
+      <g fill="#faf6ee" stroke="#d4bd91" strokeWidth="1.5">
+        {/* front */}
+        <circle cx="50" cy="18" r="14" />
+        <rect x="30" y="34" width="40" height="56" rx="18" />
+        <rect x="10" y="36" width="14" height="66" rx="7" />
+        <rect x="76" y="36" width="14" height="66" rx="7" />
+        <rect x="31" y="88" width="16" height="62" rx="8" />
+        <rect x="53" y="88" width="16" height="62" rx="8" />
+        {/* back */}
+        <circle cx="190" cy="18" r="14" />
+        <rect x="168" y="34" width="44" height="56" rx="18" />
+        <rect x="148" y="36" width="14" height="66" rx="7" />
+        <rect x="218" y="36" width="14" height="66" rx="7" />
+        <rect x="171" y="88" width="16" height="62" rx="8" />
+        <rect x="193" y="88" width="16" height="62" rx="8" />
+      </g>
+      {bodyBadge(1, 50, 30, marks)}
+      {bodyBadge(2, 17, 65, marks)}
+      {bodyBadge(5, 39, 120, marks)}
+      {bodyBadge(3, 190, 55, marks)}
+      {bodyBadge(4, 190, 90, marks)}
+      {bodyBadge(6, 179, 145, marks)}
+    </svg>
+  );
+}
+
+function PointItOutSlide() {
+  const [marks, setMarks] = useState<Record<number, BodyMark>>({});
+
+  function toggle(n: number) {
+    setMarks((prev) => ({ ...prev, [n]: nextBodyMark(prev[n] ?? "none") }));
+  }
+
+  return (
+    <div className="grid h-full grid-cols-1 md:grid-cols-2">
+      <div className="flex flex-col justify-center overflow-y-auto bg-stone-50 px-8 py-10 sm:px-16">
+        <Eyebrow>Point It Out</Eyebrow>
+        <Heading className="mt-3 text-stone-900">Show us where.</Heading>
+        <p className="mt-3 text-base text-stone-600">Point to the diagram, or say the number.</p>
+        <p className="text-sm text-stone-400">그림에서 짚어 주시거나 번호로 말씀해 주세요.</p>
+
+        <div className="mt-5 flex flex-col gap-2 text-sm text-stone-600">
+          <span className="flex items-center gap-2">
+            <span aria-hidden="true" className="h-2.5 w-2.5 shrink-0 rounded-full bg-amber-500" />
+            More attention here <span className="text-stone-400">더 받고 싶은 곳</span>
+          </span>
+          <span className="flex items-center gap-2">
+            <span aria-hidden="true" className="h-2.5 w-2.5 shrink-0 rounded-full bg-rose-600" />
+            Please be careful here <span className="text-stone-400">조심해야 할 곳</span>
+          </span>
+        </div>
+
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          {BODY_PARTS.map((part) => {
+            const mark = marks[part.n] ?? "none";
+            return (
+              <button
+                key={part.n}
+                type="button"
+                onClick={() => toggle(part.n)}
+                aria-pressed={mark !== "none"}
+                className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-left transition-colors ${
+                  mark === "attention"
+                    ? "border-amber-500 bg-amber-50"
+                    : mark === "careful"
+                      ? "border-rose-500 bg-rose-50"
+                      : "border-stone-200 bg-white hover:border-forest-400"
+                }`}
+              >
+                <span
+                  aria-hidden="true"
+                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white"
+                  style={{ backgroundColor: bodyMarkColor(mark) }}
+                >
+                  {part.n}
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold text-stone-800">{part.en}</span>
+                  <span className="block text-xs text-stone-400">{part.ko}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="flex flex-col items-center justify-center gap-4 bg-stone-100 px-8 py-10">
+        <BodyDiagram marks={marks} />
+        <div className="flex gap-20 text-xs font-medium tracking-[0.2em] text-stone-500 uppercase">
+          <span>Front 앞</span>
+          <span>Back 뒤</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AfterTreatmentSlide() {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center bg-stone-50 px-8 text-center">
@@ -535,8 +730,6 @@ const SLIDES: ReactNode[] = [
   <AboutSlide key="about" />,
   <SpaceTimeSlide key="space-time" />,
   <NextStepsSlide key="next-steps" />,
-  <BeforeWeBeginSlide key="before-we-begin" />,
-  <ComfortPhrasesSlide key="comfort-phrases" />,
   <MenuSlide key="menu" />,
   <TreatmentDetailSlide
     key="aroma-oil"
@@ -569,6 +762,10 @@ const SLIDES: ReactNode[] = [
     ]}
   />,
   <QuickCareSlide key="quick-care" />,
+  <DrinkSlide key="drink" />,
+  <BeforeWeBeginSlide key="before-we-begin" />,
+  <ComfortPhrasesSlide key="comfort-phrases" />,
+  <PointItOutSlide key="point-it-out" />,
   <AmbienceSlide key="ambience" />,
   <AfterTreatmentSlide key="after-treatment" />,
   <ClosingSlide key="closing" />,
