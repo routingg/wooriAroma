@@ -6,6 +6,7 @@ setupFreshDb();
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
+vi.mock("@/lib/admin/auth", () => ({ requireAdmin: vi.fn().mockResolvedValue(undefined) }));
 
 import { deleteReservationAction } from "@/app/admin/actions";
 import { createHold, getById, submitReservationRequest, updateStatus } from "@/lib/repositories/reservationRepository";

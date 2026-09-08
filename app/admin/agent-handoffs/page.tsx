@@ -1,8 +1,10 @@
+import { requireAdmin } from "@/lib/admin/auth";
 import Link from "next/link";
 import { listHandoffs } from "@/lib/repositories/agentHandoffRepository";
 import { resolveHandoffAction } from "../actions";
 
 export default async function AgentHandoffsPage() {
+  await requireAdmin();
   const [open, resolvedAll] = await Promise.all([listHandoffs("OPEN"), listHandoffs("RESOLVED")]);
   const resolved = resolvedAll.slice(0, 10);
 

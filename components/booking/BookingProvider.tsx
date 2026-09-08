@@ -16,8 +16,15 @@ import {
   type BookingDraft,
   type BookingStep,
 } from "@/types/bookingState";
+import { loadBookingDraft, saveBookingDraft } from "@/lib/booking/draftStorage";
 
-const STORAGE_KEY = "wa_booking_draft";
+function browserStorage(kind: "localStorage" | "sessionStorage"): Storage | undefined {
+  try {
+    return typeof window === "undefined" ? undefined : window[kind];
+  } catch {
+    return undefined;
+  }
+}
 
 interface BookingContextValue {
   draft: BookingDraft;
@@ -38,21 +45,14 @@ interface BookingContextValue {
 const BookingContext = createContext<BookingContextValue | null>(null);
 
 function loadDraft(): BookingDraft {
-  if (typeof window === "undefined") return emptyBookingDraft;
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return emptyBookingDraft;
-    return { ...emptyBookingDraft, ...JSON.parse(raw) };
-  } catch {
-    return emptyBookingDraft;
-  }
+  return loadBookingDraft(browserStorage("localStorage"), browserStorage("sessionStorage"));
 }
 
 export function BookingProvider({ children }: { children: ReactNode }) {
   const [draft, setDraft] = useState<BookingDraft>(emptyBookingDraft);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // Hydrate from localStorage after mount only, so server and first
+  // Hydrate choices and the short-lived tab session after mount only, so server and first
   // client render match (avoids hydration mismatches). This one-time
   // sync from an external store is the documented exception to
   // react-hooks/set-state-in-effect.
@@ -64,7 +64,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isHydrated) return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+    saveBookingDraft(draft, browserStorage("localStorage"), browserStorage("sessionStorage"));
   }, [draft, isHydrated]);
 
   const goToStep = useCallback((step: BookingStep) => {

@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/admin/auth";
 import Link from "next/link";
 import { listUpcomingBlockedTimes } from "@/lib/repositories/blockedTimeRepository";
 import { getSeoulNow } from "@/lib/booking/timezone";
@@ -6,6 +7,7 @@ import { ConfirmSubmitButton } from "@/components/admin/ConfirmSubmitButton";
 import { createBlockedTimeAction, removeBlockedTimeAction } from "../actions";
 
 export default async function AdminBlockedTimesPage() {
+  await requireAdmin();
   const today = getSeoulNow().dateKey;
   const blocks = await listUpcomingBlockedTimes(today);
 

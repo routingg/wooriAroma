@@ -63,15 +63,21 @@ export const resendEmailProvider: EmailProvider = {
       }
 
       if (!response.ok) {
-        const body = await response.text().catch(() => "");
-        throw new Error(`Resend responded ${response.status}: ${body.slice(0, 300)}`);
+        // Provider responses can echo customer addresses. Retain only a
+        // diagnostic status, never their raw body in logs or the database.
+        throw new Error(`Resend responded ${response.status}`);
       }
 
       const data = (await response.json()) as { id?: string };
       return { status: "SENT", provider: PROVIDER, providerMessageId: data.id, redirected };
     } catch (error) {
-      logFailure(PROVIDER, payload.event, payload.customerEmail, error);
-      return { status: "FAILED", provider: PROVIDER, reason: error instanceof Error ? error.message : String(error) };
+      const reason = error instanceof Error && /^Resend responded \d{3}$/.test(error.message)
+        ? error.message
+        : error instanceof Error && error.name === "AbortError"
+          ? "email_delivery_timeout"
+          : "email_delivery_failed";
+      logFailure(PROVIDER, payload.event, payload.customerEmail, reason);
+      return { status: "FAILED", provider: PROVIDER, reason };
     }
   },
 };

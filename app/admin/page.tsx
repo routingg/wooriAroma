@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/admin/auth";
 import Link from "next/link";
 import { getTodayStats } from "@/lib/admin/dashboardStats";
 import { formatCurrency } from "@/lib/booking/pricing";
@@ -5,6 +6,7 @@ import { ReservationRow } from "@/components/admin/ReservationRow";
 import { listAll } from "@/lib/repositories/reservationRepository";
 
 export default async function AdminDashboardPage() {
+  await requireAdmin();
   const [stats, pending] = await Promise.all([getTodayStats(), listAll(["PENDING"])]);
   const pendingCount = pending.length;
 
@@ -12,7 +14,10 @@ export default async function AdminDashboardPage() {
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-10">
       <header className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-stone-900">오늘 현황</h1>
-        <nav className="flex gap-4 text-sm text-stone-600">
+        <nav className="flex flex-wrap gap-4 text-sm text-stone-600">
+          <Link href="/admin/notifications" className="hover:underline">
+            예약 알림
+          </Link>
           <Link href="/admin/reservations" className="hover:underline">
             예약 관리
           </Link>

@@ -8,9 +8,11 @@ import { resolveHandoff } from "@/lib/repositories/agentHandoffRepository";
 import { notifyReservationCancelled } from "@/lib/booking/reservationNotifications";
 import { recordAttempt } from "@/lib/repositories/notificationRepository";
 import { BookingError } from "@/lib/booking/errors";
+import { requireAdmin } from "@/lib/admin/auth";
 
 /** Status changes only — never physically deletes reservation history (AGENTS.md §12.2). */
 export async function updateReservationStatusAction(id: string, status: ReservationStatus) {
+  await requireAdmin();
   const before = await getById(id);
   const updated = await updateStatus(id, status);
   revalidatePath("/admin");
@@ -42,6 +44,7 @@ export async function updateReservationStatusAction(id: string, status: Reservat
  * implies the email was sent (AGENTS.md §20).
  */
 export async function markConfirmationEmailSentAction(reservationId: string, customerEmail: string) {
+  await requireAdmin();
   await recordAttempt({
     reservationId,
     channel: "EMAIL",
@@ -70,6 +73,7 @@ export interface DeleteReservationResult {
  * reservation (§17).
  */
 export async function deleteReservationAction(id: string): Promise<DeleteReservationResult> {
+  await requireAdmin();
   try {
     await softDeleteReservation(id);
   } catch (error) {
@@ -87,6 +91,7 @@ export async function deleteReservationAction(id: string): Promise<DeleteReserva
 }
 
 export async function createBlockedTimeAction(formData: FormData) {
+  await requireAdmin();
   const dateKey = String(formData.get("dateKey") ?? "");
   if (!dateKey) return;
 
@@ -101,12 +106,14 @@ export async function createBlockedTimeAction(formData: FormData) {
 }
 
 export async function removeBlockedTimeAction(id: string) {
+  await requireAdmin();
   await removeBlockedTime(id);
   revalidatePath("/admin/blocked-times");
   revalidatePath("/admin");
 }
 
 export async function resolveHandoffAction(id: string, formData: FormData) {
+  await requireAdmin();
   const adminNotes = String(formData.get("adminNotes") ?? "").trim() || undefined;
   await resolveHandoff(id, adminNotes);
   revalidatePath("/admin/agent-handoffs");

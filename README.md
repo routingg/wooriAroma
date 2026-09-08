@@ -2,6 +2,10 @@
 
 [한국어](./README.md) | [English](./README.en.md) | [中文](./README.zh.md)
 
+실제 운영 준비는 [관리자 알림·개인정보·DB 운영 안내](./docs/operations-readiness.md)를 먼저 확인하세요.
+관리자 새 예약 이메일과 실패 재시도 기능은 `/admin/notifications`에서 확인할 수 있습니다. 업데이트 시 새 DB 마이그레이션을 적용하고 `.env.example`의 관리자 알림 설정 및 외부 재시도 스케줄러를 연결해야 합니다.
+개인정보 보유기간에 따른 자동 파기와 고객용 개인정보 고지는 아직 구현되지 않았습니다.
+
 제주 중문의 프라이빗 스파 **Woori Aroma**를 위한 다국어 예약/운영 플랫폼입니다. 전체 제품/아키텍처
 스펙은 `proposal.md`를, 개발 진행 경과는 `report.md`를 참고하세요.
 

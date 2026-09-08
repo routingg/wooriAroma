@@ -261,9 +261,10 @@ export interface AgentReservationStatusResult {
  * A reservation number alone is not enough for the agent to read a
  * reservation — `email`/`phone` must match the customer on file, or this
  * throws BookingError("FORBIDDEN", ...). A stranger could type in a
- * guessed or overheard number in a chat, so this is a stricter check than
- * the plain GET /api/reservations/:number endpoint used right after a
- * customer's own booking.
+ * guessed or overheard number in a chat. This legacy contact-match check
+ * is not proof of contact ownership; it needs OTP-based verification and
+ * request limiting before production use. Public GET lookups separately
+ * require the random hold capability in an Authorization header.
  */
 export async function getReservationStatus(
   input: AgentReservationStatusInput,

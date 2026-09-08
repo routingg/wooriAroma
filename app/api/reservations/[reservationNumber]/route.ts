@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getByReservationNumber } from "@/lib/repositories/reservationRepository";
+import { getById } from "@/lib/repositories/reservationRepository";
 import { toPublicReservation } from "@/lib/booking/publicReservation";
 import { BookingError } from "@/lib/booking/errors";
 import { bookingErrorResponse } from "@/lib/booking/apiError";
@@ -7,25 +7,32 @@ import { bookingErrorResponse } from "@/lib/booking/apiError";
 /**
  * GET /api/reservations/:reservationNumber
  *
- * Returns a privacy-trimmed view (see toPublicReservation) — no phone/email.
- * An unauthenticated lookup by number is acceptable for "show my own
- * confirmation again" since only the customer who just booked sees the
- * number; it is NOT sufficient authorization for the future Gemini agent to
- * read someone else's reservation — see lib/agent/tools.ts's getReservation
- * for the additional identity check that enforces that (AGENTS.md §16.2, T11).
+ * Requires Authorization: Bearer <holdId>, the random UUID returned only
+ * when the reservation hold was created. The sequential display number is
+ * never authorization. This capability must not be put in URLs or logs.
  */
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ reservationNumber: string }> },
 ) {
   try {
-    const { reservationNumber } = await params;
-    const reservation = await getByReservationNumber(reservationNumber);
-    if (!reservation) {
-      throw new BookingError("RESERVATION_NOT_FOUND", "No reservation with that number was found.");
+    const token = request.headers.get("authorization")?.match(/^Bearer ([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i)?.[1];
+    if (!token) {
+      throw new BookingError("RESERVATION_NOT_FOUND", "No accessible reservation was found.");
     }
-    return NextResponse.json({ reservation: await toPublicReservation(reservation) });
+    const { reservationNumber } = await params;
+    const reservation = await getById(token);
+    if (!reservation || reservation.reservationNumber !== reservationNumber || reservation.deletedAt) {
+      throw new BookingError("RESERVATION_NOT_FOUND", "No accessible reservation was found.");
+    }
+    return NextResponse.json(
+      { reservation: await toPublicReservation(reservation) },
+      { headers: { "Cache-Control": "private, no-store", Vary: "Authorization" } },
+    );
   } catch (error) {
-    return bookingErrorResponse(error);
+    const response = bookingErrorResponse(error);
+    response.headers.set("Cache-Control", "private, no-store");
+    response.headers.set("Vary", "Authorization");
+    return response;
   }
 }

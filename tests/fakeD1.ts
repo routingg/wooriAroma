@@ -7,10 +7,8 @@ import { DatabaseSync } from "node:sqlite";
  * the hood and every statement this codebase runs (parameterized SQL,
  * NOT EXISTS subqueries, ON CONFLICT ... RETURNING, correlated UPDATE
  * WHERE) is standard SQLite behavior node:sqlite reproduces exactly — the
- * one thing node:sqlite couldn't faithfully emulate (D1's lack of
- * interactive transactions) is no longer relevant, since
- * reservationRepository's write paths were redesigned around single
- * conditional statements specifically because D1 has no BEGIN/COMMIT.
+ * Interactive transactions are not exposed to repository code. batch()
+ * models D1's sequential, all-or-nothing batch API using a SQLite transaction.
  */
 
 interface FakeD1Result<T> {
@@ -68,6 +66,7 @@ class FakeD1PreparedStatement {
 
 export class FakeD1Database {
   private readonly db: DatabaseSync;
+  private batchTail: Promise<unknown> = Promise.resolve();
 
   constructor() {
     this.db = new DatabaseSync(":memory:");
@@ -78,9 +77,33 @@ export class FakeD1Database {
     return new FakeD1PreparedStatement(this.db, sql);
   }
 
+  async batch(statements: FakeD1PreparedStatement[]): Promise<FakeD1Result<unknown>[]> {
+    const operation = this.batchTail.then(async () => {
+      this.db.exec("BEGIN");
+      try {
+        const results = [];
+        for (const statement of statements) results.push(await statement.run());
+        this.db.exec("COMMIT");
+        return results;
+      } catch (error) {
+        this.db.exec("ROLLBACK");
+        throw error;
+      }
+    });
+    this.batchTail = operation.catch(() => {});
+    return operation;
+  }
+
   /** Runs a full migration file's text (possibly multiple ;-separated statements) directly. */
   applyMigrationScript(sql: string): void {
-    this.db.exec(sql);
+    this.db.exec("BEGIN");
+    try {
+      this.db.exec(sql);
+      this.db.exec("COMMIT");
+    } catch (error) {
+      this.db.exec("ROLLBACK");
+      throw error;
+    }
   }
 
   close(): void {

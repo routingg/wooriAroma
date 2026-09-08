@@ -3,11 +3,10 @@ import type { ReservationRecord, ReservationStatus } from "@/lib/repositories/re
 import { getCustomerById } from "@/lib/repositories/customerRepository";
 
 /**
- * What a reservation lookup is allowed to expose over the public API.
- * Deliberately omits the customer's phone/email — only the display name
- * needed to render a confirmation-style view. A future authenticated
- * "manage my booking" flow or the Gemini agent's getReservation tool (see
- * lib/agent/tools.ts) can add an identity check to unlock more.
+ * Minimal reservation response after the caller has checked access.
+ * Omits phone/email. GET lookups require the random hold capability;
+ * submission already requires that same capability. This serializer does
+ * not itself authorize a caller and must never be used for number-only lookup.
  */
 export interface PublicReservation {
   reservationNumber: string;

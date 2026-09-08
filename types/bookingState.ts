@@ -23,7 +23,8 @@ export interface BookingDetailsDraft {
 }
 
 /**
- * In-progress booking selections, kept in memory + localStorage while
+ * In-progress booking choices are kept in localStorage; contact details
+ * stay in memory and a tab-scoped session that expires after 30 minutes while
  * the customer moves through the wizard. Nothing here is submitted to the
  * server as a reservation request until the "submit" step succeeds (see
  * components/booking/steps/SubmitStep.tsx) — no payment is collected;

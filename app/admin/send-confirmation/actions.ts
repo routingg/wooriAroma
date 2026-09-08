@@ -10,6 +10,7 @@ import {
 import { renderEmailPreview, type EmailPreview } from "@/lib/notifications/preview";
 import { getCustomerById } from "@/lib/repositories/customerRepository";
 import { searchReservations, type ReservationStatus } from "@/lib/repositories/reservationRepository";
+import { requireAdmin } from "@/lib/admin/auth";
 
 export type { SendResultState };
 
@@ -24,6 +25,7 @@ export interface ReservationSearchResult {
 }
 
 export async function searchReservationsAction(query: string): Promise<ReservationSearchResult[]> {
+  await requireAdmin();
   const trimmed = query.trim();
   if (trimmed.length < 2) return [];
 
@@ -63,6 +65,7 @@ export async function getManualPreviewAction(
   input: ManualConfirmationInput,
   includeMap: boolean,
 ): Promise<ManualPreviewState> {
+  await requireAdmin();
   const result = await buildManualConfirmationPayload(input);
   if ("error" in result) return { status: "error", reason: result.error };
 
@@ -75,6 +78,7 @@ export async function sendManualConfirmationAction(
   input: ManualConfirmationInput,
   includeMap: boolean,
 ): Promise<SendResultState> {
+  await requireAdmin();
   const result = await buildManualConfirmationPayload(input);
   if ("error" in result) return { status: "failed", reason: result.error };
 
@@ -87,6 +91,7 @@ export async function sendManualTestEmailAction(
   input: ManualConfirmationInput,
   includeMap: boolean,
 ): Promise<SendResultState> {
+  await requireAdmin();
   const result = await buildManualConfirmationPayload(input);
   if ("error" in result) return { status: "failed", reason: result.error };
 

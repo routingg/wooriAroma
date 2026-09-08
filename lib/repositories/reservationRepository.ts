@@ -8,7 +8,7 @@ import { calculateDepositAmount, calculateRemainingAmount, calculateTotalAmount 
 import { BookingError } from "@/lib/booking/errors";
 import { nextReservationNumber } from "@/lib/booking/reservationNumber";
 import type { ReservationHoldRequest } from "@/lib/booking/validation";
-import { upsertCustomer, type CustomerRecord } from "./customerRepository";
+import { prepareBookingCustomer, type CustomerRecord } from "./customerRepository";
 import { DELETABLE_RESERVATION_STATUSES } from "@/lib/admin/labels";
 
 const HOLD_MINUTES = Number(process.env.BOOKING_HOLD_MINUTES ?? 10);
@@ -162,7 +162,7 @@ export async function createHold(request: ReservationHoldRequest): Promise<Creat
   const serviceEnd = fromMinutes(toMinutes(request.time) + option.durationMinutes);
   const blocked = calculateBlockedTime(request.time, serviceEnd);
 
-  const customer = await upsertCustomer({
+  const { customer, statement: customerStatement } = prepareBookingCustomer({
     name: request.customer.name,
     phone: request.customer.phone,
     email: request.customer.email,
@@ -177,7 +177,7 @@ export async function createHold(request: ReservationHoldRequest): Promise<Creat
   const holdExpiresAt = new Date(now.getTime() + HOLD_MINUTES * 60_000).toISOString();
   const id = randomUUID();
 
-  const result = await db
+  const reservationStatement = db
     .prepare(
       `INSERT INTO reservations (
         id, reservation_number, customer_id, service_option_id, duration_minutes, guest_count,
@@ -230,8 +230,17 @@ export async function createHold(request: ReservationHoldRequest): Promise<Creat
       request.date,
       blocked.start,
       blocked.end,
-    )
-    .run();
+    );
+
+  // D1 batches are transactional: a failed write rolls back both records.
+  // A conflict is a successful INSERT with zero rows, so remove only this
+  // new, unreferenced contact within the same batch in that case.
+  const [, result] = await db.batch([
+    customerStatement,
+    reservationStatement,
+    db.prepare("DELETE FROM customers WHERE id = ? AND NOT EXISTS (SELECT 1 FROM reservations WHERE customer_id = ?)")
+      .bind(customer.id, customer.id),
+  ]);
 
   if (result.meta.changes === 0) {
     throw new BookingError("SLOT_UNAVAILABLE", "This time is no longer available. Please choose another slot.");

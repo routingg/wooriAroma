@@ -84,6 +84,21 @@ describe("resendEmailProvider — sandbox/production recipient policy", () => {
     process.env.RESEND_FROM_EMAIL = "reservations@wooriaroma.test";
   });
 
+  it("does not retain a provider error body or raw exception containing personal information", async () => {
+    process.env.EMAIL_DELIVERY_MODE = "production";
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("private-customer@example.com +821012345678", { status: 422 })));
+      expect(await resendEmailProvider.send(payload())).toMatchObject({ status: "FAILED", reason: "Resend responded 422" });
+      vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("private-customer@example.com +821012345678")));
+      expect(await resendEmailProvider.send(payload())).toMatchObject({ status: "FAILED", reason: "email_delivery_failed" });
+      expect(JSON.stringify(log.mock.calls)).not.toContain("private-customer@example.com");
+      expect(JSON.stringify(log.mock.calls)).not.toContain("+821012345678");
+    } finally {
+      log.mockRestore();
+    }
+  });
+
   it("sandbox mode (default) redirects delivery to EMAIL_TEST_RECIPIENT, never the real customer", async () => {
     delete process.env.EMAIL_DELIVERY_MODE;
     process.env.EMAIL_TEST_RECIPIENT = "sandbox@example.com";

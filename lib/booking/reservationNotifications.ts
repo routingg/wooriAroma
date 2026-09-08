@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { getService, getServiceOption } from "@/data/services";
 import { notificationService } from "@/lib/notifications";
+import { processAdminBookingAlerts } from "@/lib/notifications/adminBookingAlerts";
 import type { NotificationEvent, ReservationNotificationPayload } from "@/lib/notifications/types";
 import { getCustomerById } from "@/lib/repositories/customerRepository";
 import type { ReservationRecord } from "@/lib/repositories/reservationRepository";
@@ -61,8 +62,18 @@ export async function buildReservationNotificationPayload(
 }
 
 export async function notifyReservationRequestReceived(reservation: ReservationRecord): Promise<void> {
-  const payload = await buildReservationNotificationPayload(reservation, "RESERVATION_REQUEST_RECEIVED");
-  if (payload) await notificationService.sendReservationRequestReceived(payload);
+  // The admin event is already durable (the HOLD -> PENDING database trigger).
+  // Start its first attempt independently of customer lookups/email delivery.
+  const results = await Promise.allSettled([
+    processAdminBookingAlerts({ reservationId: reservation.id }),
+    (async () => {
+      const payload = await buildReservationNotificationPayload(reservation, "RESERVATION_REQUEST_RECEIVED");
+      if (payload) await notificationService.sendReservationRequestReceived(payload);
+    })(),
+  ]);
+  if (results.some((result) => result.status === "rejected")) {
+    console.error("[reservationNotifications] request notification dispatch interrupted");
+  }
 }
 
 export async function notifyReservationConfirmed(reservation: ReservationRecord): Promise<void> {

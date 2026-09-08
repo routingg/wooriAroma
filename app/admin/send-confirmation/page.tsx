@@ -1,9 +1,11 @@
+import { requireAdmin } from "@/lib/admin/auth";
 import Link from "next/link";
 import { resolveEmailDeliveryMode } from "@/lib/notifications/recipientPolicy";
 import { ReservationSearchBox } from "@/components/admin/ReservationSearchBox";
 import { ManualConfirmationComposer } from "@/components/admin/ManualConfirmationComposer";
 
-export default function SendConfirmationPage() {
+export default async function SendConfirmationPage() {
+  await requireAdmin();
   const deliveryMode = resolveEmailDeliveryMode();
   const testRecipientConfigured = Boolean(process.env.EMAIL_TEST_RECIPIENT);
 

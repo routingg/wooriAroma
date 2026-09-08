@@ -81,10 +81,13 @@ describe("reservation-holds + reservations API routes", () => {
     expect(submitted.reservation.status).toBe("PENDING");
     expect(submitted.reservation.customerName).toBe("Jane Doe");
 
-    const lookupRes = await getByNumberRoute(new Request(`http://localhost/api/reservations/${hold.reservationNumber}`), {
+    const lookupRes = await getByNumberRoute(new Request(`http://localhost/api/reservations/${hold.reservationNumber}`, {
+      headers: { Authorization: `Bearer ${hold.holdId}` },
+    }), {
       params: Promise.resolve({ reservationNumber: hold.reservationNumber }),
     });
     expect(lookupRes.status).toBe(200);
+    expect(lookupRes.headers.get("cache-control")).toContain("no-store");
     const lookup = await readJson(lookupRes);
     expect(lookup.reservation.status).toBe("PENDING");
 
@@ -111,7 +114,9 @@ describe("reservation-holds + reservations API routes", () => {
     );
     const hold = await readJson(holdRes);
 
-    const lookupRes = await getByNumberRoute(new Request(`http://localhost/api/reservations/${hold.reservationNumber}`), {
+    const lookupRes = await getByNumberRoute(new Request(`http://localhost/api/reservations/${hold.reservationNumber}`, {
+      headers: { Authorization: `Bearer ${hold.holdId}` },
+    }), {
       params: Promise.resolve({ reservationNumber: hold.reservationNumber }),
     });
     const lookup = await readJson(lookupRes);
@@ -125,5 +130,28 @@ describe("reservation-holds + reservations API routes", () => {
       params: Promise.resolve({ reservationNumber: "WA-00000000-999" }),
     });
     expect(res.status).toBe(404);
+  });
+
+  it("does not expose a booking using its sequential number, a URL token, or another booking's token", async () => {
+    const date = futureDateKey(5);
+    const first = await readJson(await createHoldRoute(jsonRequest("http://localhost/api/reservation-holds", {
+      serviceOptionId: "aroma-oil-90", guestCount: 1, date, time: "10:00", locale: "en", customer,
+    })));
+    const second = await readJson(await createHoldRoute(jsonRequest("http://localhost/api/reservation-holds", {
+      serviceOptionId: "aroma-oil-90", guestCount: 1, date, time: "16:00", locale: "en",
+      customer: { ...customer, email: "second@example.com" },
+    })));
+    for (const request of [
+      new Request(`http://localhost/api/reservations/${first.reservationNumber}`),
+      new Request(`http://localhost/api/reservations/${first.reservationNumber}?token=${first.holdId}`),
+      new Request(`http://localhost/api/reservations/${first.reservationNumber}`, { headers: { Authorization: `Bearer ${second.holdId}` } }),
+    ]) {
+      const response = await getByNumberRoute(request, { params: Promise.resolve({ reservationNumber: first.reservationNumber }) });
+      expect(response.status).toBe(404);
+      expect(response.headers.get("cache-control")).toContain("no-store");
+      const body = await readJson(response);
+      expect(body.reservation).toBeUndefined();
+      expect(JSON.stringify(body)).not.toContain(customer.name);
+    }
   });
 });

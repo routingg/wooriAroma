@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/admin/auth";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getService, getServiceOption } from "@/data/services";
@@ -16,6 +17,7 @@ import { ReservationStatusActions } from "@/components/admin/ReservationStatusAc
 import { DeleteReservationButton } from "@/components/admin/DeleteReservationButton";
 
 export default async function AdminReservationDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireAdmin();
   const { id } = await params;
   const reservation = await getById(id);
   if (!reservation) notFound();

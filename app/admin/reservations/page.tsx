@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/admin/auth";
 import Link from "next/link";
 import { listAll, type ReservationRecord, type ReservationStatus } from "@/lib/repositories/reservationRepository";
 import { getSeoulNow } from "@/lib/booking/timezone";
@@ -15,6 +16,7 @@ export default async function AdminReservationsPage({
 }: {
   searchParams: Promise<{ status?: string }>;
 }) {
+  await requireAdmin();
   const params = await searchParams;
   const statusFilter = params.status as ReservationStatus | undefined;
 
