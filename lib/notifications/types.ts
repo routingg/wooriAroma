@@ -13,7 +13,7 @@ export type NotificationEvent =
   | "RESERVATION_CANCELLED"
   | "RESERVATION_REMINDER";
 
-export type NotificationChannel = "EMAIL";
+export type NotificationChannel = "EMAIL" | "SMS";
 
 /** Never thrown — see each provider's `send()` contract below. */
 export type NotificationStatus = "SENT" | "FAILED" | "SKIPPED";

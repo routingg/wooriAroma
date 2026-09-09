@@ -5,6 +5,7 @@ import { processAdminBookingAlerts } from "@/lib/notifications/adminBookingAlert
 import type { NotificationEvent, ReservationNotificationPayload } from "@/lib/notifications/types";
 import { getCustomerById } from "@/lib/repositories/customerRepository";
 import type { ReservationRecord } from "@/lib/repositories/reservationRepository";
+import { sendAdminReservationSms } from "@/lib/solapi";
 
 /**
  * Builds the notification payload from trusted server data (never the
@@ -62,14 +63,15 @@ export async function buildReservationNotificationPayload(
 }
 
 export async function notifyReservationRequestReceived(reservation: ReservationRecord): Promise<void> {
-  // The admin event is already durable (the HOLD -> PENDING database trigger).
-  // Start its first attempt independently of customer lookups/email delivery.
+  // The admin email alert is already durable (the HOLD -> PENDING database
+  // trigger). Build the shared payload once and fan it out to the customer
+  // email and the admin SMS independently — neither may affect the other,
+  // and the reservation write these all follow has already committed.
+  const payloadPromise = buildReservationNotificationPayload(reservation, "RESERVATION_REQUEST_RECEIVED");
   const results = await Promise.allSettled([
     processAdminBookingAlerts({ reservationId: reservation.id }),
-    (async () => {
-      const payload = await buildReservationNotificationPayload(reservation, "RESERVATION_REQUEST_RECEIVED");
-      if (payload) await notificationService.sendReservationRequestReceived(payload);
-    })(),
+    payloadPromise.then((payload) => payload && notificationService.sendReservationRequestReceived(payload)),
+    payloadPromise.then((payload) => payload && sendAdminReservationSms(payload)),
   ]);
   if (results.some((result) => result.status === "rejected")) {
     console.error("[reservationNotifications] request notification dispatch interrupted");

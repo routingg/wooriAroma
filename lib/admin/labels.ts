@@ -50,6 +50,7 @@ export const SERVICE_NAMES_KO: Record<string, string> = {
 
 export const NOTIFICATION_CHANNEL_LABELS_KO: Record<NotificationChannel, string> = {
   EMAIL: "이메일",
+  SMS: "SMS",
 };
 
 export const NOTIFICATION_STATUS_LABELS_KO: Record<NotificationStatus, string> = {
