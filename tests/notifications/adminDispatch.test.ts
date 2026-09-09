@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { setupFreshDb } from "../dbTestUtils";
+import { sameGuests, setupFreshDb } from "../dbTestUtils";
 
 setupFreshDb();
 
@@ -24,7 +24,7 @@ function futureDateKey(daysAhead: number): string {
 /** recordAttempt() writes reservation_id under a FOREIGN KEY constraint (PRAGMA foreign_keys = ON), so tests that persist need a real reservation row. */
 async function makeConfirmedReservation(email: string): Promise<ReservationRecord> {
   const { reservation } = await createHold({
-    serviceOptionId: "aroma-oil-90",
+    guests: sameGuests("aroma-oil-90", 2),
     guestCount: 2,
     date: futureDateKey(6),
     time: "16:00",

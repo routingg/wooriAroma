@@ -201,8 +201,11 @@ export interface AgentReservationResult {
  * through validateReservationHoldRequest's existing default of "DIRECT".
  */
 export async function createReservationRequest(input: AgentReservationInput): Promise<AgentReservationResult> {
+  // The AI assistant only ever books one shared treatment for the whole
+  // party — per-guest treatment selection is a Booking Wizard–only feature
+  // (see AGENTS.md scope note); every guest gets the same serviceOptionId.
   const validated = validateReservationHoldRequest({
-    serviceOptionId: input.serviceOptionId,
+    guests: Array.from({ length: Number(input.partySize) || 0 }, () => ({ serviceOptionId: input.serviceOptionId })),
     guestCount: input.partySize,
     date: input.date,
     time: input.time,

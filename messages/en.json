@@ -157,13 +157,20 @@
     "recommended": "Recommended",
     "perPerson": "/ person",
     "min": "min",
-    "step": "Step {current} of {total}"
+    "step": "Step {current} of {total}",
+    "guestLabel": "Guest {n}"
   },
   "steps": {
     "guests": {
       "title": "How many guests?",
       "subtitle": "Woori Aroma welcomes one private group at a time, up to 4 guests.",
       "option": "{count, plural, one {1 Guest} other {# Guests}}"
+    },
+    "sameCourse": {
+      "title": "Same treatment for everyone?",
+      "subtitle": "Choose whether your whole group receives the same treatment, or each guest picks their own.",
+      "same": "Same treatment for everyone",
+      "different": "Each guest chooses their own"
     },
     "treatment": {
       "title": "Choose a treatment",
@@ -173,6 +180,11 @@
     "duration": {
       "title": "Choose a duration",
       "subtitle": "Pricing is per person."
+    },
+    "guestTreatments": {
+      "title": "Guest {guestNumber}'s treatment",
+      "subtitle": "Only treatments offered at {minutes} min are shown — the whole group shares one time slot.",
+      "reviewTitle": "Everyone's treatment"
     },
     "date": {
       "title": "Choose a date",
@@ -286,6 +298,7 @@
     "HOLD_EXPIRED": "Your reservation hold expired. Please choose your time again.",
     "INVALID_GUEST_COUNT": "Please select between 1 and 4 guests.",
     "SERVICE_NOT_BOOKABLE": "This treatment isn't available for booking yet.",
+    "MIXED_DURATION_NOT_ALLOWED": "All guests in a group must choose a treatment of the same length.",
     "SLOT_IN_PAST": "That time has already passed. Please choose another.",
     "INVALID_CUSTOMER_DETAILS": "Please check your name, phone number and email."
   }

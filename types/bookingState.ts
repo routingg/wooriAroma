@@ -2,8 +2,10 @@ import type { AppLocale } from "@/i18n/routing";
 
 export const BOOKING_STEPS = [
   "guests",
+  "sameCourse",
   "treatment",
   "duration",
+  "guestTreatments",
   "date",
   "time",
   "details",
@@ -33,8 +35,19 @@ export interface BookingDetailsDraft {
 export interface BookingDraft {
   step: BookingStep;
   guestCount: number | null;
+  /** null = not yet answered. Meaningless (never asked) when guestCount is 1. */
+  sameCourse: boolean | null;
+  /** Guest 1's treatment — the anchor/shared choice when sameCourse is true, unchanged from before this field existed. */
   serviceId: string | null;
   serviceOptionId: string | null;
+  /**
+   * Guests 2..guestCount's own treatment, in guest order — populated only
+   * when sameCourse is false. Length is guestCount - 1 once guest count is
+   * known; each entry is null until that guest has chosen. See
+   * lib/booking/guestSelection.ts for how this combines with serviceOptionId
+   * into one per-guest list.
+   */
+  otherGuestServiceOptionIds: (string | null)[];
   date: string | null; // "YYYY-MM-DD"
   time: string | null; // "HH:mm"
   details: BookingDetailsDraft | null;
@@ -44,8 +57,10 @@ export interface BookingDraft {
 export const emptyBookingDraft: BookingDraft = {
   step: "guests",
   guestCount: null,
+  sameCourse: null,
   serviceId: null,
   serviceOptionId: null,
+  otherGuestServiceOptionIds: [],
   date: null,
   time: null,
   details: null,

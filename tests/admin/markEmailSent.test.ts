@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { setupFreshDb } from "../dbTestUtils";
+import { sameGuests, setupFreshDb } from "../dbTestUtils";
 
 setupFreshDb();
 
@@ -21,7 +21,7 @@ function futureDateKey(daysAhead: number): string {
 describe("markConfirmationEmailSentAction — manual 발송 여부 tracker", () => {
   it("records a manual SENT marker without changing reservation status", async () => {
     const { reservation } = await createHold({
-      serviceOptionId: "aroma-oil-90",
+      guests: sameGuests("aroma-oil-90", 2),
       guestCount: 2,
       date: futureDateKey(6),
       time: "16:00",
@@ -46,7 +46,7 @@ describe("markConfirmationEmailSentAction — manual 발송 여부 tracker", () 
 
   it("is independent of reservation status — can be marked even while still PENDING", async () => {
     const { reservation } = await createHold({
-      serviceOptionId: "aroma-oil-90",
+      guests: sameGuests("aroma-oil-90", 1),
       guestCount: 1,
       date: futureDateKey(6),
       time: "10:00",

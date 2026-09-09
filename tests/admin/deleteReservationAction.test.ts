@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { setupFreshDb } from "../dbTestUtils";
+import { sameGuests, setupFreshDb } from "../dbTestUtils";
 
 setupFreshDb();
 
@@ -19,7 +19,7 @@ function futureDateKey(daysAhead: number): string {
 
 async function makeCompletedReservationId(): Promise<string> {
   const { reservation } = await createHold({
-    serviceOptionId: "aroma-oil-90",
+    guests: sameGuests("aroma-oil-90", 1),
     guestCount: 1,
     date: futureDateKey(5),
     time: "16:00",
@@ -45,7 +45,7 @@ describe("deleteReservationAction", () => {
 
   it("rejects a PENDING reservation with a BookingErrorCode, and does not delete it", async () => {
     const { reservation } = await createHold({
-      serviceOptionId: "aroma-oil-90",
+      guests: sameGuests("aroma-oil-90", 1),
       guestCount: 1,
       date: futureDateKey(5),
       time: "10:00",

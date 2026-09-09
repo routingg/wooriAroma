@@ -1,4 +1,3 @@
-import { getTranslations } from "next-intl/server";
 import { getService, getServiceOption } from "@/data/services";
 import { notificationService } from "@/lib/notifications";
 import { processAdminBookingAlerts } from "@/lib/notifications/adminBookingAlerts";
@@ -6,6 +5,7 @@ import type { NotificationEvent, ReservationNotificationPayload } from "@/lib/no
 import { getCustomerById } from "@/lib/repositories/customerRepository";
 import type { ReservationRecord } from "@/lib/repositories/reservationRepository";
 import { sendAdminReservationSms } from "@/lib/solapi";
+import { describeReservationTreatments } from "./reservationTreatments";
 
 /**
  * Builds the notification payload from trusted server data (never the
@@ -40,7 +40,7 @@ export async function buildReservationNotificationPayload(
     return null;
   }
 
-  const t = await getTranslations({ locale: reservation.locale, namespace: "services" });
+  const { summary: treatmentName } = await describeReservationTreatments(reservation, reservation.locale);
 
   return {
     event,
@@ -53,7 +53,7 @@ export async function buildReservationNotificationPayload(
     date: reservation.dateKey,
     time: reservation.serviceStart,
     guestCount: reservation.guestCount,
-    treatmentName: t(service.nameKey.replace("services.", "")),
+    treatmentName,
     durationMinutes: reservation.durationMinutes,
     totalAmount: reservation.totalAmount,
     depositAmount: reservation.depositAmount,

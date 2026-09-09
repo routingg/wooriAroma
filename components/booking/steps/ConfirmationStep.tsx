@@ -3,10 +3,10 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useBooking } from "../BookingProvider";
 import { Link } from "@/i18n/navigation";
-import { getService, getServiceOption } from "@/data/services";
 import { formatTimeLabel, fromMinutes, toMinutes } from "@/lib/booking/time";
 import { buildReservationIcs } from "@/lib/booking/ics";
 import { BUSINESS, googleMapsUrl } from "@/lib/config/business";
+import { isMixedTreatment, resolveGuestOptionIds, resolveGuestTreatments } from "@/lib/booking/guestSelection";
 import type { AppLocale } from "@/i18n/routing";
 
 /**
@@ -22,15 +22,21 @@ export function ConfirmationStep() {
   const locale = useLocale() as AppLocale;
   const { draft, resetBooking } = useBooking();
 
-  const option = draft.serviceOptionId ? getServiceOption(draft.serviceOptionId) : undefined;
-  const service = option ? getService(option.serviceId) : undefined;
   const guestCount = draft.guestCount ?? 0;
+  const guestOptionIds = resolveGuestOptionIds(draft);
+  const treatments = guestOptionIds ? resolveGuestTreatments(guestOptionIds) : null;
 
-  if (!option || !service || !draft.date || !draft.time || !draft.reservationNumber || !draft.details) {
+  if (!treatments || !draft.date || !draft.time || !draft.reservationNumber || !draft.details) {
     return null;
   }
 
-  const treatmentName = tServices(service.nameKey.replace("services.", ""));
+  const mixed = isMixedTreatment(guestOptionIds!);
+  const { option } = treatments[0];
+  const treatmentName = mixed
+    ? treatments
+        .map((guest) => `${tCommon("guestLabel", { n: guest.guestNumber })}: ${tServices(guest.service.nameKey.replace("services.", ""))}`)
+        .join(" · ")
+    : tServices(treatments[0].service.nameKey.replace("services.", ""));
 
   const dateLabel = new Intl.DateTimeFormat(locale, {
     year: "numeric",

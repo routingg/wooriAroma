@@ -157,13 +157,20 @@
     "recommended": "おすすめ",
     "perPerson": "/ 名",
     "min": "分",
-    "step": "ステップ {current} / {total}"
+    "step": "ステップ {current} / {total}",
+    "guestLabel": "ゲスト{n}"
   },
   "steps": {
     "guests": {
       "title": "ご利用人数をお選びください",
       "subtitle": "Woori Aroma は一度に一組限定でお迎えしており、最大4名様までご予約いただけます。",
       "option": "{count}名"
+    },
+    "sameCourse": {
+      "title": "全員同じトリートメントにしますか？",
+      "subtitle": "グループ全員が同じトリートメントを受けるか、各ゲストがそれぞれ選ぶかをお選びください。",
+      "same": "全員同じトリートメント",
+      "different": "ゲストごとに選ぶ"
     },
     "treatment": {
       "title": "トリートメントを選択",
@@ -173,6 +180,11 @@
     "duration": {
       "title": "施術時間を選択",
       "subtitle": "料金は お一人様あたりの価格です。"
+    },
+    "guestTreatments": {
+      "title": "ゲスト{guestNumber}のトリートメント",
+      "subtitle": "{minutes}分のコースのみ表示されます — グループ全員が同じ時間枠を利用します。",
+      "reviewTitle": "ゲストごとのトリートメント"
     },
     "date": {
       "title": "日付を選択",
@@ -286,6 +298,7 @@
     "HOLD_EXPIRED": "予約の一時保留時間が切れました。もう一度時間を選び直してください。",
     "INVALID_GUEST_COUNT": "1〜4名の範囲でお選びください。",
     "SERVICE_NOT_BOOKABLE": "このトリートメントはまだご予約いただけません。",
+    "MIXED_DURATION_NOT_ALLOWED": "グループ内の全員が同じ施術時間のトリートメントを選択する必要があります。",
     "SLOT_IN_PAST": "その時間はすでに過ぎています。別の時間をお選びください。",
     "INVALID_CUSTOMER_DETAILS": "お名前・電話番号・メールアドレスをご確認ください。"
   }

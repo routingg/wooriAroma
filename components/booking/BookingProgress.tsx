@@ -3,11 +3,11 @@
 import { useTranslations } from "next-intl";
 import type { BookingStep } from "@/types/bookingState";
 
-// The 9 internal wizard steps map onto 5 customer-facing progress
+// The 11 internal wizard steps map onto 5 customer-facing progress
 // labels, per the "minimal, not visually heavy" requirement.
 const PROGRESS_GROUPS: { key: string; steps: BookingStep[] }[] = [
-  { key: "guests", steps: ["guests"] },
-  { key: "treatment", steps: ["treatment", "duration"] },
+  { key: "guests", steps: ["guests", "sameCourse"] },
+  { key: "treatment", steps: ["treatment", "duration", "guestTreatments"] },
   { key: "dateTime", steps: ["date", "time"] },
   { key: "details", steps: ["details"] },
   { key: "confirm", steps: ["review", "submit", "confirmation"] },

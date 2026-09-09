@@ -157,13 +157,20 @@
     "recommended": "推荐",
     "perPerson": "/ 人",
     "min": "分钟",
-    "step": "第 {current} / {total} 步"
+    "step": "第 {current} / {total} 步",
+    "guestLabel": "客人 {n}"
   },
   "steps": {
     "guests": {
       "title": "请问有几位客人？",
       "subtitle": "Woori Aroma 一次只接待一组私人客人，最多4位。",
       "option": "{count}位"
+    },
+    "sameCourse": {
+      "title": "全员选择相同的护理项目吗？",
+      "subtitle": "请选择全组是否体验相同的护理项目，还是每位客人各自选择。",
+      "same": "全员相同的护理项目",
+      "different": "每位客人各自选择"
     },
     "treatment": {
       "title": "选择护理项目",
@@ -173,6 +180,11 @@
     "duration": {
       "title": "选择时长",
       "subtitle": "价格为每人价格。"
+    },
+    "guestTreatments": {
+      "title": "客人 {guestNumber} 的护理项目",
+      "subtitle": "仅显示时长为 {minutes} 分钟的项目 — 全组共用同一时间段。",
+      "reviewTitle": "各位客人的护理项目"
     },
     "date": {
       "title": "选择日期",
@@ -286,6 +298,7 @@
     "HOLD_EXPIRED": "预约保留时间已过期，请重新选择时间。",
     "INVALID_GUEST_COUNT": "请选择1至4位客人。",
     "SERVICE_NOT_BOOKABLE": "该护理项目暂不开放预约。",
+    "MIXED_DURATION_NOT_ALLOWED": "同组所有客人必须选择相同时长的护理项目。",
     "SLOT_IN_PAST": "该时间已过，请选择其他时间。",
     "INVALID_CUSTOMER_DETAILS": "请检查姓名、电话号码和邮箱是否正确。"
   }

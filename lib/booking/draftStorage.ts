@@ -30,15 +30,24 @@ function record(value: unknown): Record<string, unknown> {
     : {};
 }
 
+function otherGuestServiceOptionIds(value: unknown, guestCount: number | null): (string | null)[] {
+  if (!guestCount || !Array.isArray(value) || value.length !== guestCount - 1) return [];
+  if (!value.every((id) => id === null || typeof id === "string")) return [];
+  return value as (string | null)[];
+}
+
 function selections(value: unknown) {
   const input = record(value);
   const step = BOOKING_STEPS.find((candidate) => candidate === input.step) ?? "guests";
+  const guestCount = typeof input.guestCount === "number" && Number.isInteger(input.guestCount) && input.guestCount >= 1 && input.guestCount <= 4
+    ? input.guestCount : null;
   return {
     step: step === "review" || step === "submit" || step === "confirmation" ? "details" as const : step,
-    guestCount: typeof input.guestCount === "number" && Number.isInteger(input.guestCount) && input.guestCount >= 1 && input.guestCount <= 4
-      ? input.guestCount : null,
+    guestCount,
+    sameCourse: typeof input.sameCourse === "boolean" ? input.sameCourse : null,
     serviceId: typeof input.serviceId === "string" ? input.serviceId : null,
     serviceOptionId: typeof input.serviceOptionId === "string" ? input.serviceOptionId : null,
+    otherGuestServiceOptionIds: otherGuestServiceOptionIds(input.otherGuestServiceOptionIds, guestCount),
     date: typeof input.date === "string" ? input.date : null,
     time: typeof input.time === "string" ? input.time : null,
   };

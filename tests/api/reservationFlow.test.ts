@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupFreshDb } from "../dbTestUtils";
+import { sameGuests, setupFreshDb } from "../dbTestUtils";
 import { POST as createHoldRoute } from "@/app/api/reservation-holds/route";
 import { POST as confirmRoute } from "@/app/api/reservations/route";
 import { GET as getByNumberRoute } from "@/app/api/reservations/[reservationNumber]/route";
@@ -40,7 +40,7 @@ describe("reservation-holds + reservations API routes", () => {
 
     const holdRes = await createHoldRoute(
       jsonRequest("http://localhost/api/reservation-holds", {
-        serviceOptionId: "aroma-oil-90",
+        guests: sameGuests("aroma-oil-90", 2),
         guestCount: 2,
         date,
         time: "16:00",
@@ -56,7 +56,7 @@ describe("reservation-holds + reservations API routes", () => {
     // T04/T05 at the HTTP layer: a second, conflicting hold request is rejected.
     const conflictRes = await createHoldRoute(
       jsonRequest("http://localhost/api/reservation-holds", {
-        serviceOptionId: "aroma-oil-90",
+        guests: sameGuests("aroma-oil-90", 4),
         guestCount: 4,
         date,
         time: "16:00",
@@ -104,7 +104,7 @@ describe("reservation-holds + reservations API routes", () => {
     const date = futureDateKey(5);
     const holdRes = await createHoldRoute(
       jsonRequest("http://localhost/api/reservation-holds", {
-        serviceOptionId: "aroma-oil-90",
+        guests: sameGuests("aroma-oil-90", 1),
         guestCount: 1,
         date,
         time: "10:00",
@@ -135,10 +135,10 @@ describe("reservation-holds + reservations API routes", () => {
   it("does not expose a booking using its sequential number, a URL token, or another booking's token", async () => {
     const date = futureDateKey(5);
     const first = await readJson(await createHoldRoute(jsonRequest("http://localhost/api/reservation-holds", {
-      serviceOptionId: "aroma-oil-90", guestCount: 1, date, time: "10:00", locale: "en", customer,
+      guests: sameGuests("aroma-oil-90", 1), guestCount: 1, date, time: "10:00", locale: "en", customer,
     })));
     const second = await readJson(await createHoldRoute(jsonRequest("http://localhost/api/reservation-holds", {
-      serviceOptionId: "aroma-oil-90", guestCount: 1, date, time: "16:00", locale: "en",
+      guests: sameGuests("aroma-oil-90", 1), guestCount: 1, date, time: "16:00", locale: "en",
       customer: { ...customer, email: "second@example.com" },
     })));
     for (const request of [

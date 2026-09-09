@@ -15,24 +15,28 @@ function futureDateKey(daysAhead: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+function guestsOf(serviceOptionId: string, count: number) {
+  return Array.from({ length: count }, () => ({ serviceOptionId }));
+}
+
 describe("validateReservationHoldRequest", () => {
   it("accepts a well-formed request", () => {
     const result = validateReservationHoldRequest({
-      serviceOptionId: "aroma-oil-90",
+      guests: guestsOf("aroma-oil-90", 2),
       guestCount: 2,
       date: futureDateKey(3),
       time: "16:00",
       locale: "en",
       customer: validCustomer,
     });
-    expect(result.serviceOptionId).toBe("aroma-oil-90");
+    expect(result.guests).toEqual([{ serviceOptionId: "aroma-oil-90" }, { serviceOptionId: "aroma-oil-90" }]);
     expect(result.guestCount).toBe(2);
   });
 
   it("T07: rejects 5 guests instead of silently capping or auto-confirming", () => {
     expect(() =>
       validateReservationHoldRequest({
-        serviceOptionId: "aroma-oil-90",
+        guests: guestsOf("aroma-oil-90", 5),
         guestCount: 5,
         date: futureDateKey(3),
         time: "16:00",
@@ -43,7 +47,7 @@ describe("validateReservationHoldRequest", () => {
 
     try {
       validateReservationHoldRequest({
-        serviceOptionId: "aroma-oil-90",
+        guests: guestsOf("aroma-oil-90", 5),
         guestCount: 5,
         date: futureDateKey(3),
         time: "16:00",
@@ -59,8 +63,48 @@ describe("validateReservationHoldRequest", () => {
   it("T08: rejects an unknown/unpublished service option", () => {
     expect(() =>
       validateReservationHoldRequest({
-        serviceOptionId: "facial-999", // does not exist in data/services.ts
+        guests: guestsOf("facial-999", 1), // does not exist in data/services.ts
         guestCount: 1,
+        date: futureDateKey(3),
+        time: "16:00",
+        locale: "en",
+        customer: validCustomer,
+      }),
+    ).toThrowError(BookingError);
+  });
+
+  it("rejects guests whose treatments don't all share the same duration", () => {
+    expect(() =>
+      validateReservationHoldRequest({
+        guests: [{ serviceOptionId: "aroma-oil-60" }, { serviceOptionId: "aroma-oil-90" }],
+        guestCount: 2,
+        date: futureDateKey(3),
+        time: "16:00",
+        locale: "en",
+        customer: validCustomer,
+      }),
+    ).toThrowError(BookingError);
+
+    try {
+      validateReservationHoldRequest({
+        guests: [{ serviceOptionId: "aroma-oil-60" }, { serviceOptionId: "aroma-oil-90" }],
+        guestCount: 2,
+        date: futureDateKey(3),
+        time: "16:00",
+        locale: "en",
+        customer: validCustomer,
+      });
+    } catch (error) {
+      expect(error).toBeInstanceOf(BookingError);
+      expect((error as BookingError).code).toBe("MIXED_DURATION_NOT_ALLOWED");
+    }
+  });
+
+  it("rejects a guests array whose length doesn't match guestCount", () => {
+    expect(() =>
+      validateReservationHoldRequest({
+        guests: guestsOf("aroma-oil-90", 1),
+        guestCount: 2,
         date: futureDateKey(3),
         time: "16:00",
         locale: "en",
@@ -72,7 +116,7 @@ describe("validateReservationHoldRequest", () => {
   it("rejects an invalid email/phone instead of silently accepting bad contact info", () => {
     expect(() =>
       validateReservationHoldRequest({
-        serviceOptionId: "aroma-oil-90",
+        guests: guestsOf("aroma-oil-90", 1),
         guestCount: 1,
         date: futureDateKey(3),
         time: "16:00",
@@ -85,7 +129,7 @@ describe("validateReservationHoldRequest", () => {
   it("rejects a past date", () => {
     expect(() =>
       validateReservationHoldRequest({
-        serviceOptionId: "aroma-oil-90",
+        guests: guestsOf("aroma-oil-90", 1),
         guestCount: 1,
         date: "2020-01-01",
         time: "16:00",

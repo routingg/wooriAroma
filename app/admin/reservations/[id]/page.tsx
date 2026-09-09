@@ -1,12 +1,12 @@
 import { requireAdmin } from "@/lib/admin/auth";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getService, getServiceOption } from "@/data/services";
 import { DEFAULT_CONFIRMATION_SUBJECT, resolveConfirmationEmailFields } from "@/lib/admin/confirmationEmailTemplate";
 import { formatCurrency } from "@/lib/booking/pricing";
 import { formatTimeLabel } from "@/lib/booking/time";
 import { SEOUL_TIME_ZONE } from "@/lib/booking/timezone";
-import { DELETABLE_RESERVATION_STATUSES, STATUS_BADGE_CLASS, STATUS_LABELS_KO, SERVICE_NAMES_KO } from "@/lib/admin/labels";
+import { DELETABLE_RESERVATION_STATUSES, STATUS_BADGE_CLASS, STATUS_LABELS_KO } from "@/lib/admin/labels";
+import { describeReservationTreatmentsKo } from "@/lib/admin/reservationTreatments";
 import { getCustomerById } from "@/lib/repositories/customerRepository";
 import { listByReservation } from "@/lib/repositories/notificationRepository";
 import { getById } from "@/lib/repositories/reservationRepository";
@@ -22,13 +22,11 @@ export default async function AdminReservationDetailPage({ params }: { params: P
   const reservation = await getById(id);
   if (!reservation) notFound();
 
-  const option = getServiceOption(reservation.serviceOptionId);
-  const service = option ? getService(option.serviceId) : undefined;
-
-  const [customer, notifications, deletionSummary] = await Promise.all([
+  const [customer, notifications, deletionSummary, treatments] = await Promise.all([
     getCustomerById(reservation.customerId),
     listByReservation(reservation.id),
     resolveReservationDeletionSummary(reservation),
+    describeReservationTreatmentsKo(reservation),
   ]);
 
   const emailFields = customer ? await resolveConfirmationEmailFields(reservation, customer) : null;
@@ -65,7 +63,7 @@ export default async function AdminReservationDetailPage({ params }: { params: P
               <Field label="이메일 주소" value={customer?.email ?? "-"} />
               <Field label="전화번호" value={customer?.phone ?? "-"} />
               <Field label="인원" value={`${reservation.guestCount}명`} />
-              <Field label="메뉴" value={service ? SERVICE_NAMES_KO[service.id] : reservation.serviceOptionId} />
+              <Field label="메뉴" value={treatments.label || reservation.serviceOptionId} />
               <Field label="소요시간" value={`${reservation.durationMinutes}분`} />
               <Field label="예약 날짜" value={dateLabel} />
               <Field label="예약 시간" value={formatTimeLabel(reservation.serviceStart, "ko")} />

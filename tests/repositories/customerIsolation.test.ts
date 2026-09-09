@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { setupFreshDb } from "../dbTestUtils";
+import { sameGuests, setupFreshDb } from "../dbTestUtils";
 import { FakeD1Database } from "../fakeD1";
 import { getDb } from "@/lib/db/client";
 import { createHold } from "@/lib/repositories/reservationRepository";
@@ -12,7 +12,7 @@ setupFreshDb();
 
 function request(name = "Original Guest", time = "10:00"): ReservationHoldRequest {
   return {
-    serviceOptionId: "aroma-oil-90", guestCount: 1, date: "2099-10-20", time,
+    guests: sameGuests("aroma-oil-90", 1), guestCount: 1, date: "2099-10-20", time,
     locale: "en", source: "DIRECT",
     customer: { name, email: "guest@example.com", phone: "+82 10-1234-5678", preferredLanguage: "en" },
   };

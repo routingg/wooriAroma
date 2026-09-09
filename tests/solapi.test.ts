@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { setupFreshDb } from "./dbTestUtils";
+import { sameGuests, setupFreshDb } from "./dbTestUtils";
 
 setupFreshDb();
 
@@ -15,7 +15,7 @@ async function createPendingReservationId(): Promise<string> {
   d.setDate(d.getDate() + 6);
   const date = d.toISOString().slice(0, 10);
   const { reservation } = await createHold({
-    serviceOptionId: "aroma-oil-90",
+    guests: sameGuests("aroma-oil-90", 2),
     guestCount: 2,
     date,
     time: "18:00",

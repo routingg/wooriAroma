@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { getService, getServiceOption } from "@/data/services";
 import { formatCurrency } from "@/lib/booking/pricing";
 import { formatTimeLabel } from "@/lib/booking/time";
 import { BUSINESS } from "@/lib/config/business";
@@ -8,8 +7,8 @@ import {
   NOTIFICATION_STATUS_LABELS_KO,
   STATUS_BADGE_CLASS,
   STATUS_LABELS_KO,
-  SERVICE_NAMES_KO,
 } from "@/lib/admin/labels";
+import { describeReservationTreatmentsKo } from "@/lib/admin/reservationTreatments";
 import { getCustomerById } from "@/lib/repositories/customerRepository";
 import { listByReservation } from "@/lib/repositories/notificationRepository";
 import type { ReservationRecord } from "@/lib/repositories/reservationRepository";
@@ -27,11 +26,10 @@ const NOTIFICATION_STATUS_CLASS: Record<string, string> = {
 };
 
 export async function ReservationRow({ reservation }: { reservation: ReservationRecord }) {
-  const option = getServiceOption(reservation.serviceOptionId);
-  const service = option ? getService(option.serviceId) : undefined;
-  const [customer, notifications] = await Promise.all([
+  const [customer, notifications, treatments] = await Promise.all([
     getCustomerById(reservation.customerId),
     listByReservation(reservation.id),
+    describeReservationTreatmentsKo(reservation),
   ]);
 
   return (
@@ -39,8 +37,8 @@ export async function ReservationRow({ reservation }: { reservation: Reservation
       <summary className="flex flex-wrap items-center justify-between gap-2 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
         <div>
           <p className="font-medium text-stone-900">
-            {formatTimeLabel(reservation.serviceStart, "ko")} · {service ? SERVICE_NAMES_KO[service.id] : reservation.serviceOptionId} (
-            {option?.durationMinutes}분)
+            {formatTimeLabel(reservation.serviceStart, "ko")} · {treatments.label || reservation.serviceOptionId} (
+            {reservation.durationMinutes}분)
           </p>
           <p className="text-stone-500">
             {customer?.name ?? "-"} · {reservation.guestCount}명 · {reservation.reservationNumber}

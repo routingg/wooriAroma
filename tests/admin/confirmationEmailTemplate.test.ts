@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { setupFreshDb } from "../dbTestUtils";
+import { sameGuests, setupFreshDb } from "../dbTestUtils";
 
 setupFreshDb();
 
@@ -30,7 +30,7 @@ function futureDateKey(daysAhead: number): string {
 
 async function makeReservationFields(overrides: { name?: string } = {}) {
   const { reservation } = await createHold({
-    serviceOptionId: "aroma-oil-90",
+    guests: sameGuests("aroma-oil-90", 2),
     guestCount: 2,
     date: futureDateKey(7),
     time: "15:00",
@@ -59,7 +59,7 @@ const baseTextFields = {
 describe("resolveConfirmationEmailFields", () => {
   it("returns null when the service option can no longer be resolved", async () => {
     const { reservation } = await createHold({
-      serviceOptionId: "aroma-oil-90",
+      guests: sameGuests("aroma-oil-90", 1),
       guestCount: 1,
       date: futureDateKey(7),
       time: "10:00",

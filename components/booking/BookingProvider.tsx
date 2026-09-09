@@ -18,6 +18,49 @@ import {
 } from "@/types/bookingState";
 import { loadBookingDraft, saveBookingDraft } from "@/lib/booking/draftStorage";
 
+/**
+ * The wizard isn't a flat sequence once "sameCourse"/"guestTreatments" enter
+ * the picture: "guests" skips straight to "treatment" for a single guest
+ * (there's nothing to ask), and "duration"/"guestTreatments" branch on
+ * whether the group chose the same course. Every other transition is just
+ * the next/previous entry in BOOKING_STEPS.
+ */
+function linearStepAt(step: BookingStep, offset: 1 | -1): BookingStep {
+  const index = BOOKING_STEPS.indexOf(step);
+  const next = Math.min(Math.max(index + offset, 0), BOOKING_STEPS.length - 1);
+  return BOOKING_STEPS[next];
+}
+
+function nextStepFor(draft: BookingDraft): BookingStep {
+  switch (draft.step) {
+    case "guests":
+      return (draft.guestCount ?? 0) >= 2 ? "sameCourse" : "treatment";
+    case "sameCourse":
+      return "treatment";
+    case "duration":
+      return draft.sameCourse === false ? "guestTreatments" : "date";
+    case "guestTreatments":
+      return "date";
+    default:
+      return linearStepAt(draft.step, 1);
+  }
+}
+
+function previousStepFor(draft: BookingDraft): BookingStep {
+  switch (draft.step) {
+    case "sameCourse":
+      return "guests";
+    case "treatment":
+      return (draft.guestCount ?? 0) >= 2 ? "sameCourse" : "guests";
+    case "guestTreatments":
+      return "duration";
+    case "date":
+      return draft.sameCourse === false ? "guestTreatments" : "duration";
+    default:
+      return linearStepAt(draft.step, -1);
+  }
+}
+
 function browserStorage(kind: "localStorage" | "sessionStorage"): Storage | undefined {
   try {
     return typeof window === "undefined" ? undefined : window[kind];
@@ -30,8 +73,11 @@ interface BookingContextValue {
   draft: BookingDraft;
   isHydrated: boolean;
   setGuestCount: (guestCount: number) => void;
+  setSameCourse: (sameCourse: boolean) => void;
   setTreatment: (serviceId: string) => void;
   setDuration: (serviceOptionId: string) => void;
+  setOtherGuestOption: (index: number, serviceOptionId: string) => void;
+  resetOtherGuestOptions: () => void;
   setDate: (date: string) => void;
   setTime: (time: string) => void;
   setDetails: (details: BookingDetailsDraft) => void;
@@ -72,36 +118,69 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const goNext = useCallback(() => {
-    setDraft((prev) => {
-      const index = BOOKING_STEPS.indexOf(prev.step);
-      const next = BOOKING_STEPS[Math.min(index + 1, BOOKING_STEPS.length - 1)];
-      return { ...prev, step: next };
-    });
+    setDraft((prev) => ({ ...prev, step: nextStepFor(prev) }));
   }, []);
 
   const goBack = useCallback(() => {
-    setDraft((prev) => {
-      const index = BOOKING_STEPS.indexOf(prev.step);
-      const previous = BOOKING_STEPS[Math.max(index - 1, 0)];
-      return { ...prev, step: previous };
-    });
+    setDraft((prev) => ({ ...prev, step: previousStepFor(prev) }));
   }, []);
 
   const setGuestCount = useCallback((guestCount: number) => {
-    setDraft((prev) => ({ ...prev, guestCount }));
+    setDraft((prev) => ({
+      ...prev,
+      guestCount,
+      // A guest count of 1 skips the "same course?" question entirely, and
+      // any different-guest-count change invalidates the per-guest picks.
+      sameCourse: guestCount >= 2 ? prev.sameCourse : null,
+      otherGuestServiceOptionIds: [],
+    }));
+  }, []);
+
+  const setSameCourse = useCallback((sameCourse: boolean) => {
+    setDraft((prev) => ({
+      ...prev,
+      sameCourse,
+      otherGuestServiceOptionIds: sameCourse ? [] : Array((prev.guestCount ?? 1) - 1).fill(null),
+    }));
   }, []);
 
   const setTreatment = useCallback((serviceId: string) => {
     setDraft((prev) => ({
       ...prev,
       serviceId,
-      // Changing the treatment invalidates any previously chosen duration.
+      // Changing the treatment invalidates any previously chosen duration,
+      // and any other guests' picks (their duration constraint depended on it).
       serviceOptionId: prev.serviceId === serviceId ? prev.serviceOptionId : null,
+      otherGuestServiceOptionIds:
+        prev.serviceId === serviceId
+          ? prev.otherGuestServiceOptionIds
+          : Array(prev.otherGuestServiceOptionIds.length).fill(null),
     }));
   }, []);
 
   const setDuration = useCallback((serviceOptionId: string) => {
-    setDraft((prev) => ({ ...prev, serviceOptionId }));
+    setDraft((prev) => ({
+      ...prev,
+      serviceOptionId,
+      // A new shared duration invalidates any other guests' picks — they may
+      // no longer offer this duration.
+      otherGuestServiceOptionIds: Array(prev.otherGuestServiceOptionIds.length).fill(null),
+    }));
+  }, []);
+
+  const setOtherGuestOption = useCallback((index: number, serviceOptionId: string) => {
+    setDraft((prev) => {
+      const otherGuestServiceOptionIds = [...prev.otherGuestServiceOptionIds];
+      otherGuestServiceOptionIds[index] = serviceOptionId;
+      return { ...prev, otherGuestServiceOptionIds };
+    });
+  }, []);
+
+  const resetOtherGuestOptions = useCallback(() => {
+    setDraft((prev) => ({
+      ...prev,
+      otherGuestServiceOptionIds: Array(Math.max((prev.guestCount ?? 1) - 1, 0)).fill(null),
+    }));
   }, []);
 
   const setDate = useCallback((date: string) => {
@@ -133,8 +212,11 @@ export function BookingProvider({ children }: { children: ReactNode }) {
       draft,
       isHydrated,
       setGuestCount,
+      setSameCourse,
       setTreatment,
       setDuration,
+      setOtherGuestOption,
+      resetOtherGuestOptions,
       setDate,
       setTime,
       setDetails,
@@ -148,8 +230,11 @@ export function BookingProvider({ children }: { children: ReactNode }) {
       draft,
       isHydrated,
       setGuestCount,
+      setSameCourse,
       setTreatment,
       setDuration,
+      setOtherGuestOption,
+      resetOtherGuestOptions,
       setDate,
       setTime,
       setDetails,

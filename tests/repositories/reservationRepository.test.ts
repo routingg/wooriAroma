@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupFreshDb } from "../dbTestUtils";
+import { sameGuests, setupFreshDb } from "../dbTestUtils";
 import {
   confirmReservation,
   createHold,
@@ -21,9 +21,10 @@ function futureDateKey(daysAhead: number): string {
 }
 
 function holdRequest(overrides: Partial<ReservationHoldRequest> = {}): ReservationHoldRequest {
+  const guestCount = overrides.guestCount ?? 2;
   return {
-    serviceOptionId: "aroma-oil-90",
-    guestCount: 2,
+    guests: sameGuests("aroma-oil-90", guestCount),
+    guestCount,
     date: futureDateKey(5),
     time: "16:00",
     locale: "en",

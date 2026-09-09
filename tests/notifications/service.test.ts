@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { setupFreshDb } from "../dbTestUtils";
+import { sameGuests, setupFreshDb } from "../dbTestUtils";
 
 setupFreshDb();
 
@@ -26,7 +26,7 @@ describe("notificationService — failure isolation", () => {
   it("never throws when a provider throws, and logs the failure instead", async () => {
     const date = futureDateKey(6);
     const { reservation } = await createHold({
-      serviceOptionId: "aroma-oil-90",
+      guests: sameGuests("aroma-oil-90", 1),
       guestCount: 1,
       date,
       time: "16:00",

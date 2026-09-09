@@ -13,10 +13,13 @@ export function TreatmentStep() {
   const { draft, setTreatment, goNext } = useBooking();
 
   const sortedServices = [...services].sort((a, b) => a.order - b.order);
+  // "Different courses" chosen: this step now only picks guest 1's
+  // treatment (guests 2..N pick their own on the guestTreatments step).
+  const isForGuestOne = draft.sameCourse === false;
 
   return (
     <StepShell
-      title={t("title")}
+      title={isForGuestOne ? tCommon("guestLabel", { n: 1 }) + " — " + t("title") : t("title")}
       subtitle={t("subtitle")}
       footer={
         <PrimaryButton disabled={!draft.serviceId} onClick={goNext}>

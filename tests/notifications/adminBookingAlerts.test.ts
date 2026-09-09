@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { setupFreshDb } from "../dbTestUtils";
+import { sameGuests, setupFreshDb } from "../dbTestUtils";
 
 setupFreshDb();
 
@@ -31,7 +31,7 @@ async function hold() {
   const future = new Date();
   future.setUTCDate(future.getUTCDate() + 10);
   return createHold({
-    serviceOptionId: "aroma-oil-90", guestCount: 1,
+    guests: sameGuests("aroma-oil-90", 1), guestCount: 1,
     date: future.toISOString().slice(0, 10), time: "16:00", locale: "ko", source: "DIRECT",
     customer: {
       name: "Private Customer", phone: "+82 10-1234-5678", email: "customer@example.com",

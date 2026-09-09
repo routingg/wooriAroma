@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { setupFreshDb } from "../dbTestUtils";
+import { sameGuests, setupFreshDb } from "../dbTestUtils";
 
 // next-intl/server's `getTranslations` resolves to a client-component stub
 // that throws when Vitest resolves it outside Next.js's own "react-server"
@@ -49,7 +49,7 @@ describe("sendDueReminders — idempotency", () => {
 
     const date = futureDateKey(6);
     const { reservation } = await createHold({
-      serviceOptionId: "aroma-oil-90",
+      guests: sameGuests("aroma-oil-90", 2),
       guestCount: 2,
       date,
       time: "16:00",
@@ -88,7 +88,7 @@ describe("sendDueReminders — idempotency", () => {
 
     const date = futureDateKey(6);
     const { reservation } = await createHold({
-      serviceOptionId: "aroma-oil-90",
+      guests: sameGuests("aroma-oil-90", 1),
       guestCount: 1,
       date,
       time: "16:00",

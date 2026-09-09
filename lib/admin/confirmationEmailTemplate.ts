@@ -1,7 +1,7 @@
-import { getTranslations } from "next-intl/server";
 import { getService, getServiceOption } from "@/data/services";
 import { formatTimeLabel } from "@/lib/booking/time";
 import { BUSINESS, confirmationEmailMapsUrl } from "@/lib/config/business";
+import { describeReservationTreatments } from "@/lib/booking/reservationTreatments";
 import type { CustomerRecord } from "@/lib/repositories/customerRepository";
 import type { ReservationRecord } from "@/lib/repositories/reservationRepository";
 
@@ -69,8 +69,7 @@ export async function resolveConfirmationEmailFields(
   const service = option ? getService(option.serviceId) : undefined;
   if (!option || !service) return null;
 
-  const t = await getTranslations({ locale: "en", namespace: "services" });
-  const treatmentName = t(service.nameKey.replace("services.", ""));
+  const { summary: treatmentName } = await describeReservationTreatments(reservation, "en");
 
   const dateLabel = new Intl.DateTimeFormat("en-US", {
     weekday: "long",

@@ -19,7 +19,8 @@ const VALID_SOURCES = [
 ] as const;
 
 export interface ReservationHoldRequest {
-  serviceOptionId: string;
+  /** One entry per guest, in guest order. All entries must share the same durationMinutes (see check below) — the whole group occupies one shared time slot. */
+  guests: { serviceOptionId: string }[];
   guestCount: number;
   date: string;
   time: string;
@@ -56,11 +57,21 @@ export function validateReservationHoldRequest(body: unknown): ReservationHoldRe
     throw new BookingError("INVALID_GUEST_COUNT", "Guest count must be an integer between 1 and 4.");
   }
 
-  const serviceOptionId = String(b.serviceOptionId ?? "");
-  const option = getServiceOption(serviceOptionId);
-  if (!option) {
+  const guestsInput = Array.isArray(b.guests) ? b.guests : [];
+  if (guestsInput.length !== guestCount) {
+    throw new BookingError("VALIDATION_ERROR", "guests must have exactly one entry per guest.");
+  }
+  const guestOptions = guestsInput.map((g) => {
+    const rawId = typeof g === "object" && g !== null ? (g as Record<string, unknown>).serviceOptionId : undefined;
+    return getServiceOption(String(rawId ?? ""));
+  });
+  if (guestOptions.some((option) => !option)) {
     throw new BookingError("SERVICE_NOT_BOOKABLE", "Unknown or unpublished service option.");
   }
+  if (new Set(guestOptions.map((option) => option!.durationMinutes)).size > 1) {
+    throw new BookingError("MIXED_DURATION_NOT_ALLOWED", "All guests in a private group must share the same treatment duration.");
+  }
+  const guests = guestOptions.map((option) => ({ serviceOptionId: option!.id }));
 
   const date = String(b.date ?? "");
   if (!DATE_KEY_PATTERN.test(date)) {
@@ -105,7 +116,7 @@ export function validateReservationHoldRequest(body: unknown): ReservationHoldRe
     : "DIRECT";
 
   return {
-    serviceOptionId,
+    guests,
     guestCount,
     date,
     time,

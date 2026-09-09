@@ -4,11 +4,12 @@ import { getServiceOption } from "@/data/services";
 import type { AppLocale } from "@/i18n/routing";
 import { calculateBlockedTime, type BlockedWindow } from "@/lib/booking/availability";
 import { fromMinutes, toMinutes } from "@/lib/booking/time";
-import { calculateDepositAmount, calculateRemainingAmount, calculateTotalAmount } from "@/lib/booking/pricing";
+import { calculateDepositAmount, calculateRemainingAmount, calculateTotalAmountForGuests } from "@/lib/booking/pricing";
 import { BookingError } from "@/lib/booking/errors";
 import { nextReservationNumber } from "@/lib/booking/reservationNumber";
 import type { ReservationHoldRequest } from "@/lib/booking/validation";
 import { prepareBookingCustomer, type CustomerRecord } from "./customerRepository";
+import { buildReservationGuestStatements } from "./reservationGuestRepository";
 import { DELETABLE_RESERVATION_STATUSES } from "@/lib/admin/labels";
 
 const HOLD_MINUTES = Number(process.env.BOOKING_HOLD_MINUTES ?? 10);
@@ -151,10 +152,21 @@ export interface CreateHoldResult {
  */
 export async function createHold(request: ReservationHoldRequest): Promise<CreateHoldResult> {
   const db = getDb();
-  const option = getServiceOption(request.serviceOptionId);
-  if (!option) {
+  // Re-derived independently from trusted server data, same as every other
+  // field below — never trust validation.ts's checks alone for the actual
+  // write (see this function's doc comment).
+  const guestOptions = request.guests.map((g) => getServiceOption(g.serviceOptionId));
+  if (guestOptions.some((o) => !o) || guestOptions.length !== request.guestCount) {
     throw new BookingError("SERVICE_NOT_BOOKABLE", "Unknown or unpublished service option.");
   }
+  const options = guestOptions as NonNullable<(typeof guestOptions)[number]>[];
+  if (new Set(options.map((o) => o.durationMinutes)).size > 1) {
+    throw new BookingError("MIXED_DURATION_NOT_ALLOWED", "All guests in a private group must share the same treatment duration.");
+  }
+  // Guest 1's option anchors the shared columns (duration/service_option_id/
+  // price_per_person) that pre-date per-guest treatments — every guest
+  // shares the same durationMinutes, just verified above.
+  const option = options[0];
 
   const now = new Date();
   const nowIso = now.toISOString();
@@ -169,7 +181,7 @@ export async function createHold(request: ReservationHoldRequest): Promise<Creat
     preferredLanguage: request.customer.preferredLanguage,
   });
 
-  const totalAmount = calculateTotalAmount(option.pricePerPerson, request.guestCount);
+  const totalAmount = calculateTotalAmountForGuests(options.map((o) => o.pricePerPerson));
   const depositAmount = calculateDepositAmount(request.guestCount);
   const remainingAmount = calculateRemainingAmount(totalAmount, depositAmount);
 
@@ -232,14 +244,25 @@ export async function createHold(request: ReservationHoldRequest): Promise<Creat
       blocked.end,
     );
 
+  const guestStatements = buildReservationGuestStatements(
+    id,
+    options.map((o) => ({ serviceOptionId: o.id, pricePerPerson: o.pricePerPerson })),
+    nowIso,
+  );
+
   // D1 batches are transactional: a failed write rolls back both records.
   // A conflict is a successful INSERT with zero rows, so remove only this
-  // new, unreferenced contact within the same batch in that case.
+  // new, unreferenced contact within the same batch in that case. Each
+  // guest statement is itself a no-op when the reservation insert no-oped
+  // (see buildReservationGuestStatements) — appending them after the
+  // cleanup delete keeps `result` (index 1, the reservation insert) the
+  // one this function branches on below.
   const [, result] = await db.batch([
     customerStatement,
     reservationStatement,
     db.prepare("DELETE FROM customers WHERE id = ? AND NOT EXISTS (SELECT 1 FROM reservations WHERE customer_id = ?)")
       .bind(customer.id, customer.id),
+    ...guestStatements,
   ]);
 
   if (result.meta.changes === 0) {

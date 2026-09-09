@@ -48,3 +48,8 @@ export function setupFreshDb(): void {
     currentDb = db;
   });
 }
+
+/** Every guest gets the same course — the common case most tests want, without spelling out the per-guest array each time. */
+export function sameGuests(serviceOptionId: string, guestCount: number): { serviceOptionId: string }[] {
+  return Array.from({ length: guestCount }, () => ({ serviceOptionId }));
+}

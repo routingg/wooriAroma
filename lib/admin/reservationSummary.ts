@@ -1,7 +1,6 @@
-import { getService, getServiceOption } from "@/data/services";
 import { formatTimeLabel } from "@/lib/booking/time";
 import { SEOUL_TIME_ZONE } from "@/lib/booking/timezone";
-import { SERVICE_NAMES_KO } from "@/lib/admin/labels";
+import { describeReservationTreatmentsKo } from "@/lib/admin/reservationTreatments";
 import { getCustomerById } from "@/lib/repositories/customerRepository";
 import type { ReservationRecord } from "@/lib/repositories/reservationRepository";
 
@@ -22,9 +21,10 @@ export interface ReservationDeletionSummary {
 export async function resolveReservationDeletionSummary(
   reservation: ReservationRecord,
 ): Promise<ReservationDeletionSummary> {
-  const customer = await getCustomerById(reservation.customerId);
-  const option = getServiceOption(reservation.serviceOptionId);
-  const service = option ? getService(option.serviceId) : undefined;
+  const [customer, treatments] = await Promise.all([
+    getCustomerById(reservation.customerId),
+    describeReservationTreatmentsKo(reservation),
+  ]);
 
   const dateLabel = new Intl.DateTimeFormat("ko-KR", { timeZone: SEOUL_TIME_ZONE, dateStyle: "long" }).format(
     new Date(`${reservation.dateKey}T00:00:00+09:00`),
@@ -34,7 +34,7 @@ export async function resolveReservationDeletionSummary(
   return {
     customerName: customer?.name ?? "",
     dateTimeLabel: `${dateLabel} ${timeLabel}`,
-    serviceLabel: service ? `${SERVICE_NAMES_KO[service.id]} · ${reservation.durationMinutes}분` : "",
+    serviceLabel: treatments.label ? `${treatments.label} · ${reservation.durationMinutes}분` : "",
     guestCount: reservation.guestCount,
   };
 }

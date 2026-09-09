@@ -15,10 +15,11 @@ export function DurationStep() {
   const { draft, setDuration, goNext } = useBooking();
 
   const service = draft.serviceId ? getService(draft.serviceId) : undefined;
+  const isForGuestOne = draft.sameCourse === false;
 
   return (
     <StepShell
-      title={t("title")}
+      title={isForGuestOne ? tCommon("guestLabel", { n: 1 }) + " — " + t("title") : t("title")}
       subtitle={t("subtitle")}
       footer={
         <PrimaryButton disabled={!draft.serviceOptionId} onClick={goNext}>

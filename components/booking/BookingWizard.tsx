@@ -3,8 +3,10 @@
 import { useEffect } from "react";
 import { useBooking } from "./BookingProvider";
 import { GuestsStep } from "./steps/GuestsStep";
+import { SameCourseStep } from "./steps/SameCourseStep";
 import { TreatmentStep } from "./steps/TreatmentStep";
 import { DurationStep } from "./steps/DurationStep";
+import { GuestTreatmentsStep } from "./steps/GuestTreatmentsStep";
 import { DateStep } from "./steps/DateStep";
 import { TimeStep } from "./steps/TimeStep";
 import { DetailsStep } from "./steps/DetailsStep";
@@ -16,8 +18,13 @@ import type { BookingDraft, BookingStep } from "@/types/bookingState";
 /** The earliest step whose prerequisite selection is still missing. */
 function firstIncompleteStep(draft: BookingDraft): BookingStep | null {
   if (!draft.guestCount) return "guests";
+  if (draft.guestCount >= 2 && draft.sameCourse === null) return "sameCourse";
   if (!draft.serviceId) return "treatment";
   if (!draft.serviceOptionId) return "duration";
+  if (draft.sameCourse === false) {
+    const others = draft.otherGuestServiceOptionIds;
+    if (others.length !== draft.guestCount - 1 || others.some((id) => !id)) return "guestTreatments";
+  }
   if (!draft.date) return "date";
   if (!draft.time) return "time";
   if (draft.step === "review" || draft.step === "submit" || draft.step === "confirmation") {
@@ -51,10 +58,14 @@ export function BookingWizard() {
   switch (draft.step) {
     case "guests":
       return <GuestsStep />;
+    case "sameCourse":
+      return <SameCourseStep />;
     case "treatment":
       return <TreatmentStep />;
     case "duration":
       return <DurationStep />;
+    case "guestTreatments":
+      return <GuestTreatmentsStep />;
     case "date":
       return <DateStep />;
     case "time":

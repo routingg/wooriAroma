@@ -7,6 +7,11 @@ export function calculateTotalAmount(pricePerPerson: number, guestCount: number)
   return pricePerPerson * guestCount;
 }
 
+/** Sum of each guest's own price — equals calculateTotalAmount(p, guestCount) when every guest shares the same price. */
+export function calculateTotalAmountForGuests(pricesPerPerson: number[]): number {
+  return pricesPerPerson.reduce((sum, price) => sum + price, 0);
+}
+
 export function calculateDepositAmount(guestCount: number): number {
   return DEPOSIT_PER_GUEST * guestCount;
 }

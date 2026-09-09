@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useBooking } from "../BookingProvider";
 import { StepShell } from "../StepShell";
 import { PrimaryButton } from "@/components/common/PrimaryButton";
+import { resolveGuestOptionIds } from "@/lib/booking/guestSelection";
 import type { AppLocale } from "@/i18n/routing";
 
 type Status = "processing" | "failed";
@@ -30,6 +31,7 @@ const KNOWN_ERROR_CODES = new Set([
   "HOLD_EXPIRED",
   "INVALID_GUEST_COUNT",
   "SERVICE_NOT_BOOKABLE",
+  "MIXED_DURATION_NOT_ALLOWED",
   "SLOT_IN_PAST",
   "INVALID_CUSTOMER_DETAILS",
 ]);
@@ -59,8 +61,9 @@ export function SubmitStep() {
 
   useEffect(() => {
     if (hasStarted.current) return;
-    const { details, guestCount, serviceOptionId, date, time } = draft;
-    if (!details || !guestCount || !serviceOptionId || !date || !time) return;
+    const { details, guestCount, date, time } = draft;
+    const guestOptionIds = resolveGuestOptionIds(draft);
+    if (!details || !guestCount || !guestOptionIds || !date || !time) return;
     hasStarted.current = true;
 
     async function run() {
@@ -69,7 +72,7 @@ export function SubmitStep() {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
-            serviceOptionId,
+            guests: guestOptionIds!.map((serviceOptionId) => ({ serviceOptionId })),
             guestCount,
             date,
             time,
