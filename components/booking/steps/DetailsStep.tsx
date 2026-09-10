@@ -7,6 +7,12 @@ import { StepShell } from "../StepShell";
 import { PrimaryButton } from "@/components/common/PrimaryButton";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { localeNames } from "@/i18n/config";
+import {
+  MESSENGER_APPS,
+  MESSENGER_APP_LABELS,
+  MESSENGER_HANDLE_PATTERN,
+  MESSENGER_HANDLE_PLACEHOLDERS,
+} from "@/lib/booking/messenger";
 import type { BookingDetailsDraft } from "@/types/bookingState";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -24,6 +30,8 @@ export function DetailsStep() {
       name: "",
       phone: "",
       email: "",
+      messengerApp: "",
+      messengerHandle: "",
       preferredLanguage: locale,
       specialRequest: "",
     },
@@ -34,8 +42,11 @@ export function DetailsStep() {
     name: form.name.trim().length === 0,
     phone: !PHONE_PATTERN.test(form.phone.trim()),
     email: !EMAIL_PATTERN.test(form.email.trim()),
+    // Only reachable once an app is picked, since the whole field is optional.
+    messengerHandle:
+      form.messengerApp !== "" && !MESSENGER_HANDLE_PATTERN.test(form.messengerHandle.trim()),
   };
-  const isValid = !errors.name && !errors.phone && !errors.email;
+  const isValid = !errors.name && !errors.phone && !errors.email && !errors.messengerHandle;
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -47,6 +58,11 @@ export function DetailsStep() {
 
   function field<K extends keyof BookingDetailsDraft>(key: K, value: BookingDetailsDraft[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  /** Deselecting the app hides its input, so drop the handle with it. */
+  function selectMessengerApp(app: BookingDetailsDraft["messengerApp"]) {
+    setForm((prev) => ({ ...prev, messengerApp: app, messengerHandle: app === "" ? "" : prev.messengerHandle }));
   }
 
   const inputClass =
@@ -106,6 +122,43 @@ export function DetailsStep() {
           />
           {touched && errors.email && <span className="text-xs text-red-500">{tValidation("invalidEmail")}</span>}
         </label>
+
+        <div className="flex flex-col gap-1.5">
+          <span className="text-sm font-medium text-stone-800">
+            {t("messenger")} <span className="text-stone-400">({tCommon("optional")})</span>
+          </span>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <select
+              aria-label={t("messenger")}
+              value={form.messengerApp}
+              onChange={(e) => selectMessengerApp(e.target.value as BookingDetailsDraft["messengerApp"])}
+              className={`${inputClass} sm:w-44 sm:shrink-0`}
+            >
+              <option value="">{t("messengerNone")}</option>
+              {MESSENGER_APPS.map((app) => (
+                <option key={app} value={app}>
+                  {MESSENGER_APP_LABELS[app]}
+                </option>
+              ))}
+            </select>
+            {form.messengerApp !== "" && (
+              <input
+                type="text"
+                autoComplete="off"
+                aria-label={MESSENGER_APP_LABELS[form.messengerApp]}
+                value={form.messengerHandle}
+                onChange={(e) => field("messengerHandle", e.target.value)}
+                placeholder={MESSENGER_HANDLE_PLACEHOLDERS[form.messengerApp]}
+                className={`${inputClass} ${touched && errors.messengerHandle ? errorClass : ""}`}
+              />
+            )}
+          </div>
+          {touched && errors.messengerHandle ? (
+            <span className="text-xs text-red-500">{tValidation("invalidMessengerHandle")}</span>
+          ) : (
+            <span className="text-xs text-stone-500">{t("messengerHint")}</span>
+          )}
+        </div>
 
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-medium text-stone-800">{t("preferredLanguage")}</span>

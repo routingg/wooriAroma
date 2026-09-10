@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { getService, getServiceOption } from "@/data/services";
 import { formatTimeLabel, fromMinutes, toMinutes } from "@/lib/booking/time";
 import { buildReservationIcs } from "@/lib/booking/ics";
+import { formatMessengerContact } from "@/lib/booking/messenger";
 import { BUSINESS, googleMapsUrl } from "@/lib/config/business";
 import type { AppLocale } from "@/i18n/routing";
 
@@ -89,6 +90,15 @@ export function ConfirmationStep() {
           <Row label={t("customerName")} value={draft.details.name} />
           <Row label={t("email")} value={draft.details.email} />
           {draft.details.phone ? <Row label={t("phone")} value={draft.details.phone} /> : null}
+          {draft.details.messengerApp && draft.details.messengerHandle ? (
+            <Row
+              label={t("messenger")}
+              value={formatMessengerContact({
+                app: draft.details.messengerApp,
+                handle: draft.details.messengerHandle,
+              })}
+            />
+          ) : null}
         </dl>
       </div>
 

@@ -1,3 +1,4 @@
+import { MESSENGER_APPS } from "@/lib/booking/messenger";
 import { BOOKING_STEPS, emptyBookingDraft, type BookingDraft, type BookingDetailsDraft } from "@/types/bookingState";
 
 export const BOOKING_STORAGE_KEY = "wa_booking_draft";
@@ -49,10 +50,15 @@ function details(value: unknown): BookingDetailsDraft | null {
   if (!["name", "phone", "email", "specialRequest"].every((key) => typeof input[key] === "string")) return null;
   const preferredLanguage = ["ko", "en", "ja", "zh"].find((locale) => locale === input.preferredLanguage);
   if (!preferredLanguage) return null;
+  // The messenger pair is absent from drafts written before it existed, so it
+  // falls back to empty rather than invalidating the whole draft.
+  const messengerApp = MESSENGER_APPS.find((app) => app === input.messengerApp) ?? "";
   return {
     name: input.name as string,
     phone: input.phone as string,
     email: input.email as string,
+    messengerApp,
+    messengerHandle: messengerApp && typeof input.messengerHandle === "string" ? input.messengerHandle : "",
     specialRequest: input.specialRequest as string,
     preferredLanguage: preferredLanguage as BookingDetailsDraft["preferredLanguage"],
   };

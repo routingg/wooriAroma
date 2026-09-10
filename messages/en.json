@@ -195,6 +195,9 @@
       "phone": "Phone",
       "email": "Email",
       "emailPlaceholder": "you@example.com",
+      "messenger": "Messenger",
+      "messengerNone": "None",
+      "messengerHint": "If your phone won't work in Korea, add a messenger we can reach you on.",
       "preferredLanguage": "Preferred language for communication",
       "preferredLanguageHint": "We'll contact you in this language, even if it differs from the site language.",
       "specialRequest": "Special requests",
@@ -224,6 +227,7 @@
       "customerName": "Name",
       "email": "Email",
       "phone": "Phone",
+      "messenger": "Messenger",
       "requestedDate": "Requested Date",
       "requestedTime": "Requested Time",
       "guests": "Guests",
@@ -239,7 +243,8 @@
   "validation": {
     "required": "This field is required.",
     "invalidEmail": "Enter a valid email address.",
-    "invalidPhone": "Enter a valid phone number."
+    "invalidPhone": "Enter a valid phone number.",
+    "invalidMessengerHandle": "Enter your ID or number for the selected messenger."
   },
   "notifications": {
     "email": {

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getService, getServiceOption } from "@/data/services";
 import { DEFAULT_CONFIRMATION_SUBJECT, resolveConfirmationEmailFields } from "@/lib/admin/confirmationEmailTemplate";
+import { formatMessengerContact, messengerLink } from "@/lib/booking/messenger";
 import { formatCurrency } from "@/lib/booking/pricing";
 import { formatTimeLabel } from "@/lib/booking/time";
 import { SEOUL_TIME_ZONE } from "@/lib/booking/timezone";
@@ -64,6 +65,13 @@ export default async function AdminReservationDetailPage({ params }: { params: P
               <Field label="고객 이름" value={customer?.name ?? "-"} />
               <Field label="이메일 주소" value={customer?.email ?? "-"} />
               <Field label="전화번호" value={customer?.phone ?? "-"} />
+              <Field
+                label="메신저"
+                value={customer?.messenger ? formatMessengerContact(customer.messenger) : "-"}
+                // WeChat has no web link, and Telegram only links usernames —
+                // those fall back to plain text (lib/booking/messenger.ts).
+                href={customer?.messenger ? messengerLink(customer.messenger) : null}
+              />
               <Field label="인원" value={`${reservation.guestCount}명`} />
               <Field label="메뉴" value={service ? SERVICE_NAMES_KO[service.id] : reservation.serviceOptionId} />
               <Field label="소요시간" value={`${reservation.durationMinutes}분`} />
@@ -126,11 +134,24 @@ export default async function AdminReservationDetailPage({ params }: { params: P
   );
 }
 
-function Field({ label, value }: { label: string; value: string }) {
+function Field({ label, value, href }: { label: string; value: string; href?: string | null }) {
   return (
     <div>
       <dt className="text-xs text-stone-500">{label}</dt>
-      <dd className="mt-0.5 font-medium text-stone-900">{value}</dd>
+      <dd className="mt-0.5 font-medium text-stone-900">
+        {href ? (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline decoration-stone-300 underline-offset-2 hover:decoration-stone-900"
+          >
+            {value}
+          </a>
+        ) : (
+          value
+        )}
+      </dd>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { routing, type AppLocale } from "@/i18n/routing";
 import { isSlotInPast } from "./availability";
 import { isDateKeyPast } from "./timezone";
 import { BookingError } from "./errors";
+import { isMessengerApp, MESSENGER_HANDLE_PATTERN, type MessengerContact } from "./messenger";
 
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_PATTERN = /^\+?[0-9][0-9\s-]{6,19}$/;
@@ -29,6 +30,7 @@ export interface ReservationHoldRequest {
     name: string;
     phone: string;
     email: string;
+    messenger?: MessengerContact;
     preferredLanguage: AppLocale;
     specialRequest?: string;
   };
@@ -36,6 +38,26 @@ export interface ReservationHoldRequest {
 
 function isAppLocale(value: unknown): value is AppLocale {
   return typeof value === "string" && (routing.locales as readonly string[]).includes(value);
+}
+
+/**
+ * The messenger field is optional, so an empty pair means "not provided".
+ * A half-filled pair is rejected rather than silently dropped — staff would
+ * otherwise see an app with nobody to contact on it.
+ */
+function parseMessenger(value: unknown): MessengerContact | undefined {
+  if (typeof value !== "object" || value === null) return undefined;
+  const input = value as Record<string, unknown>;
+  const app = input.app;
+  const handle = String(input.handle ?? "").trim();
+  if (!app && !handle) return undefined;
+  if (!isMessengerApp(app) || !MESSENGER_HANDLE_PATTERN.test(handle)) {
+    throw new BookingError(
+      "INVALID_CUSTOMER_DETAILS",
+      "A messenger contact needs both a supported app and a valid handle.",
+    );
+  }
+  return { app, handle };
 }
 
 /**
@@ -84,6 +106,7 @@ export function validateReservationHoldRequest(body: unknown): ReservationHoldRe
   const name = String(customerInput.name ?? "").trim();
   const phone = String(customerInput.phone ?? "").trim();
   const email = String(customerInput.email ?? "").trim();
+  const messenger = parseMessenger(customerInput.messenger);
   const preferredLanguage = isAppLocale(customerInput.preferredLanguage)
     ? customerInput.preferredLanguage
     : locale;
@@ -111,6 +134,6 @@ export function validateReservationHoldRequest(body: unknown): ReservationHoldRe
     time,
     locale,
     source,
-    customer: { name, phone, email, preferredLanguage, specialRequest },
+    customer: { name, phone, email, messenger, preferredLanguage, specialRequest },
   };
 }

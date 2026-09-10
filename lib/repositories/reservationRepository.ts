@@ -166,6 +166,7 @@ export async function createHold(request: ReservationHoldRequest): Promise<Creat
     name: request.customer.name,
     phone: request.customer.phone,
     email: request.customer.email,
+    messenger: request.customer.messenger ?? null,
     preferredLanguage: request.customer.preferredLanguage,
   });
 

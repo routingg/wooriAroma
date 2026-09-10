@@ -1,3 +1,4 @@
+import type { MessengerApp } from "@/lib/booking/messenger";
 import type { AppLocale } from "@/i18n/routing";
 
 export const BOOKING_STEPS = [
@@ -18,6 +19,9 @@ export interface BookingDetailsDraft {
   name: string;
   phone: string;
   email: string;
+  /** "" while the guest has not picked one — the messenger field is optional. */
+  messengerApp: MessengerApp | "";
+  messengerHandle: string;
   preferredLanguage: AppLocale;
   specialRequest: string;
 }

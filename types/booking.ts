@@ -1,3 +1,4 @@
+import type { MessengerContact } from "@/lib/booking/messenger";
 import type { AppLocale } from "@/i18n/routing";
 
 /** A bookable treatment category, e.g. Aroma Oil, Hot Stone, Facial. */
@@ -37,6 +38,8 @@ export interface Customer {
   /** Full international phone number, e.g. "+82 10-1234-5678". */
   phone: string;
   email: string;
+  /** Second contact channel for guests unreachable on their phone abroad. */
+  messenger?: MessengerContact;
   /** Language the customer wants to be *contacted* in — independent of the UI locale. */
   preferredLanguage: AppLocale;
   specialRequest?: string;

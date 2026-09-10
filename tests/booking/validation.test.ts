@@ -82,6 +82,45 @@ describe("validateReservationHoldRequest", () => {
     ).toThrowError(BookingError);
   });
 
+  it("keeps the optional messenger contact and treats an empty pair as absent", () => {
+    function customerOf(messenger: unknown) {
+      return validateReservationHoldRequest({
+        serviceOptionId: "aroma-oil-90",
+        guestCount: 1,
+        date: futureDateKey(3),
+        time: "16:00",
+        locale: "en",
+        customer: { ...validCustomer, messenger },
+      }).customer;
+    }
+
+    expect(customerOf({ app: "TELEGRAM", handle: "  @janedoe  " }).messenger).toEqual({
+      app: "TELEGRAM",
+      handle: "@janedoe",
+    });
+    expect(customerOf(undefined).messenger).toBeUndefined();
+    expect(customerOf({ app: "", handle: "" }).messenger).toBeUndefined();
+  });
+
+  it("rejects a half-filled or unsupported messenger rather than dropping it", () => {
+    for (const messenger of [
+      { app: "WHATSAPP", handle: "" },
+      { app: "", handle: "@janedoe" },
+      { app: "LINE", handle: "janedoe" },
+    ]) {
+      expect(() =>
+        validateReservationHoldRequest({
+          serviceOptionId: "aroma-oil-90",
+          guestCount: 1,
+          date: futureDateKey(3),
+          time: "16:00",
+          locale: "en",
+          customer: { ...validCustomer, messenger },
+        }),
+      ).toThrowError(BookingError);
+    }
+  });
+
   it("rejects a past date", () => {
     expect(() =>
       validateReservationHoldRequest({

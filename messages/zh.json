@@ -195,6 +195,9 @@
       "phone": "电话",
       "email": "邮箱",
       "emailPlaceholder": "you@example.com",
+      "messenger": "即时通讯",
+      "messengerNone": "不填写",
+      "messengerHint": "如果您的手机在韩国无法接通，请留下可以联系到您的即时通讯账号。",
       "preferredLanguage": "希望使用的沟通语言",
       "preferredLanguageHint": "即使与网站语言不同，我们也会使用此语言与您联系。",
       "specialRequest": "特殊需求",
@@ -224,6 +227,7 @@
       "customerName": "姓名",
       "email": "邮箱",
       "phone": "电话号码",
+      "messenger": "即时通讯",
       "requestedDate": "申请日期",
       "requestedTime": "申请时间",
       "guests": "人数",
@@ -239,7 +243,8 @@
   "validation": {
     "required": "此项为必填。",
     "invalidEmail": "请输入有效的邮箱地址。",
-    "invalidPhone": "请输入有效的电话号码。"
+    "invalidPhone": "请输入有效的电话号码。",
+    "invalidMessengerHandle": "请输入所选即时通讯的账号或号码。"
   },
   "notifications": {
     "email": {

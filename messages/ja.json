@@ -195,6 +195,9 @@
       "phone": "電話番号",
       "email": "メールアドレス",
       "emailPlaceholder": "you@example.com",
+      "messenger": "メッセンジャー",
+      "messengerNone": "選択しない",
+      "messengerHint": "韓国でお電話がつながりにくい場合は、ご連絡可能なメッセンジャーをご記入ください。",
       "preferredLanguage": "ご希望の連絡言語",
       "preferredLanguageHint": "サイトの表示言語と異なっていても、こちらの言語でご連絡いたします。",
       "specialRequest": "ご要望・特記事項",
@@ -224,6 +227,7 @@
       "customerName": "お名前",
       "email": "メールアドレス",
       "phone": "電話番号",
+      "messenger": "メッセンジャー",
       "requestedDate": "希望日",
       "requestedTime": "希望時間",
       "guests": "人数",
@@ -239,7 +243,8 @@
   "validation": {
     "required": "この項目は必須です。",
     "invalidEmail": "正しいメールアドレスを入力してください。",
-    "invalidPhone": "正しい電話番号を入力してください。"
+    "invalidPhone": "正しい電話番号を入力してください。",
+    "invalidMessengerHandle": "選択したメッセンジャーのIDまたは番号を入力してください。"
   },
   "notifications": {
     "email": {

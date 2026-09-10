@@ -78,6 +78,9 @@ export function SubmitStep() {
               name: details!.name,
               phone: details!.phone,
               email: details!.email,
+              messenger: details!.messengerApp
+                ? { app: details!.messengerApp, handle: details!.messengerHandle }
+                : undefined,
               preferredLanguage: details!.preferredLanguage,
               specialRequest: details!.specialRequest || undefined,
             },

@@ -15,7 +15,7 @@ const draft: BookingDraft = {
   ...emptyBookingDraft,
   step: "confirmation", guestCount: 2, serviceId: "aroma-oil", serviceOptionId: "aroma-oil-90",
   date: "2026-12-12", time: "16:00", reservationNumber: "WA-20261212-001",
-  details: { name: "Private Guest", email: "private@example.com", phone: "+821012345678", preferredLanguage: "en", specialRequest: "Private request" },
+  details: { name: "Private Guest", email: "private@example.com", phone: "+821012345678", messengerApp: "TELEGRAM", messengerHandle: "@privateguest", preferredLanguage: "en", specialRequest: "Private request" },
 };
 
 describe("booking draft privacy", () => {
@@ -40,7 +40,7 @@ describe("booking draft privacy", () => {
     expect(restored.reservationNumber).toBeNull();
     expect(restored.serviceOptionId).toBe(draft.serviceOptionId);
     const durable = local.getItem(BOOKING_STORAGE_KEY)!;
-    for (const value of ["Private", "private@example.com", "+821012345678", "WA-20261212-001", "secret"]) {
+    for (const value of ["Private", "private@example.com", "+821012345678", "@privateguest", "WA-20261212-001", "secret"]) {
       expect(durable).not.toContain(value);
     }
   });

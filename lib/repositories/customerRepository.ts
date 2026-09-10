@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { getDb } from "@/lib/db/client";
+import { isMessengerApp, type MessengerContact } from "@/lib/booking/messenger";
 import type { AppLocale } from "@/i18n/routing";
 
 export interface CustomerInput {
@@ -7,10 +8,13 @@ export interface CustomerInput {
   phone: string;
   email: string;
   preferredLanguage: AppLocale;
+  /** Optional second contact channel; absent for every pre-messenger booking. */
+  messenger?: MessengerContact | null;
 }
 
-export interface CustomerRecord extends CustomerInput {
+export interface CustomerRecord extends Omit<CustomerInput, "messenger"> {
   id: string;
+  messenger: MessengerContact | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -21,6 +25,8 @@ interface RawCustomerRow {
   phone: string;
   email: string;
   preferred_language: string;
+  messenger_app: string | null;
+  messenger_handle: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -31,6 +37,11 @@ function mapRow(row: RawCustomerRow): CustomerRecord {
     name: row.name,
     phone: row.phone,
     email: row.email,
+    // Half a pair is unusable, so treat it as no messenger at all.
+    messenger:
+      isMessengerApp(row.messenger_app) && row.messenger_handle
+        ? { app: row.messenger_app, handle: row.messenger_handle }
+        : null,
     preferredLanguage: row.preferred_language as AppLocale,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -48,12 +59,24 @@ export function prepareBookingCustomer(input: CustomerInput): { customer: Custom
   const email = input.email.trim().toLowerCase();
 
   const id = randomUUID();
+  const messenger = input.messenger ?? null;
   const statement = db
     .prepare(
-      `INSERT INTO customers (id, name, phone, email, preferred_language, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO customers
+         (id, name, phone, email, preferred_language, messenger_app, messenger_handle, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
-    .bind(id, input.name, input.phone, email, input.preferredLanguage, now, now);
+    .bind(
+      id,
+      input.name,
+      input.phone,
+      email,
+      input.preferredLanguage,
+      messenger?.app ?? null,
+      messenger?.handle ?? null,
+      now,
+      now,
+    );
 
   const customer = mapRow({
     id,
@@ -61,6 +84,8 @@ export function prepareBookingCustomer(input: CustomerInput): { customer: Custom
     phone: input.phone,
     email,
     preferred_language: input.preferredLanguage,
+    messenger_app: messenger?.app ?? null,
+    messenger_handle: messenger?.handle ?? null,
     created_at: now,
     updated_at: now,
   });
