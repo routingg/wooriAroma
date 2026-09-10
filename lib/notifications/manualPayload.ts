@@ -75,6 +75,7 @@ export async function buildManualConfirmationPayload(input: ManualConfirmationIn
       time: input.time,
       guestCount: input.guestCount,
       treatmentName: t(service.nameKey.replace("services.", "")),
+      serviceId: service.id,
       durationMinutes: option.durationMinutes,
       totalAmount,
       depositAmount,

@@ -54,6 +54,7 @@ export async function buildReservationNotificationPayload(
     time: reservation.serviceStart,
     guestCount: reservation.guestCount,
     treatmentName: t(service.nameKey.replace("services.", "")),
+    serviceId: service.id,
     durationMinutes: reservation.durationMinutes,
     totalAmount: reservation.totalAmount,
     depositAmount: reservation.depositAmount,

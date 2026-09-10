@@ -149,10 +149,64 @@ describe("sendAdminReservationSms — successful send", () => {
     expect(body.message.type).toBe("SMS");
     expect(body.message.text).toContain("James Smith");
     expect(body.message.text).toContain("Aroma 90min");
+    // Year is dropped from the date shown to the admin.
+    expect(body.message.text).toContain("09-12");
+    expect(body.message.text).not.toContain("2026");
 
     const logs = await listByReservation(reservationId);
     const smsLog = logs.find((l) => l.channel === "SMS");
     expect(smsLog).toMatchObject({ status: "SENT", provider: "solapi", providerMessageId: "sms-abc" });
+  });
+
+  it("never includes the reservation number, and translates the service id into its short Korean label", async () => {
+    const fetchMock = createFetchOkMock();
+    vi.stubGlobal("fetch", fetchMock);
+    const reservationId = await createPendingReservationId();
+
+    await sendAdminReservationSms(payload(reservationId, { serviceId: "hot-stone", reservationNumber: "WA-20260101-999" }));
+
+    const [, init] = fetchMock.mock.calls[0];
+    const body = JSON.parse(init.body as string) as { message: { text: string } };
+    expect(body.message.text).not.toContain("WA-20260101-999");
+    expect(body.message.text).toContain("스톤");
+  });
+
+  it("falls back to the full treatment name for a service id with no short label", async () => {
+    const fetchMock = createFetchOkMock();
+    vi.stubGlobal("fetch", fetchMock);
+    const reservationId = await createPendingReservationId();
+
+    await sendAdminReservationSms(payload(reservationId, { serviceId: "unmapped-service" }));
+
+    const [, init] = fetchMock.mock.calls[0];
+    const body = JSON.parse(init.body as string) as { message: { text: string } };
+    expect(body.message.text).toContain("Aroma 90min");
+  });
+
+  it("appends the admin dashboard link when ADMIN_NOTIFICATION_ORIGIN is configured", async () => {
+    process.env.ADMIN_NOTIFICATION_ORIGIN = "https://wooriaroma.site";
+    const fetchMock = createFetchOkMock();
+    vi.stubGlobal("fetch", fetchMock);
+    const reservationId = await createPendingReservationId();
+
+    await sendAdminReservationSms(payload(reservationId));
+
+    const [, init] = fetchMock.mock.calls[0];
+    const body = JSON.parse(init.body as string) as { message: { text: string } };
+    expect(body.message.text.split("\n").at(-1)).toBe("https://wooriaroma.site/admin");
+  });
+
+  it("omits the admin dashboard link when ADMIN_NOTIFICATION_ORIGIN is missing or malformed", async () => {
+    process.env.ADMIN_NOTIFICATION_ORIGIN = "not-a-url";
+    const fetchMock = createFetchOkMock();
+    vi.stubGlobal("fetch", fetchMock);
+    const reservationId = await createPendingReservationId();
+
+    await sendAdminReservationSms(payload(reservationId));
+
+    const [, init] = fetchMock.mock.calls[0];
+    const body = JSON.parse(init.body as string) as { message: { text: string } };
+    expect(body.message.text).not.toContain("http");
   });
 
   it("still falls back to LMS when an unusually long name/menu pushes past the SMS byte limit", async () => {

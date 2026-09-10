@@ -36,6 +36,8 @@ export interface ReservationNotificationPayload {
   time: string; // "HH:mm"
   guestCount: number;
   treatmentName: string;
+  /** data/services.ts Service.id, e.g. "aroma-oil" — optional since only the admin SMS's short Korean label (lib/solapi.ts) needs it; every other channel renders the already-localized treatmentName. */
+  serviceId?: string;
   durationMinutes: number;
   totalAmount: number;
   depositAmount: number;

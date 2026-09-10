@@ -1,5 +1,4 @@
 import { createHmac, randomUUID } from "node:crypto";
-import { BUSINESS } from "@/lib/config/business";
 import { maskRecipient } from "@/lib/notifications/devLog";
 import { recordAttempt, wasAlreadySent } from "@/lib/repositories/notificationRepository";
 import type { ReservationNotificationPayload } from "@/lib/notifications/types";
@@ -66,19 +65,62 @@ function byteLength(text: string): number {
 }
 
 /**
- * Deliberately label-light (no "예약자:"/"날짜:" prefixes) so a typical
- * name/menu combination stays inside the 90-byte SMS threshold instead of
- * always falling back to LMS — see byteLength()/SMS_BYTE_LIMIT below. Field
- * order is fixed and consistent every time: date/time/guests, then name and
- * menu. No dashboard link in the body — that costs bytes an admin who
- * already knows to check /admin/reservations doesn't need.
+ * Short Korean label per data/services.ts Service.id — this admin SMS is
+ * always Korean regardless of the guest's preferredLanguage, so it can't
+ * reuse payload.treatmentName (localized for the customer-facing EMAIL
+ * channel, e.g. English for an overseas guest). Falls back to
+ * payload.treatmentName for an unmapped/missing id rather than throwing —
+ * a new service should degrade to its full name, not break the SMS.
  */
-function buildMessageText(payload: ReservationNotificationPayload): string {
-  return [
-    `[${BUSINESS.nameKo}]신규예약`,
-    `${payload.date} ${payload.time} ${payload.guestCount}명`,
-    `${payload.customerName} ${payload.treatmentName}`,
-  ].join("\n");
+const SHORT_TREATMENT_NAMES: Record<string, string> = {
+  "thai-massage": "건식",
+  "aroma-oil": "아로마",
+  "hot-stone": "스톤",
+  "quick-spa-foot": "발관리",
+  facial: "얼굴",
+};
+
+function shortTreatmentName(payload: ReservationNotificationPayload): string {
+  return (payload.serviceId && SHORT_TREATMENT_NAMES[payload.serviceId]) || payload.treatmentName;
+}
+
+/** payload.date is always "YYYY-MM-DD" (see ReservationNotificationPayload) — drop the year for the admin SMS, nobody reads this more than a season out. */
+function monthDay(date: string): string {
+  return date.slice(5);
+}
+
+/**
+ * Deliberately label-light (no "예약자:"/"날짜:" prefixes) and no reservation
+ * number — the admin dashboard link now covers "which reservation is this",
+ * so it stays inside the 90-byte SMS threshold instead of falling back to
+ * LMS. Fixed order every time: name, date/time/guests, then course+duration,
+ * then the admin dashboard link (omitted when ADMIN_NOTIFICATION_ORIGIN
+ * isn't configured, so a missing/malformed origin never blocks the alert).
+ */
+function buildMessageText(payload: ReservationNotificationPayload, adminUrl: string | null): string {
+  const lines = [
+    `${payload.customerName} ${monthDay(payload.date)} ${payload.time} ${payload.guestCount}명`,
+    `${shortTreatmentName(payload)} ${payload.durationMinutes}분`,
+  ];
+  if (adminUrl) lines.push(adminUrl);
+  return lines.join("\n");
+}
+
+/**
+ * Mirrors the origin validation in lib/notifications/providers/adminBookingEmail.ts
+ * (https-only, no userinfo/path/query/hash) — same env var, same trust
+ * boundary, just linking to the /admin list instead of one reservation.
+ */
+function getAdminDashboardUrl(): string | null {
+  try {
+    const url = new URL(process.env.ADMIN_NOTIFICATION_ORIGIN ?? "");
+    if (url.protocol !== "https:" || url.username || url.password || url.pathname !== "/" || url.search || url.hash) {
+      return null;
+    }
+    return new URL("/admin", url.origin).toString();
+  } catch {
+    return null;
+  }
 }
 
 function buildAuthHeader(apiKey: string, apiSecret: string): string {
@@ -129,7 +171,7 @@ export async function sendAdminReservationSms(payload: ReservationNotificationPa
     return;
   }
 
-  const text = buildMessageText(payload);
+  const text = buildMessageText(payload, getAdminDashboardUrl());
   const type = byteLength(text) <= SMS_BYTE_LIMIT ? "SMS" : "LMS";
 
   try {
