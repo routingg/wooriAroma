@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { requireAdmin } from "@/lib/admin/auth";
+import { listAll } from "@/lib/repositories/reservationRepository";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import "../globals.css";
 
 /**
@@ -13,18 +15,21 @@ import "../globals.css";
 export const dynamic = "force-dynamic";
 
 /**
- * Independent root layout for the future admin dashboard.
- * Deliberately outside app/[locale] and next-intl's routing — staff
- * are Korean-only and this area must never follow browser-language
- * detection. This file only proves the architecture divides cleanly;
- * the dashboard itself is out of scope for this task (see section 27).
+ * Independent root layout for the admin dashboard. Deliberately outside
+ * app/[locale] and next-intl's routing — staff are Korean-only and this
+ * area must never follow browser-language detection. Renders the
+ * persistent AdminSidebar so every admin page shares the same
+ * cross-navigation instead of only linking back to /admin one hop at a time.
  */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   await requireAdmin();
+  const pending = await listAll(["PENDING"]);
+
   return (
     <html lang="ko" className="h-full">
-      <body className="flex min-h-full flex-col bg-stone-100 font-sans text-stone-900 antialiased">
-        {children}
+      <body className="flex min-h-full flex-col bg-stone-100 font-sans text-stone-900 antialiased md:flex-row">
+        <AdminSidebar pendingCount={pending.length} />
+        <div className="flex min-w-0 flex-1 flex-col">{children}</div>
       </body>
     </html>
   );

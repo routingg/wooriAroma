@@ -12,26 +12,7 @@ export default async function AdminDashboardPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-10">
-      <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-stone-900">오늘 현황</h1>
-        <nav className="flex flex-wrap gap-4 text-sm text-stone-600">
-          <Link href="/admin/notifications" className="hover:underline">
-            예약 알림
-          </Link>
-          <Link href="/admin/reservations" className="hover:underline">
-            예약 관리
-          </Link>
-          <Link href="/admin/send-confirmation" className="hover:underline">
-            메일 보내기
-          </Link>
-          <Link href="/admin/blocked-times" className="hover:underline">
-            시간 관리
-          </Link>
-          <Link href="/admin/agent-handoffs" className="hover:underline">
-            에이전트 예외함
-          </Link>
-        </nav>
-      </header>
+      <h1 className="text-2xl font-semibold text-stone-900">오늘 현황</h1>
 
       {pendingCount > 0 && (
         <Link

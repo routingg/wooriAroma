@@ -34,8 +34,7 @@ export default async function AdminNotificationsPage() {
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-6 py-10">
       <header>
-        <Link href="/admin" className="text-sm text-stone-600 hover:underline">← 관리자 홈</Link>
-        <h1 className="mt-3 text-2xl font-semibold text-stone-900">관리자 예약 알림</h1>
+        <h1 className="text-2xl font-semibold text-stone-900">관리자 예약 알림</h1>
         <p className="mt-2 text-sm text-stone-600">
           새 예약 요청 알림의 최근 처리 내역입니다. 서비스 접수 완료 후 실제 수신 여부는 이메일함에서 확인해 주세요.
         </p>
