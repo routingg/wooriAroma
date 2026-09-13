@@ -11,6 +11,14 @@ const STATUS_LABELS = {
   DEAD: "관리자 확인 필요",
 };
 
+const STATUS_BADGE_CLASS = {
+  PENDING: "bg-stone-100 text-stone-600",
+  PROCESSING: "bg-blue-100 text-blue-700",
+  SENT: "bg-emerald-100 text-emerald-700",
+  TESTED: "bg-violet-100 text-violet-700",
+  DEAD: "bg-red-100 text-red-700",
+};
+
 const CONFIGURATION_LABELS: Record<string, string> = {
   provider_not_configured: "이메일 서비스 연결이 필요합니다.",
   admin_recipient_not_configured: "관리자 알림을 받을 이메일 주소를 설정해 주세요.",
@@ -52,14 +60,14 @@ export default async function AdminNotificationsPage() {
         일시적인 발송 실패는 예약 알림 스케줄러가 다시 시도합니다. 관리자 확인이 필요한 경우 이메일 서비스의 발송 기록과
         해당 예약을 확인해 주세요. 중복 알림을 피하기 위해 자동 재시도를 멈춘 내역입니다.
       </p>
-      <ul className="divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white">
+      <ul className="divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white shadow-sm">
         {alerts.length === 0 ? <li className="p-4 text-sm text-stone-500">아직 알림 내역이 없습니다.</li> : alerts.map((alert) => (
           <li key={alert.reservation_id} className="flex flex-wrap items-center justify-between gap-3 p-4 text-sm">
             <div>
-              <p className={alert.status === "DEAD" ? "font-medium text-red-700" : "font-medium text-stone-900"}>
+              <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_BADGE_CLASS[alert.status]}`}>
                 {STATUS_LABELS[alert.status]}
-              </p>
-              <p className="mt-1 text-xs text-stone-500">
+              </span>
+              <p className="mt-1.5 text-xs text-stone-500">
                 {new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "short", timeStyle: "short" }).format(new Date(alert.created_at))}
                 {" · "}{alert.attempt_count}회 시도
               </p>

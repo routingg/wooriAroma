@@ -15,13 +15,20 @@ export default async function AgentHandoffsPage() {
       </p>
 
       <section>
-        <h2 className="text-sm font-semibold text-stone-900">처리 대기 ({open.length})</h2>
-        <ul className="mt-3 divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-stone-900">
+          처리 대기
+          {open.length > 0 ? (
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">{open.length}</span>
+          ) : (
+            <span className="text-xs font-normal text-stone-400">0</span>
+          )}
+        </h2>
+        <ul className="mt-3 divide-y divide-stone-200 overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
           {open.length === 0 ? (
             <li className="p-4 text-sm text-stone-500">대기 중인 항목이 없습니다.</li>
           ) : (
             open.map((h) => (
-              <li key={h.id} className="flex flex-col gap-2 p-4 text-sm">
+              <li key={h.id} className="flex flex-col gap-2 border-l-4 border-amber-400 p-4 text-sm">
                 <p className="font-medium text-stone-900">{h.reason}</p>
                 <p className="text-stone-600">{h.summary}</p>
                 {h.customerContact ? <p className="text-stone-500">연락처: {h.customerContact}</p> : null}
@@ -44,8 +51,13 @@ export default async function AgentHandoffsPage() {
       </section>
 
       <section>
-        <h2 className="text-sm font-semibold text-stone-900">최근 처리 완료</h2>
-        <ul className="mt-3 divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-stone-900">
+          최근 처리 완료
+          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+            {resolved.length}
+          </span>
+        </h2>
+        <ul className="mt-3 divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white shadow-sm">
           {resolved.length === 0 ? (
             <li className="p-4 text-sm text-stone-500">처리 완료된 항목이 없습니다.</li>
           ) : (

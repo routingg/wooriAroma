@@ -54,7 +54,7 @@ export default async function AdminReservationDetailPage({ params }: { params: P
       {/* 예약 정보 | 메일 작성 — side by side once there's room, stacked on mobile/tablet. */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr] lg:items-start">
         <div className="flex flex-col gap-6">
-          <section className="rounded-xl border border-stone-200 bg-white p-5">
+          <section className="rounded-xl border border-stone-200 bg-white shadow-sm p-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-lg font-semibold text-stone-900">{reservation.reservationNumber}</p>
               <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_BADGE_CLASS[reservation.status]}`}>

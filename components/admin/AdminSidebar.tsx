@@ -95,35 +95,47 @@ export function AdminSidebar({ pendingCount }: { pendingCount: number }) {
   const pathname = usePathname();
 
   return (
-    <nav
-      aria-label="관리자 메뉴"
-      className="flex shrink-0 gap-1 overflow-x-auto border-b border-stone-200 bg-white px-3 py-2 md:w-56 md:flex-col md:gap-0.5 md:border-b-0 md:border-r md:px-3 md:py-6"
-    >
-      {NAV_ITEMS.map((item) => {
-        const active = isActive(pathname, item);
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            aria-current={active ? "page" : undefined}
-            className={`flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors md:shrink ${
-              active ? "bg-stone-900 text-stone-50" : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
-            }`}
-          >
-            {item.icon}
-            <span className="whitespace-nowrap">{item.label}</span>
-            {item.href === "/admin/reservations" && pendingCount > 0 ? (
-              <span
-                className={`ml-auto hidden shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold md:inline ${
-                  active ? "bg-stone-50 text-stone-900" : "bg-blue-100 text-blue-700"
-                }`}
-              >
-                {pendingCount}
-              </span>
-            ) : null}
-          </Link>
-        );
-      })}
-    </nav>
+    <div className="flex shrink-0 flex-col border-b border-stone-200 bg-white md:w-60 md:border-b-0 md:border-r">
+      <div className="hidden items-center gap-2.5 px-5 pt-6 pb-5 md:flex">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-forest-500 text-base font-bold text-white">
+          우
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-stone-900">Woori Aroma</p>
+          <p className="text-xs text-stone-400">관리자 대시보드</p>
+        </div>
+      </div>
+
+      <nav
+        aria-label="관리자 메뉴"
+        className="flex shrink-0 gap-1 overflow-x-auto px-3 py-2 md:flex-col md:gap-1 md:px-3 md:pb-6"
+      >
+        {NAV_ITEMS.map((item) => {
+          const active = isActive(pathname, item);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={active ? "page" : undefined}
+              className={`flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors md:shrink ${
+                active ? "bg-forest-500 text-white shadow-sm" : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
+              }`}
+            >
+              {item.icon}
+              <span className="whitespace-nowrap">{item.label}</span>
+              {item.href === "/admin/reservations" && pendingCount > 0 ? (
+                <span
+                  className={`ml-auto hidden shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold md:inline ${
+                    active ? "bg-white text-forest-700" : "bg-blue-100 text-blue-700"
+                  }`}
+                >
+                  {pendingCount}
+                </span>
+              ) : null}
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
   );
 }

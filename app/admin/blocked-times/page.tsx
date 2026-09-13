@@ -2,9 +2,17 @@ import { requireAdmin } from "@/lib/admin/auth";
 import { listUpcomingBlockedTimes } from "@/lib/repositories/blockedTimeRepository";
 import { getBookingSettings } from "@/lib/repositories/bookingSettingsRepository";
 import { getSeoulNow } from "@/lib/booking/timezone";
-import { formatTimeLabel } from "@/lib/booking/time";
+import { formatTimeLabel, fromMinutes } from "@/lib/booking/time";
 import { ConfirmSubmitButton } from "@/components/admin/ConfirmSubmitButton";
 import { createBlockedTimeAction, removeBlockedTimeAction, updateBookingSettingsAction } from "../actions";
+
+/** Matches the reservation grid's 30-minute granularity, so blocking a time takes one pick instead of typing HH:mm by hand. */
+const START_TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => fromMinutes(i * 30));
+const END_TIME_OPTIONS = [...START_TIME_OPTIONS.slice(1), "24:00"];
+
+function timeOptionLabel(hhmm: string): string {
+  return hhmm === "24:00" ? "24:00 (자정)" : formatTimeLabel(hhmm, "ko");
+}
 
 export default async function AdminBlockedTimesPage() {
   await requireAdmin();
@@ -15,7 +23,7 @@ export default async function AdminBlockedTimesPage() {
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-6 py-10">
       <h1 className="text-2xl font-semibold text-stone-900">시간 관리</h1>
 
-      <form action={updateBookingSettingsAction} className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4">
+      <form action={updateBookingSettingsAction} className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white shadow-sm p-4">
         <h2 className="text-sm font-semibold text-stone-900">예약 준비/정리 시간</h2>
         <p className="text-xs text-stone-500">
           모든 예약 앞뒤로 자동으로 차단되는 시간입니다. 시술 종료와 동시에 다음 예약이 시작되길 원하면 0으로 두세요.
@@ -49,7 +57,7 @@ export default async function AdminBlockedTimesPage() {
         </button>
       </form>
 
-      <form action={createBlockedTimeAction} className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4">
+      <form action={createBlockedTimeAction} className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white shadow-sm p-4">
         <h2 className="text-sm font-semibold text-stone-900">차단 추가</h2>
         <div className="flex flex-wrap gap-3">
           <label className="flex flex-col gap-1 text-sm text-stone-700">
@@ -58,11 +66,23 @@ export default async function AdminBlockedTimesPage() {
           </label>
           <label className="flex flex-col gap-1 text-sm text-stone-700">
             시작
-            <input type="time" name="startTime" defaultValue="10:00" className="rounded-lg border border-stone-300 px-3 py-2 text-sm" />
+            <select name="startTime" defaultValue="10:00" className="rounded-lg border border-stone-300 px-3 py-2 text-sm">
+              {START_TIME_OPTIONS.map((time) => (
+                <option key={time} value={time}>
+                  {timeOptionLabel(time)}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="flex flex-col gap-1 text-sm text-stone-700">
             종료
-            <input type="time" name="endTime" defaultValue="21:00" className="rounded-lg border border-stone-300 px-3 py-2 text-sm" />
+            <select name="endTime" defaultValue="21:00" className="rounded-lg border border-stone-300 px-3 py-2 text-sm">
+              {END_TIME_OPTIONS.map((time) => (
+                <option key={time} value={time}>
+                  {timeOptionLabel(time)}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="flex items-center gap-2 self-end pb-2 text-sm text-stone-700">
             <input type="checkbox" name="fullDay" /> 하루 종일 (휴무일)
@@ -82,17 +102,22 @@ export default async function AdminBlockedTimesPage() {
         </button>
       </form>
 
-      <ul className="divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white">
+      <ul className="divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white shadow-sm">
         {blocks.length === 0 ? (
           <li className="p-4 text-sm text-stone-500">예정된 차단 시간이 없습니다.</li>
         ) : (
           blocks.map((b) => (
             <li key={b.id} className="flex items-center justify-between gap-3 p-4 text-sm">
               <div>
-                <p className="font-medium text-stone-900">
-                  {b.dateKey} · {b.fullDay ? "하루 종일" : `${formatTimeLabel(b.startTime, "ko")} - ${formatTimeLabel(b.endTime, "ko")}`}
+                <p className="flex flex-wrap items-center gap-2 font-medium text-stone-900">
+                  {b.dateKey}
+                  {b.fullDay ? (
+                    <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">휴무일</span>
+                  ) : (
+                    <span>{formatTimeLabel(b.startTime, "ko")} - {formatTimeLabel(b.endTime, "ko")}</span>
+                  )}
                 </p>
-                {b.reason ? <p className="text-stone-500">{b.reason}</p> : null}
+                {b.reason ? <p className="mt-1 text-stone-500">{b.reason}</p> : null}
               </div>
               <form action={removeBlockedTimeAction.bind(null, b.id)}>
                 <ConfirmSubmitButton
