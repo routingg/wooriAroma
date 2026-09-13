@@ -4,6 +4,7 @@ import { getServiceOption } from "@/data/services";
 import type { AppLocale } from "@/i18n/routing";
 import { calculateBlockedTime, type BlockedWindow } from "@/lib/booking/availability";
 import { fromMinutes, toMinutes } from "@/lib/booking/time";
+import { getBookingSettings } from "./bookingSettingsRepository";
 import { calculateDepositAmount, calculateRemainingAmount, calculateTotalAmount } from "@/lib/booking/pricing";
 import { BookingError } from "@/lib/booking/errors";
 import { nextReservationNumber } from "@/lib/booking/reservationNumber";
@@ -160,7 +161,8 @@ export async function createHold(request: ReservationHoldRequest): Promise<Creat
   const nowIso = now.toISOString();
 
   const serviceEnd = fromMinutes(toMinutes(request.time) + option.durationMinutes);
-  const blocked = calculateBlockedTime(request.time, serviceEnd);
+  const settings = await getBookingSettings();
+  const blocked = calculateBlockedTime(request.time, serviceEnd, settings.prepMinutes, settings.cleanupMinutes);
 
   const { customer, statement: customerStatement } = prepareBookingCustomer({
     name: request.customer.name,

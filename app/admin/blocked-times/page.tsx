@@ -1,15 +1,16 @@
 import { requireAdmin } from "@/lib/admin/auth";
 import Link from "next/link";
 import { listUpcomingBlockedTimes } from "@/lib/repositories/blockedTimeRepository";
+import { getBookingSettings } from "@/lib/repositories/bookingSettingsRepository";
 import { getSeoulNow } from "@/lib/booking/timezone";
 import { formatTimeLabel } from "@/lib/booking/time";
 import { ConfirmSubmitButton } from "@/components/admin/ConfirmSubmitButton";
-import { createBlockedTimeAction, removeBlockedTimeAction } from "../actions";
+import { createBlockedTimeAction, removeBlockedTimeAction, updateBookingSettingsAction } from "../actions";
 
 export default async function AdminBlockedTimesPage() {
   await requireAdmin();
   const today = getSeoulNow().dateKey;
-  const blocks = await listUpcomingBlockedTimes(today);
+  const [blocks, settings] = await Promise.all([listUpcomingBlockedTimes(today), getBookingSettings()]);
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-6 py-10">
@@ -19,6 +20,40 @@ export default async function AdminBlockedTimesPage() {
           ← 대시보드
         </Link>
       </div>
+
+      <form action={updateBookingSettingsAction} className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4">
+        <h2 className="text-sm font-semibold text-stone-900">예약 준비/정리 시간</h2>
+        <p className="text-xs text-stone-500">
+          모든 예약 앞뒤로 자동으로 차단되는 시간입니다. 시술 종료와 동시에 다음 예약이 시작되길 원하면 0으로 두세요.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <label className="flex flex-col gap-1 text-sm text-stone-700">
+            준비 시간 (분)
+            <input
+              type="number"
+              name="prepMinutes"
+              min={0}
+              max={180}
+              defaultValue={settings.prepMinutes}
+              className="w-28 rounded-lg border border-stone-300 px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm text-stone-700">
+            정리 시간 (분)
+            <input
+              type="number"
+              name="cleanupMinutes"
+              min={0}
+              max={180}
+              defaultValue={settings.cleanupMinutes}
+              className="w-28 rounded-lg border border-stone-300 px-3 py-2 text-sm"
+            />
+          </label>
+        </div>
+        <button type="submit" className="w-fit rounded-lg bg-stone-900 px-4 py-2 text-sm text-white">
+          저장
+        </button>
+      </form>
 
       <form action={createBlockedTimeAction} className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4">
         <h2 className="text-sm font-semibold text-stone-900">차단 추가</h2>

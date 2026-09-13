@@ -7,9 +7,17 @@ import {
 } from "@/lib/booking/availability";
 
 describe("calculateBlockedTime", () => {
-  it("adds the 60-minute prep and cleanup buffer around the treatment window", () => {
+  it("adds the default 60-minute prep and cleanup buffer around the treatment window", () => {
     // AGENTS.md example: Aroma Oil 90 min, 16:00-17:30 -> blocked 15:00-18:30.
     expect(calculateBlockedTime("16:00", "17:30")).toEqual({ start: "15:00", end: "18:30" });
+  });
+
+  it("uses an admin-configured buffer instead of the default when given one", () => {
+    expect(calculateBlockedTime("16:00", "17:30", 15, 30)).toEqual({ start: "15:45", end: "18:00" });
+  });
+
+  it("supports a zero buffer — back-to-back treatments with no gap", () => {
+    expect(calculateBlockedTime("16:00", "17:30", 0, 0)).toEqual({ start: "16:00", end: "17:30" });
   });
 });
 
@@ -95,5 +103,22 @@ describe("generateAvailableSlots", () => {
     expect(at1400?.available).toBe(false);
     expect(at1600?.available).toBe(false);
     expect(at1700?.available).toBe(true);
+  });
+
+  it("respects an admin-configured zero buffer: back-to-back reservations with no gap are both available", () => {
+    const now = { dateKey: "2026-08-10", minutes: 9 * 60 };
+    // A confirmed 16:00-17:30 treatment, stored with the zero buffer in effect when it was booked.
+    const slots = generateAvailableSlots("2026-08-10", 90, [{ start: "16:00", end: "17:30" }], [], now, {
+      prepMinutes: 0,
+      cleanupMinutes: 0,
+    });
+
+    const at1430 = slots.find((s) => s.time === "14:30"); // 90min -> 14:30-16:00, ends exactly when the existing one starts
+    const at1600 = slots.find((s) => s.time === "16:00"); // starts exactly when the existing one starts — real conflict
+    const at1730 = slots.find((s) => s.time === "17:30"); // starts exactly when the existing one ends — no buffer to wait out
+
+    expect(at1430?.available).toBe(true);
+    expect(at1600?.available).toBe(false);
+    expect(at1730?.available).toBe(true);
   });
 });

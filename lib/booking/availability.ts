@@ -2,9 +2,14 @@ import { fromMinutes, rangesOverlap, toMinutes, type TimeRange } from "./time";
 import { getSeoulNow, type SeoulNow } from "./timezone";
 import type { TimeSlot } from "@/types/booking";
 
-/** Minutes required to set up before, and reset after, every treatment. */
-export const PREP_MINUTES = 60;
-export const CLEANUP_MINUTES = 60;
+/**
+ * Historical hardcoded minutes to set up before, and reset after, every
+ * treatment — now admin-configurable (lib/repositories/bookingSettingsRepository.ts).
+ * These remain only as the fallback/default for callers that don't pass an
+ * explicit buffer (mainly tests).
+ */
+export const DEFAULT_PREP_MINUTES = 60;
+export const DEFAULT_CLEANUP_MINUTES = 60;
 
 /**
  * Fixed customer-facing start-time grid. 21:00 is the latest
@@ -40,12 +45,17 @@ export function generateBaseTimeSlots(): string[] {
  * Given the customer-facing treatment window, returns the full
  * blocked window including prep and cleanup buffers.
  *
- * Example: Aroma Oil 16:00–17:30 → blocked 15:00–18:30.
+ * Example (default 60/60 buffer): Aroma Oil 16:00–17:30 → blocked 15:00–18:30.
  */
-export function calculateBlockedTime(serviceStart: string, serviceEnd: string): BlockedWindow {
+export function calculateBlockedTime(
+  serviceStart: string,
+  serviceEnd: string,
+  prepMinutes: number = DEFAULT_PREP_MINUTES,
+  cleanupMinutes: number = DEFAULT_CLEANUP_MINUTES,
+): BlockedWindow {
   return {
-    start: fromMinutes(toMinutes(serviceStart) - PREP_MINUTES),
-    end: fromMinutes(toMinutes(serviceEnd) + CLEANUP_MINUTES),
+    start: fromMinutes(toMinutes(serviceStart) - prepMinutes),
+    end: fromMinutes(toMinutes(serviceEnd) + cleanupMinutes),
   };
 }
 
@@ -90,7 +100,9 @@ export function isSlotInPast(dateKey: string, time: string, now: SeoulNow = getS
  * `reservationBlockedWindows` and `adminBlockedWindows` come from the
  * database — see lib/booking/availabilityService.ts, which wires this
  * pure function up to lib/repositories/reservationRepository.ts and
- * blockedTimeRepository.ts.
+ * blockedTimeRepository.ts. `buffer` is the admin-configurable prep/cleanup
+ * setting (lib/repositories/bookingSettingsRepository.ts); it defaults to
+ * the historical 60/60 minutes for callers (mainly tests) that don't pass one.
  */
 export function generateAvailableSlots(
   dateKey: string,
@@ -98,10 +110,14 @@ export function generateAvailableSlots(
   reservationBlockedWindows: BlockedWindow[],
   adminBlockedWindows: BlockedWindow[] = [],
   now: SeoulNow = getSeoulNow(),
+  buffer: { prepMinutes: number; cleanupMinutes: number } = {
+    prepMinutes: DEFAULT_PREP_MINUTES,
+    cleanupMinutes: DEFAULT_CLEANUP_MINUTES,
+  },
 ): TimeSlot[] {
   return generateBaseTimeSlots().map((time) => {
     const serviceEnd = fromMinutes(toMinutes(time) + durationMinutes);
-    const blocked = calculateBlockedTime(time, serviceEnd);
+    const blocked = calculateBlockedTime(time, serviceEnd, buffer.prepMinutes, buffer.cleanupMinutes);
     const past = isSlotInPast(dateKey, time, now);
     const reservationConflict = checkBookingConflict(blocked, reservationBlockedWindows);
     const adminConflict = checkBookingConflict({ start: time, end: serviceEnd }, adminBlockedWindows);

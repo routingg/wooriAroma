@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getById, softDeleteReservation, updateStatus, type ReservationStatus } from "@/lib/repositories/reservationRepository";
 import { createBlockedTime, removeBlockedTime } from "@/lib/repositories/blockedTimeRepository";
+import { updateBookingSettings } from "@/lib/repositories/bookingSettingsRepository";
 import { resolveHandoff } from "@/lib/repositories/agentHandoffRepository";
 import { notifyReservationCancelled } from "@/lib/booking/reservationNotifications";
 import { recordAttempt } from "@/lib/repositories/notificationRepository";
@@ -110,6 +111,25 @@ export async function removeBlockedTimeAction(id: string) {
   await removeBlockedTime(id);
   revalidatePath("/admin/blocked-times");
   revalidatePath("/admin");
+}
+
+const MAX_BUFFER_MINUTES = 180;
+
+/** Clamps to a sane non-negative range — 0 is a valid, intentional choice (no buffer at all). */
+function parseBufferMinutes(value: FormDataEntryValue | null, fallback: number): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(MAX_BUFFER_MINUTES, Math.max(0, Math.round(parsed)));
+}
+
+/** Admin-configurable prep/cleanup buffer around every reservation — see lib/booking/availability.ts. */
+export async function updateBookingSettingsAction(formData: FormData) {
+  await requireAdmin();
+  const prepMinutes = parseBufferMinutes(formData.get("prepMinutes"), 60);
+  const cleanupMinutes = parseBufferMinutes(formData.get("cleanupMinutes"), 60);
+
+  await updateBookingSettings({ prepMinutes, cleanupMinutes });
+  revalidatePath("/admin/blocked-times");
 }
 
 export async function resolveHandoffAction(id: string, formData: FormData) {

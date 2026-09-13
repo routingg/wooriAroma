@@ -8,6 +8,7 @@ import {
   submitReservationRequest,
 } from "@/lib/repositories/reservationRepository";
 import { createBlockedTime } from "@/lib/repositories/blockedTimeRepository";
+import { updateBookingSettings } from "@/lib/repositories/bookingSettingsRepository";
 import { getAvailableSlotsForDate } from "@/lib/booking/availabilityService";
 import { BookingError } from "@/lib/booking/errors";
 import type { ReservationHoldRequest } from "@/lib/booking/validation";
@@ -166,6 +167,34 @@ describe("T10: admin manual block excludes the slot from customer availability",
     expect(at16?.available).toBe(false);
 
     await expect(createHold(holdRequest({ date, time: "16:00" }))).rejects.toThrowError(BookingError);
+  });
+});
+
+describe("admin-configurable prep/cleanup buffer", () => {
+  it("locks in the buffer at hold-creation time, so back-to-back holds succeed once the admin sets it to zero", async () => {
+    const date = futureDateKey(5);
+    await updateBookingSettings({ prepMinutes: 0, cleanupMinutes: 0 });
+
+    const first = await createHold(holdRequest({ date, time: "16:00" })); // aroma-oil-90 -> 16:00-17:30
+    await submitReservationRequest({ holdId: first.reservation.id });
+
+    // With no buffer configured, a treatment starting exactly when the prior one ends is not a conflict.
+    const second = await createHold(
+      holdRequest({ date, time: "17:30", customer: { ...holdRequest().customer, email: "second@example.com" } }),
+    );
+    expect(second.reservation.serviceStart).toBe("17:30");
+  });
+
+  it("still enforces the default 60-minute buffer when the admin hasn't changed it", async () => {
+    const date = futureDateKey(5);
+    const { reservation } = await createHold(holdRequest({ date, time: "16:00" })); // -> blocked 15:00-18:30
+    await submitReservationRequest({ holdId: reservation.id });
+
+    await expect(
+      createHold(
+        holdRequest({ date, time: "17:30", customer: { ...holdRequest().customer, email: "third@example.com" } }),
+      ),
+    ).rejects.toThrowError(BookingError);
   });
 });
 
