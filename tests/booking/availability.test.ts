@@ -66,7 +66,7 @@ describe("isSlotInPast — Asia/Seoul, today-only restriction", () => {
 describe("generateAvailableSlots", () => {
   it("marks slots unavailable only when past or conflicting, leaving everything else available", () => {
     const now = { dateKey: "2026-08-10", minutes: 9 * 60 }; // 09:00, before the 10:00 grid opens
-    const slots = generateAvailableSlots("2026-08-10", 90, [{ start: "13:00", end: "15:30" }], now);
+    const slots = generateAvailableSlots("2026-08-10", 90, [{ start: "13:00", end: "15:30" }], [], now);
 
     const at12 = slots.find((s) => s.time === "12:00"); // 90min -> blocked 11:00-14:30
     const at13 = slots.find((s) => s.time === "13:00"); // 90min -> blocked 12:00-15:30
@@ -77,5 +77,23 @@ describe("generateAvailableSlots", () => {
     expect(at13?.available).toBe(false); // overlaps existing 13:00-15:30
     expect(at16?.available).toBe(false); // overlaps existing 13:00-15:30
     expect(at1630?.available).toBe(true); // starts exactly when the existing window's buffer ends
+  });
+
+  it("admin blocks only exclude their exact clock-time window, without a prep/cleanup spillover", () => {
+    const now = { dateKey: "2026-08-10", minutes: 9 * 60 };
+    // Admin block 15:00-17:00 — a raw closure window, distinct from a reservation's buffered one.
+    const slots = generateAvailableSlots("2026-08-10", 90, [], [{ start: "15:00", end: "17:00" }], now);
+
+    const at1230 = slots.find((s) => s.time === "12:30"); // 90min -> 12:30-14:00, before the block
+    const at1330 = slots.find((s) => s.time === "13:30"); // 90min -> 13:30-15:00, touches the block boundary only
+    const at1400 = slots.find((s) => s.time === "14:00"); // 90min -> 14:00-15:30, overlaps the block
+    const at1600 = slots.find((s) => s.time === "16:00"); // 90min -> 16:00-17:30, overlaps the block
+    const at1700 = slots.find((s) => s.time === "17:00"); // 90min -> 17:00-18:30, starts exactly when the block ends
+
+    expect(at1230?.available).toBe(true);
+    expect(at1330?.available).toBe(true);
+    expect(at1400?.available).toBe(false);
+    expect(at1600?.available).toBe(false);
+    expect(at1700?.available).toBe(true);
   });
 });

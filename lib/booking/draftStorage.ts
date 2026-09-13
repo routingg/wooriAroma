@@ -4,6 +4,8 @@ import { BOOKING_STEPS, emptyBookingDraft, type BookingDraft, type BookingDetail
 export const BOOKING_STORAGE_KEY = "wa_booking_draft";
 export const BOOKING_SESSION_KEY = "wa_booking_session";
 export const BOOKING_SESSION_TTL_MS = 30 * 60 * 1000;
+/** How long an abandoned (never submitted) draft's choices survive in localStorage before a fresh visit starts clean. */
+export const BOOKING_DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
 
 type DraftStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
@@ -64,15 +66,31 @@ function details(value: unknown): BookingDetailsDraft | null {
   };
 }
 
+type Choices = ReturnType<typeof selections>;
+
+/** Reads persisted choices, treating anything older than BOOKING_DRAFT_TTL_MS (or in the legacy unwrapped shape) as expired. */
+function readChoices(storage: DraftStorage | undefined, now: number): Choices {
+  const raw = record(read(storage, BOOKING_STORAGE_KEY));
+  const savedAt = typeof raw.savedAt === "number" ? raw.savedAt : null;
+  if (savedAt === null || savedAt > now || now - savedAt > BOOKING_DRAFT_TTL_MS) {
+    write(storage, BOOKING_STORAGE_KEY, null);
+    return selections(null);
+  }
+  return selections(raw.choices);
+}
+
+/** `choices: null` clears storage outright — used once a reservation completes, so a later visit starts clean. */
+function writeChoices(storage: DraftStorage | undefined, choices: Choices | null, now: number): void {
+  write(storage, BOOKING_STORAGE_KEY, choices ? { savedAt: now, choices } : null);
+}
+
 /** Durable storage contains choices only. Contact details expire within this tab. */
 export function loadBookingDraft(
   local: DraftStorage | undefined,
   session: DraftStorage | undefined,
   now = Date.now(),
 ): BookingDraft {
-  const choices = selections(read(local, BOOKING_STORAGE_KEY));
-  // Rewrite legacy full drafts immediately, removing contact data and booking numbers.
-  write(local, BOOKING_STORAGE_KEY, choices);
+  const choices = readChoices(local, now);
   const saved = record(read(session, BOOKING_SESSION_KEY));
   if (typeof saved.expiresAt !== "number" || saved.expiresAt <= now || saved.expiresAt > now + BOOKING_SESSION_TTL_MS) {
     write(session, BOOKING_SESSION_KEY, null);
@@ -94,7 +112,12 @@ export function saveBookingDraft(
   session: DraftStorage | undefined,
   now = Date.now(),
 ): void {
-  write(local, BOOKING_STORAGE_KEY, selections(draft));
+  // A completed booking (reservation number issued, or the confirmation
+  // step reached) clears the durable choices right away, rather than
+  // waiting for the customer to click "book another" — otherwise the next
+  // visit resumes mid-wizard with a stale, already-booked date/time.
+  const completed = draft.step === "confirmation" || draft.reservationNumber !== null;
+  writeChoices(local, completed ? null : selections(draft), now);
   write(session, BOOKING_SESSION_KEY, draft.details || draft.reservationNumber
     ? { expiresAt: now + BOOKING_SESSION_TTL_MS, draft }
     : null);

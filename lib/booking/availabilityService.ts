@@ -13,6 +13,5 @@ import { getAdminBlockedWindows } from "@/lib/repositories/blockedTimeRepository
  */
 export async function getAvailableSlotsForDate(dateKey: string, durationMinutes: number): Promise<TimeSlot[]> {
   const [active, admin] = await Promise.all([getActiveBlockedWindows(dateKey), getAdminBlockedWindows(dateKey)]);
-  const blockedWindows = [...active, ...admin];
-  return generateAvailableSlots(dateKey, durationMinutes, blockedWindows, getSeoulNow());
+  return generateAvailableSlots(dateKey, durationMinutes, active, admin, getSeoulNow());
 }

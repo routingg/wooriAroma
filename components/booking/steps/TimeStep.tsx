@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useBooking } from "../BookingProvider";
 import { StepShell } from "../StepShell";
 import { PrimaryButton } from "@/components/common/PrimaryButton";
+import { SecondaryButton } from "@/components/common/SecondaryButton";
 import { getServiceOption } from "@/data/services";
 import { formatTimeLabel } from "@/lib/booking/time";
 import type { TimeSlot } from "@/types/booking";
@@ -15,7 +16,7 @@ export function TimeStep() {
   const t = useTranslations("steps.time");
   const tCommon = useTranslations("common");
   const locale = useLocale();
-  const { draft, setTime, goNext } = useBooking();
+  const { draft, setTime, goNext, goBack } = useBooking();
 
   const option = draft.serviceOptionId ? getServiceOption(draft.serviceOptionId) : undefined;
 
@@ -53,9 +54,14 @@ export function TimeStep() {
       title={t("title")}
       subtitle={t("subtitle")}
       footer={
-        <PrimaryButton disabled={!draft.time || state !== "ready"} onClick={goNext}>
-          {tCommon("next")}
-        </PrimaryButton>
+        <div className="flex items-center gap-3">
+          <SecondaryButton onClick={goBack}>{tCommon("back")}</SecondaryButton>
+          <div className="flex-1">
+            <PrimaryButton disabled={!draft.time || state !== "ready"} onClick={goNext}>
+              {tCommon("next")}
+            </PrimaryButton>
+          </div>
+        </div>
       }
     >
       {state === "loading" ? (

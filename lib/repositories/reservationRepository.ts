@@ -199,6 +199,10 @@ export async function createHold(request: ReservationHoldRequest): Promise<Creat
         WHERE bt.date_key = ?
           AND ? < bt.end_time AND bt.start_time < ?
       )`,
+      // Note: the blocked_times check compares the raw treatment window
+      // (request.time..serviceEnd), not the prep/cleanup-buffered one —
+      // an admin closure blocks exactly the clock time entered, see
+      // lib/booking/availability.ts.
     )
     .bind(
       id,
@@ -227,10 +231,11 @@ export async function createHold(request: ReservationHoldRequest): Promise<Creat
       nowIso,
       blocked.start,
       blocked.end,
-      // NOT EXISTS #2 — overlapping admin blocked_times
+      // NOT EXISTS #2 — overlapping admin blocked_times: raw treatment
+      // window, not the prep/cleanup-buffered one (see comment above).
       request.date,
-      blocked.start,
-      blocked.end,
+      request.time,
+      serviceEnd,
     );
 
   // D1 batches are transactional: a failed write rolls back both records.
@@ -287,7 +292,7 @@ export async function submitReservationRequest(input: SubmitReservationInput): P
          AND NOT EXISTS (
            SELECT 1 FROM blocked_times bt
            WHERE bt.date_key = reservations.date_key
-             AND reservations.blocked_start < bt.end_time AND bt.start_time < reservations.blocked_end
+             AND reservations.service_start < bt.end_time AND bt.start_time < reservations.service_end
          )`,
     )
     .bind(nowIso, input.holdId, nowIso, nowIso)
@@ -332,7 +337,7 @@ export async function confirmReservation(input: ConfirmReservationInput): Promis
          AND NOT EXISTS (
            SELECT 1 FROM blocked_times bt
            WHERE bt.date_key = reservations.date_key
-             AND reservations.blocked_start < bt.end_time AND bt.start_time < reservations.blocked_end
+             AND reservations.service_start < bt.end_time AND bt.start_time < reservations.service_end
          )`,
     )
     .bind(input.depositTransactionId, nowIso, input.holdId, nowIso, nowIso)

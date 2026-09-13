@@ -5,6 +5,7 @@ import { useState, type FormEvent } from "react";
 import { useBooking } from "../BookingProvider";
 import { StepShell } from "../StepShell";
 import { PrimaryButton } from "@/components/common/PrimaryButton";
+import { SecondaryButton } from "@/components/common/SecondaryButton";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { localeNames } from "@/i18n/config";
 import {
@@ -23,7 +24,7 @@ export function DetailsStep() {
   const tCommon = useTranslations("common");
   const tValidation = useTranslations("validation");
   const locale = useLocale() as AppLocale;
-  const { draft, setDetails, goNext } = useBooking();
+  const { draft, setDetails, goNext, goBack } = useBooking();
 
   const [form, setForm] = useState<BookingDetailsDraft>(
     draft.details ?? {
@@ -74,9 +75,14 @@ export function DetailsStep() {
       title={t("title")}
       subtitle={t("subtitle")}
       footer={
-        <PrimaryButton form="details-form" type="submit">
-          {tCommon("continue")}
-        </PrimaryButton>
+        <div className="flex items-center gap-3">
+          <SecondaryButton onClick={goBack}>{tCommon("back")}</SecondaryButton>
+          <div className="flex-1">
+            <PrimaryButton form="details-form" type="submit">
+              {tCommon("continue")}
+            </PrimaryButton>
+          </div>
+        </div>
       }
     >
       <form id="details-form" onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>

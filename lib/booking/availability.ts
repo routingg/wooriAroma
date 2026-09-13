@@ -77,25 +77,35 @@ export function isSlotInPast(dateKey: string, time: string, now: SeoulNow = getS
  * Produces every slot on the fixed start-time grid for a treatment of
  * the given duration on `dateKey`, marking each as available/
  * unavailable based on: whether it has already passed (Asia/Seoul),
- * and whether its prep/cleanup-inclusive blocked window conflicts
- * with an already-booked group.
+ * whether its prep/cleanup-inclusive blocked window conflicts with an
+ * already-booked group, and whether its raw treatment window (no
+ * prep/cleanup buffer) falls inside an admin manual block.
  *
- * `existingBlockedWindows` comes from the database — see
- * lib/booking/availabilityService.ts, which wires this pure function up to
- * lib/repositories/reservationRepository.ts and blockedTimeRepository.ts.
+ * Admin blocks (closures, maintenance) are compared against the exact
+ * customer-facing treatment window, not the buffered one: a closure
+ * only takes the clock time the admin entered, it doesn't additionally
+ * swallow the neighboring prep/cleanup slots the way another booking
+ * would.
+ *
+ * `reservationBlockedWindows` and `adminBlockedWindows` come from the
+ * database — see lib/booking/availabilityService.ts, which wires this
+ * pure function up to lib/repositories/reservationRepository.ts and
+ * blockedTimeRepository.ts.
  */
 export function generateAvailableSlots(
   dateKey: string,
   durationMinutes: number,
-  existingBlockedWindows: BlockedWindow[],
+  reservationBlockedWindows: BlockedWindow[],
+  adminBlockedWindows: BlockedWindow[] = [],
   now: SeoulNow = getSeoulNow(),
 ): TimeSlot[] {
   return generateBaseTimeSlots().map((time) => {
     const serviceEnd = fromMinutes(toMinutes(time) + durationMinutes);
     const blocked = calculateBlockedTime(time, serviceEnd);
     const past = isSlotInPast(dateKey, time, now);
-    const conflict = checkBookingConflict(blocked, existingBlockedWindows);
+    const reservationConflict = checkBookingConflict(blocked, reservationBlockedWindows);
+    const adminConflict = checkBookingConflict({ start: time, end: serviceEnd }, adminBlockedWindows);
 
-    return { time, available: !past && !conflict };
+    return { time, available: !past && !reservationConflict && !adminConflict };
   });
 }

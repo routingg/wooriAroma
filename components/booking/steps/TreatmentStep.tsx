@@ -4,13 +4,14 @@ import { useTranslations } from "next-intl";
 import { useBooking } from "../BookingProvider";
 import { StepShell } from "../StepShell";
 import { PrimaryButton } from "@/components/common/PrimaryButton";
+import { SecondaryButton } from "@/components/common/SecondaryButton";
 import { services } from "@/data/services";
 
 export function TreatmentStep() {
   const t = useTranslations("steps.treatment");
   const tCommon = useTranslations("common");
   const tServices = useTranslations("services");
-  const { draft, setTreatment, goNext } = useBooking();
+  const { draft, setTreatment, goNext, goBack } = useBooking();
 
   const sortedServices = [...services].sort((a, b) => a.order - b.order);
 
@@ -19,9 +20,14 @@ export function TreatmentStep() {
       title={t("title")}
       subtitle={t("subtitle")}
       footer={
-        <PrimaryButton disabled={!draft.serviceId} onClick={goNext}>
-          {tCommon("next")}
-        </PrimaryButton>
+        <div className="flex items-center gap-3">
+          <SecondaryButton onClick={goBack}>{tCommon("back")}</SecondaryButton>
+          <div className="flex-1">
+            <PrimaryButton disabled={!draft.serviceId} onClick={goNext}>
+              {tCommon("next")}
+            </PrimaryButton>
+          </div>
+        </div>
       }
     >
       <div className="flex flex-col gap-3">

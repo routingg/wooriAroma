@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useBooking } from "../BookingProvider";
 import { StepShell } from "../StepShell";
 import { PrimaryButton } from "@/components/common/PrimaryButton";
+import { SecondaryButton } from "@/components/common/SecondaryButton";
 import { getService, getServiceOption } from "@/data/services";
 import { calculateTotalAmount, formatCurrency } from "@/lib/booking/pricing";
 import { formatTimeLabel } from "@/lib/booking/time";
@@ -14,7 +15,7 @@ export function ReviewStep() {
   const tCommon = useTranslations("common");
   const tServices = useTranslations("services");
   const locale = useLocale() as AppLocale;
-  const { draft, goNext, goToStep } = useBooking();
+  const { draft, goNext, goBack, goToStep } = useBooking();
 
   const option = draft.serviceOptionId ? getServiceOption(draft.serviceOptionId) : undefined;
   const service = option ? getService(option.serviceId) : undefined;
@@ -36,7 +37,12 @@ export function ReviewStep() {
     <StepShell
       title={t("title")}
       footer={
-        <PrimaryButton onClick={goNext}>{t("submitRequest")}</PrimaryButton>
+        <div className="flex items-center gap-3">
+          <SecondaryButton onClick={goBack}>{tCommon("back")}</SecondaryButton>
+          <div className="flex-1">
+            <PrimaryButton onClick={goNext}>{t("submitRequest")}</PrimaryButton>
+          </div>
+        </div>
       }
     >
       <div className="flex flex-col gap-4">
